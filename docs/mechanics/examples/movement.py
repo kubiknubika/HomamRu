@@ -198,7 +198,26 @@ def show_calendar():
         print(f"день партии {day}: месяц {month}, неделя {week}, день недели {weekday}")
 
 
+def show_load_maps():
+    """Стоимости путей на картах 144×144 из теста бюджета скорости."""
+    print("\n== Нагрузочные карты 144×144 ==")
+    size = 144
+    field = ["." * size] * size
+    snake = []
+    for y in range(size):
+        if y % 2 == 0:
+            snake.append("." * size)
+        elif y % 4 == 1:
+            snake.append("#" * (size - 1) + ".")
+        else:
+            snake.append("." + "#" * (size - 1))
+    for name, rows in [("открытое поле", field), ("змейка", snake)]:
+        path = shortest_path(parse(rows), (0, 0), (size - 1, size - 2))
+        print(f"{name}: шагов {len(path)}, стоимость {cost_of(path)}")
+
+
 if __name__ == "__main__":
     show_budget()
     show_paths()
     show_calendar()
+    show_load_maps()

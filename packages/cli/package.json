@@ -1,0 +1,18 @@
+{
+  "name": "@homamru/cli",
+  "version": "0.0.0",
+  "private": true,
+  "license": "GPL-3.0-or-later",
+  "type": "module",
+  "scripts": {
+    "play": "node src/main.ts",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@homamru/core": "workspace:*",
+    "@homamru/data": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.4"
+  }
+}

@@ -22,6 +22,7 @@
 pnpm install     # зависимости (нужны Node.js 22+ и pnpm 12)
 pnpm run dev     # игра в браузере
 pnpm run check   # полная проверка
+pnpm run play    # проиграть сценарии в консоли
 ```
 
 ## Лицензия

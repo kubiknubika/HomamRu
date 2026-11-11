@@ -1,0 +1,12 @@
+name: Герой упирается в преграду
+map: test-small
+seed: 1
+steps:
+  - move: { hero: A, path: [S] }
+  - endTurn: {}
+  - move: { hero: A, path: [E] }
+    expectError: STEP_BLOCKED
+expect:
+  day: 2
+  heroes:
+    A: { x: 1, y: 2 }

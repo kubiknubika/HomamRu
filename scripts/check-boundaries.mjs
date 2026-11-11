@@ -1,5 +1,5 @@
 // Проверяет границы пакетов (догма 5): ядро не зависит ни от чего,
-// пакет данных не зависит от отрисовки и интерфейса.
+// пакет данных не зависит от отрисовки и интерфейса (от ядра — может).
 // Запуск: pnpm run boundaries
 import { readdirSync, readFileSync } from "node:fs";
 import { dirname, join, relative } from "node:path";

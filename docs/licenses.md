@@ -45,4 +45,4 @@
 | typescript | Apache-2.0 | проверка типов |
 | oxlint, oxfmt | MIT | линтер и форматтер |
 | knip | ISC | поиск мёртвого кода |
-| @types/react, @types/react-dom | MIT | типы |
+| @types/react, @types/react-dom, @types/node | MIT | типы |

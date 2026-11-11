@@ -14,7 +14,8 @@
     "test": "vitest run",
     "knip": "KNIP_DISABLE_RAW_TRANSFER=1 knip",
     "build": "pnpm --filter @homamru/client run build",
-    "dev": "pnpm --filter @homamru/client run dev"
+    "dev": "pnpm --filter @homamru/client run dev",
+    "play": "pnpm --filter @homamru/cli run play"
   },
   "devDependencies": {
     "knip": "6.44.2",

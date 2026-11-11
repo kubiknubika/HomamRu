@@ -1,0 +1,9 @@
+name: Герой срезает угол одной преграды
+map: test-small
+seed: 1
+steps:
+  - move: { hero: A, path: [S, SE] }
+expect:
+  day: 1
+  heroes:
+    A: { x: 2, y: 3, movement: 759 }
