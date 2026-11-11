@@ -200,6 +200,9 @@ importers:
       '@homamru/core':
         specifier: workspace:*
         version: link:../core
+      '@homamru/data':
+        specifier: workspace:*
+        version: link:../data
       phaser:
         specifier: 4.2.1
         version: 4.2.1
