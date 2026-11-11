@@ -3,7 +3,7 @@
  * меняют масштаб, короткое касание без сдвига считается выбором клетки.
  */
 import * as Phaser from "phaser";
-import { cameraBounds, clampZoom, NORMAL_ZOOM } from "./geometry.ts";
+import { CAMERA_MARGIN_PX, cameraBounds, clampZoom, NORMAL_ZOOM } from "./geometry.ts";
 
 /** Сдвиг пальца в пикселях экрана, после которого касание уже не выбор клетки. */
 const TAP_SLOP = 10;
@@ -27,8 +27,9 @@ export function installCameraControl(scene: Phaser.Scene, options: CameraControl
   let gestureMoved = false;
 
   function applyBounds(): void {
-    const horizontal = cameraBounds(options.worldWidth, camera.displayWidth);
-    const vertical = cameraBounds(options.worldHeight, camera.displayHeight);
+    const margin = CAMERA_MARGIN_PX / camera.zoom;
+    const horizontal = cameraBounds(options.worldWidth, camera.displayWidth, margin);
+    const vertical = cameraBounds(options.worldHeight, camera.displayHeight, margin);
     camera.setBounds(horizontal.start, vertical.start, horizontal.size, vertical.size);
     camera.setScroll(camera.clampX(camera.scrollX), camera.clampY(camera.scrollY));
   }

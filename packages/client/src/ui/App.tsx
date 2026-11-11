@@ -1,33 +1,44 @@
-import { calendarOf, DAILY_MOVEMENT } from "@homamru/core";
-import { useSyncExternalStore } from "react";
-import { activeHero } from "../game/session.ts";
-import type { Session } from "../game/session.ts";
+import { useEffect, useMemo, useState } from "react";
+import { createGame } from "../game/createGame.ts";
+import { createFrameMeter } from "../game/frameMeter.ts";
+import { MAP_COUNT, mapLabel, startGame } from "../game/maps.ts";
+import { createSession } from "../game/session.ts";
+import { FrameCounter } from "./FrameCounter.tsx";
+import { Hud } from "./Hud.tsx";
 
 interface AppProps {
-  readonly session: Session;
+  /** Элемент страницы, в котором Phaser рисует карту. */
+  readonly gameParent: HTMLElement;
 }
 
-/** Интерфейс поверх карты: дата, запас хода героя, кнопка конца дня. */
-export function App({ session }: AppProps) {
-  const { state } = useSyncExternalStore(session.subscribe, session.getSnapshot);
-  const { month, week, weekday } = calendarOf(state.day);
-  const hero = activeHero(state);
+/** Держит партию и холст Phaser; при смене карты начинает партию заново. */
+export function App({ gameParent }: AppProps) {
+  const [mapIndex, setMapIndex] = useState(0);
+  const session = useMemo(() => createSession(startGame(mapIndex)), [mapIndex]);
+  const frameMeter = useMemo(() => createFrameMeter(), []);
+
+  useEffect(() => {
+    const game = createGame(gameParent, session, frameMeter);
+    return () => {
+      game.destroy(true);
+    };
+  }, [gameParent, session, frameMeter]);
 
   return (
     <>
-      <div className="hud hud-info">
-        <div className="hud-date">
-          Месяц {month}, неделя {week}, день {weekday}
-        </div>
-        {hero !== undefined && (
-          <div className="hud-movement">
-            Запас хода: {hero.movement} из {DAILY_MOVEMENT}
-          </div>
-        )}
+      <Hud session={session} />
+      <div className="hud-debug">
+        <FrameCounter frameMeter={frameMeter} />
+        <button
+          type="button"
+          className="hud hud-map-switch"
+          onClick={() => {
+            setMapIndex((mapIndex + 1) % MAP_COUNT);
+          }}
+        >
+          Карта: {mapLabel(mapIndex)}
+        </button>
       </div>
-      <button type="button" className="hud hud-end-day" onClick={session.endTurn}>
-        Конец дня
-      </button>
     </>
   );
 }

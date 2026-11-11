@@ -5,7 +5,7 @@
     "correctness": "error",
     "suspicious": "error"
   },
-  "ignorePatterns": ["docs/vendor/**", "**/dist/**"],
+  "ignorePatterns": ["docs/vendor/**", "**/dist/**", "packages/client/android/**"],
   "rules": {
     "eqeqeq": "error",
     "no-console": "error",

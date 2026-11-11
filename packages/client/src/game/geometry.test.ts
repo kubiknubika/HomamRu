@@ -31,11 +31,17 @@ describe("геометрия экрана карты", () => {
     expect(cellAt(center.x, center.y, 8, 8)).toEqual({ x: 5, y: 7 });
   });
 
-  it("большая карта: камера не выходит за край", () => {
-    expect(cameraBounds(4608, 800)).toEqual({ start: 0, size: 4608 });
+  it("большая карта: камера уходит за край только на поле", () => {
+    expect(cameraBounds(4608, 800, 0)).toEqual({ start: 0, size: 4608 });
+    expect(cameraBounds(4608, 800, 128)).toEqual({ start: -128, size: 4864 });
   });
 
   it("маленькая карта стоит посередине экрана", () => {
-    expect(cameraBounds(512, 800)).toEqual({ start: -144, size: 800 });
+    expect(cameraBounds(512, 800, 0)).toEqual({ start: -144, size: 800 });
+    expect(cameraBounds(512, 800, 100)).toEqual({ start: -144, size: 800 });
+  });
+
+  it("карта чуть меньше экрана: поле даёт её немного сдвинуть", () => {
+    expect(cameraBounds(700, 800, 100)).toEqual({ start: -100, size: 900 });
   });
 });

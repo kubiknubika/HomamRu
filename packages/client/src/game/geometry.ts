@@ -32,12 +32,20 @@ export function cellCenter(cell: Position): Position {
   return { x: cell.x * TILE + TILE / 2, y: cell.y * TILE + TILE / 2 };
 }
 
+/** Поле вокруг карты в пикселях экрана: на столько камера уходит за её край. */
+export const CAMERA_MARGIN_PX = 96;
+
 /**
- * Границы камеры вдоль одной оси. Карта шире экрана — камера не выходит за её
- * край. Карта уже экрана — границы шире карты ровно настолько, чтобы она
- * стояла посередине.
+ * Границы камеры вдоль одной оси, в единицах мира. Карта шире экрана — камера
+ * уходит за её край только на поле `margin`, чтобы любую клетку можно было
+ * вывести из-под кнопок. Карта уже экрана — границы шире карты ровно
+ * настолько, чтобы она стояла посередине.
  */
-export function cameraBounds(mapSize: number, viewSize: number): { start: number; size: number } {
-  const size = Math.max(mapSize, viewSize);
+export function cameraBounds(
+  mapSize: number,
+  viewSize: number,
+  margin: number,
+): { start: number; size: number } {
+  const size = Math.max(mapSize + margin * 2, viewSize);
   return { start: (mapSize - size) / 2, size };
 }
