@@ -1,0 +1,208 @@
+---
+title: Compilers
+description: Built-in and custom compilers let Knip analyze non-standard files like `.astro`, `.mdx`, `.svelte` and `.vue` for imports and exports.
+---
+
+Projects may have source files that are not JavaScript or TypeScript, and thus
+require compilation (or transpilation, or pre-processing, you name it). Files
+like `.mdx`, `.astro`, `.vue` and `.svelte` may also import other source files
+and external dependencies. So ideally, these files are included when linting the
+project. That's why Knip supports compilers.
+
+## Built-in compilers
+
+Knip has built-in "compilers" for the following file extensions, enabled by the
+dependencies or plugins in parentheses:
+
+<!-- compilers:start -->
+
+- `.astro` (Astro)
+- `.css` (Tailwind)
+- `.less` (`less`)
+- `.marko` (Marko)
+- `.md` (unplugin-vue-markdown)
+- `.mdx` (`@mdx-js/*`, `remark-mdx`, Astro, Fumadocs, Qwik, Storybook)
+- `.prisma` (Prisma)
+- `.sass` + `.scss` (`sass`, `sass-embedded`, `node-sass`, Stencil)
+- `.styl` + `.stylus` (`stylus`)
+- `.svelte` (Svelte)
+- `.tsrx` (`@tsrx/*`)
+- `.vue` (Nuxt, unplugin-auto-import, unplugin-vue-components, Vue)
+
+<!-- compilers:end -->
+
+Knip does not include real compilers for those files, but regular expressions to
+collect `import` statements. This is fast, requires no dependencies, and is enough
+for Knip to build the module graph. The tradeoff is that unused exports inside
+these files go unreported.
+
+Real compilers recover those exports, but bring their own challenges. The Svelte
+compiler, for instance, keeps `exports` intact even when they represent
+component properties, so Knip reports them as unused. When you need that
+fidelity, override any built-in with the framework's own compiler (see the
+[Svelte][1] and [Vue][2] examples below). For example, to report unused exports
+in [`.tsrx`][3] files.
+
+Compilers are enabled only when a related dependency is found. The `.tsrx`
+compiler is enabled when a `@tsrx/*` package is installed, for example. If that detection
+doesn't work for your project, set `true` to enable any compiler manually:
+
+```ts title="knip.ts"
+export default {
+  compilers: {
+    mdx: true,
+  },
+};
+```
+
+## Compiled files and `project` patterns
+
+The default `project` patterns include compiler extensions automatically. When
+you override `project`, list them explicitly:
+
+```ts title="knip.ts"
+export default {
+  project: ['src/**/*.{ts,tsx,css}'],
+};
+```
+
+Files outside `project` are not analyzed, so their imports don't count. A
+narrowed pattern like `['src/**/*.{ts,tsx}']` silently drops everything a
+stylesheet imports, which is a common source of false positives: `@import
+'tailwindcss'` in an excluded `.css` file gets `tailwindcss` reported as an
+unused dependency. Knip reports a configuration hint when a compiled extension
+is excluded this way.
+
+## Custom compilers
+
+Built-in compilers can be overridden, and additional compilers can be added.
+Since compilers are functions, the Knip configuration file must be a dynamic
+`.js` or `.ts` file.
+
+### Interface
+
+The compiler function interface is straightforward. Text in, text out:
+
+```ts
+(source: string, filename: string) => string | PromiseLike<string>;
+```
+
+Return a string or a Promise-like value that resolves to a string. Knip compiles
+files on demand and awaits asynchronous results; the `async` keyword is
+optional.
+
+### Examples
+
+- [CSS][4]
+- [MDX][5]
+- [Svelte][1]
+- [Vue][2]
+
+#### CSS
+
+Here's an example of a minimal compiler for CSS files:
+
+```ts title="knip.ts"
+export default {
+  compilers: {
+    css: (text: string) => [...text.matchAll(/(?<=@)import[^;]+/g)].join('\n'),
+  },
+};
+```
+
+You may wonder why the CSS compiler is not included by default. It's currently
+not clear if it should be included. And if so, what would be the best way to
+determine it should be enabled, and what syntax(es) it should support. Note that
+Tailwind CSS, SASS/SCSS, Less and Stylus compilers are included.
+
+#### MDX
+
+Another example, in case the built-in MDX compiler is not enough:
+
+```ts
+import { compile } from '@mdx-js/mdx';
+
+export default {
+  compilers: {
+    mdx: async text => (await compile(text)).toString(),
+  },
+};
+```
+
+#### Svelte
+
+In a Svelte project, the compiler is automatically enabled. Override and use
+Svelte's compiler for better results if the built-in "compiler" is not enough:
+
+```ts
+import type { KnipConfig } from 'knip';
+import { compile } from 'svelte/compiler';
+
+export default {
+  compilers: {
+    svelte: (source: string) => compile(source, {}).js.code,
+  },
+} satisfies KnipConfig;
+```
+
+#### Vue
+
+In a Vue project, the compiler is automatically enabled. Override and use Vue's
+parser for better results if the built-in "compiler" is not enough:
+
+```ts
+import type { KnipConfig } from 'knip';
+import {
+  parse,
+  type SFCScriptBlock,
+  type SFCStyleBlock,
+} from 'vue/compiler-sfc';
+
+function getScriptBlockContent(block: SFCScriptBlock | null): string[] {
+  if (!block) return [];
+  if (block.src) return [`import '${block.src}'`];
+  return [block.content];
+}
+
+function getStyleBlockContent(block: SFCStyleBlock | null): string[] {
+  if (!block) return [];
+  if (block.src) return [`@import '${block.src}';`];
+  return [block.content];
+}
+
+function getStyleImports(content: string): string {
+  return [...content.matchAll(/(?<=@)import[^;]+/g)].join('\n');
+}
+
+const config = {
+  compilers: {
+    vue: (text: string, filename: string) => {
+      const { descriptor } = parse(text, { filename, sourceMap: false });
+      return [
+        ...getScriptBlockContent(descriptor.script),
+        ...getScriptBlockContent(descriptor.scriptSetup),
+        ...descriptor.styles.flatMap(getStyleBlockContent).map(getStyleImports),
+      ].join('\n');
+    },
+  },
+} satisfies KnipConfig;
+
+export default config;
+```
+
+## Tracking non-source files
+
+To track any file extension that's not meant to compile to JavaScript, register
+a no-op compiler:
+
+```ts title="knip.ts"
+export default {
+  compilers: { template: () => '' },
+};
+```
+
+[1]: #svelte
+[2]: #vue
+[3]: https://tsrx.dev
+[4]: #css
+[5]: #mdx

@@ -1,0 +1,172 @@
+---
+title: Getting Started
+description: Install and run Knip with npm, pnpm, bun or yarn to lint your project for unused files, exports and dependencies.
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+## Requirements
+
+Knip v6 requires at least Node.js v20.19.0. Or Bun.
+
+:::tip
+
+If you're into agentic coding, let your agent configure `knip.json` for you!
+See [coding agents][1] below.
+
+:::
+
+## Installation
+
+The easiest and recommended way to install Knip:
+
+<Tabs syncKey="pm">
+  <TabItem label="npm">
+    ```shell
+    npm init @knip/config
+    ```
+  </TabItem>
+
+  <TabItem label="pnpm">
+    ```shell
+    pnpm create @knip/config
+    ```
+  </TabItem>
+
+  <TabItem label="bun">
+    ```shell
+    bun create @knip/config
+    ```
+  </TabItem>
+
+  <TabItem label="yarn">
+    ```shell
+    yarn create @knip/config
+    ```
+  </TabItem>
+</Tabs>
+
+## Run
+
+Now you can run Knip to lint your project:
+
+<Tabs syncKey="pm">
+  <TabItem label="npm">
+    ```shell
+    npm run knip
+    ```
+  </TabItem>
+
+  <TabItem label="pnpm">
+    ```shell
+    pnpm knip
+    ```
+  </TabItem>
+
+  <TabItem label="bun">
+    ```shell
+    bun knip
+    ```
+  </TabItem>
+
+  <TabItem label="yarn">
+    ```shell
+    yarn knip
+    ```
+  </TabItem>
+</Tabs>
+
+Knip will lint your project and report unused dependencies, exports and files.
+
+The next step is to learn more about [how Knip works][2] or go straight to [your
+first cleanup][3].
+
+## Coding agents
+
+Let your coding agent configure Knip using the [Knip MCP Server][4]. Paste this
+into your agent session:
+
+```text
+Install the Knip MCP Server (@knip/mcp) and use it to configure Knip in this project.
+```
+
+You may need to restart the session to pick up the new MCP server. Paste the
+prompt again and off you go.
+
+Want to use Knip directly in your IDE? The [Knip Editor Extension][5] has the
+same MCP Server built in.
+
+## Manual
+
+Alternatively, manually install Knip using your package manager:
+
+<Tabs syncKey="pm">
+  <TabItem label="npm">
+    ```shell
+    npm install -D knip typescript @types/node
+    ```
+  </TabItem>
+
+  <TabItem label="pnpm">
+    ```shell
+    pnpm add -D knip typescript @types/node
+    ```
+  </TabItem>
+
+  <TabItem label="bun">
+    ```shell
+    bun add -D knip typescript @types/node
+    ```
+  </TabItem>
+
+  <TabItem label="yarn">
+    ```shell
+    yarn add -D knip typescript @types/node
+    ```
+  </TabItem>
+</Tabs>
+
+Knip uses `typescript` and `@types/node` as peer dependencies to increase
+compatibility with your project. No worries, they're probably in your
+`node_modules` already.
+
+Then add a `knip` script to your `package.json`:
+
+```json title="package.json"
+{
+  "name": "my-project",
+  "scripts": {
+    "knip": "knip"
+  }
+}
+```
+
+## Without installation
+
+To run Knip without adding it to your project:
+
+<Tabs syncKey="pm">
+  <TabItem label="npm">
+    ```shell
+    npx knip
+    ```
+  </TabItem>
+
+  <TabItem label="pnpm">
+    ```shell
+    pnpm dlx knip
+    ```
+  </TabItem>
+
+  <TabItem label="bun">
+    ```shell
+    bunx knip
+    ```
+  </TabItem>
+</Tabs>
+
+[1]: #coding-agents
+[2]: ../explanations/how-knip-works.md
+[3]: ./first-cleanup.mdx
+[4]: ../reference/integrations.md#mcp-server
+[5]: ../reference/integrations.md

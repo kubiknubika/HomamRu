@@ -1,0 +1,584 @@
+---
+title: CLI Arguments
+description: Every Knip command-line flag, grouped by mode, scope, fix, output and troubleshooting, with shortcuts and exit codes.
+---
+
+## General
+
+### `--help`
+
+Shortcut: `-h`
+
+Prints a summary of this page.
+
+### `--version`
+
+Shortcut: `-V`
+
+Prints the version number.
+
+### `--no-progress`
+
+Shortcut: `-n`
+
+Don't show dynamic progress updates. Progress is automatically disabled in CI
+environments.
+
+### `--config [file]`
+
+Use an alternative path for the configuration file. Default locations:
+
+- `knip.json`
+- `knip.jsonc`
+- `.knip.json`
+- `.knip.jsonc`
+- `knip.ts`
+- `knip.js`
+- `knip.config.ts`
+- `knip.config.js`
+- `package.json#knip`
+
+Shortcut: `-c`
+
+### `--use-tsconfig-files`
+
+Per workspace, take project files from `tsconfig.json` (`files` + `include`,
+minus `exclude`, `node_modules` and `outDir`) and from the tsconfig files in its
+`references` instead of the `project` patterns. Workspaces without a
+`tsconfig.json` fall back to their `project` patterns.
+
+Implicitly enabled in the [editor extension, MCP server and language server][1]
+when there is no Knip configuration file.
+
+### `--tsConfig [file]`
+
+Shortcut: `-t`
+
+Use an alternative path for the TypeScript configuration file.
+
+Using `-t jsconfig.json` is also supported.
+
+Default location: `tsconfig.json`
+
+### `knip-bun`
+
+Run Knip using the Bun runtime (instead of Node.js + jiti).
+
+```shell
+knip-bun
+```
+
+This is equivalent to `bunx --bun knip`
+
+Requires [Bun][2] to be installed. Also see [known issues][3] for the type of
+issues this might help with.
+
+### NO_COLOR
+
+The built-in reporters use the [NO_COLOR][4] friendly [picocolors][5]:
+
+```sh
+NO_COLOR=1 knip
+```
+
+### KNIP_DISABLE_RAW_TRANSFER
+
+Set `KNIP_DISABLE_RAW_TRANSFER=1` to disable oxc-parser raw transfer and use the
+normal parser path.
+
+## Mode
+
+### `--cache`
+
+Enable caching.
+
+Consecutive runs are 10-40% faster as the results of file analysis (AST
+traversal) are cached. Conservative. Cache strategy based on file meta data
+(modification time + file size).
+
+See [stale cache results][6] for limitations and workarounds.
+
+### `--cache-location`
+
+Provide alternative cache location.
+
+Default location: `./node_modules/.cache/knip`
+
+### `--include-entry-exports`
+
+When a repository is self-contained or private, you may want to include entry
+files when reporting unused exports:
+
+```sh
+knip --include-entry-exports
+```
+
+Also see [includeEntryExports][7].
+
+### `--include-subpath-exports`
+
+Report unused subpaths in the `exports` field of `package.json`, for packages
+that are only consumed within the repository:
+
+```sh
+knip --include-subpath-exports
+```
+
+Also see [includeSubpathExports][8].
+
+### `--no-gitignore`
+
+Ignore `.gitignore` files.
+
+### `--production`
+
+Shortcut: `-p`
+
+Lint only production source files. This excludes:
+
+- entry files defined by plugins:
+  - test files
+  - configuration files
+  - Storybook stories
+- `devDependencies` from `package.json`
+
+Read more at [Production Mode][9].
+
+### `--strict`
+
+Shortcut: `-s`
+
+Isolate workspaces and consider only direct dependencies. Implies [production
+mode][10].
+
+Read more at [Production Mode][9].
+
+### `--watch`
+
+Shortcut: `-w`
+
+Watch current directory, and update reported issues when a file is modified,
+added or deleted.
+
+Watch mode reloads configuration when a Knip config, plugin config (or a local
+module it imports), workspace manifest, `tsconfig.json` or `.gitignore` file
+changes. Changes inside `node_modules` require restarting Knip.
+
+## Scope
+
+### `--workspace [filter]`
+
+Select one or multiple workspaces (including its ancestor, dependency and
+dependent workspaces). The default behavior is to lint all configured
+workspaces.
+
+Shortcut: `-W`
+
+See [filter workspaces][11] for more details and examples.
+
+### `--directory [dir]`
+
+Shortcut: `-D`
+
+Default: `cwd` (current directory)
+
+Run the process from a different directory.
+
+### `--exclude`
+
+Exclude provided issue types from report. Can be comma-separated or repeated.
+
+Example:
+
+```sh
+knip --exclude enumMembers
+```
+
+### `--include`
+
+Report only provided issue types. Can be comma-separated or repeated.
+
+Example:
+
+```sh
+knip --include files,dependencies
+knip --include files --include dependencies
+```
+
+`nsExports` and `nsTypes` are [off by default][12]; including only those _adds_
+them to the default report instead of narrowing it.
+
+Available [issue types][13] when filtering output using `--include` or
+`--exclude`:
+
+- `files`
+- `subpaths`
+- `dependencies`
+- `unlisted`
+- `binaries`
+- `unresolved`
+- `exports`
+- `nsExports`
+- `types`
+- `nsTypes`
+- `enumMembers`
+- `namespaceMembers`
+- `duplicates`
+- `catalog`
+- `catalogReferences`
+
+### `--dependencies`
+
+Shortcut to report only all types of dependency issues:
+
+```sh
+--include dependencies,unlisted,binaries,unresolved,catalog,catalogReferences
+```
+
+### `--exports`
+
+Shortcut to report only all types of export issues:
+
+```sh
+--include exports,nsExports,types,nsTypes,enumMembers,namespaceMembers,duplicates
+```
+
+### `--files`
+
+Shortcut to report only file issues:
+
+```sh
+--include files
+```
+
+### `--cycles`
+
+Shortcut to report only circular dependencies:
+
+```sh
+--include cycles
+```
+
+Also see the [cycles reporter][14].
+
+### `--tags`
+
+Exports can be tagged with known or arbitrary JSDoc/TSDoc tags:
+
+```ts
+/**
+ * Description of my exported value
+ *
+ * @type number
+ * @internal Important matters
+ * @lintignore
+ */
+export const myExport = 1;
+```
+
+And then include (`+`) or exclude (`-`) these tagged exports from the report
+like so:
+
+```shell
+knip --tags=-lintignore,-internal
+knip --tags=+custom
+```
+
+This way, you can either focus on or ignore specific tagged exports with tags
+you define yourself. This also works for individual enum and namespace members.
+
+The default directive is `+` (include) and the `@` prefix is ignored, so the
+notation below is valid and will report only exports tagged `@lintignore` or
+`@internal`:
+
+```shell
+knip --tags @lintignore --tags @internal
+```
+
+## Fix
+
+### `--fix`
+
+Shortcut: `-f`
+
+Read more at [auto-fix][15].
+
+### `--fix-type`
+
+Fix only issues of type, can be comma-separated or repeated.
+
+More info about fixable types at [issue types][13]
+
+### `--allow-remove-files`
+
+Allow Knip to remove files (with `--fix`).
+
+### `--format`
+
+Shortcut: `-F`
+
+Format modified files after `--fix` using the local formatter.
+
+## Output
+
+### `--preprocessor [preprocessor]`
+
+Preprocess the results before providing them to the [reporter(s)][16].
+
+Can be repeated. Examples:
+
+```sh
+knip --preprocessor ./my-preprocessor.ts
+```
+
+```sh
+knip --preprocessor preprocessor-package
+```
+
+Preprocessors can also be configured in the Knip configuration file.
+
+Also see [Reporters & Preprocessors][17].
+
+### `--preprocessor-options [json]`
+
+Pass extra options to the preprocessor as JSON string.
+
+```sh
+knip --preprocessor ./preproc.ts --preprocessor-options '{"key":"value"}'
+```
+
+### `--reporter [reporter]`
+
+Available reporters:
+
+- `symbols` (default)
+- `compact`
+- `codeowners`
+- `json`
+- `codeclimate`
+- `markdown`
+- `disclosure`
+- `github-actions`
+- `sarif`
+
+Can be repeated. Example:
+
+```sh
+knip --reporter compact
+```
+
+Also see [Reporters & Preprocessors][17].
+
+### `--reporter-options [json]`
+
+Pass extra options to the reporter (as JSON string):
+
+Example:
+
+```sh
+knip --reporter codeowners --reporter-options '{"path":".github/CODEOWNERS"}'
+```
+
+### `--output-file [reporter=]path`
+
+Write the output of a reporter to a file instead of `stdout`. Prefix the path
+with the reporter name to target one of multiple reporters. Can be repeated:
+
+```sh
+knip --reporter sarif --output-file knip.sarif
+knip --reporter symbols --reporter json --output-file json=knip.json
+```
+
+A relative path is resolved from the directory Knip runs in, like `--config` and
+`--trace-file`. With `--directory app --output-file knip.sarif` the file is
+written to `app/knip.sarif`.
+
+Also see [Writing to a file][18].
+
+### `--no-config-hints`
+
+Suppress configuration hints.
+
+### `--no-tag-hints`
+
+Suppress tag hints.
+
+### `--treat-config-hints-as-errors`
+
+Exit with non-zero exit code (`1`) if there are any configuration hints.
+
+### `--treat-tag-hints-as-errors`
+
+Exit with non-zero exit code (`1`) if there are any tag hints.
+
+### `--max-issues`
+
+Maximum number of issues before non-zero exit code. Default: `0`
+
+### `--max-show-issues`
+
+Maximum number of issues per type to display (does not affect exit code).
+
+### `--no-exit-code`
+
+Exit with code zero (`0`) even when there are lint issues. Config load failures
+and internal errors still exit with code `2`.
+
+The default exit codes:
+
+| Code | Description                                                                                     |
+| :--: | :---------------------------------------------------------------------------------------------- |
+| `0`  | Knip ran successfully, no lint issues                                                           |
+| `1`  | Knip ran successfully, but there is at least one lint issue                                     |
+| `2`  | Knip did not run successfully due to bad input, a plugin config load error or an internal error |
+
+## Troubleshooting
+
+### `--debug`
+
+Shortcut: `-d`
+
+Show [debug output][19].
+
+### `--memory`
+
+```txt frame=terminal
+knip --memory
+
+(results)
+
+ # heapUsed  heapTotal  freemem
+-- --------  ---------  -------
+ 0    42.09      70.91  2251.00
+ 1   927.04    1042.58  1166.47
+ 2   973.29    1047.33  1160.92
+ 3   971.54    1079.83  1121.66
+ 4   997.80    1080.33  1120.34
+ 5  1001.88    1098.08  1100.72
+ 6  1038.69    1116.58  1100.72
+ 7  1082.12    1166.33  1100.72
+ 8  1145.46    1224.50  1100.72
+ 9  1115.82    1240.25  1100.72
+10  1182.35    1249.75   973.05
+11   637.32    1029.17   943.63
+12   674.30    1029.33   943.39
+13   682.24    1029.33   941.63
+14   707.70    1029.33   937.48
+
+Total running time: 4.3s
+```
+
+### `--memory-realtime`
+
+Use this if Knip crashes to still see memory usage info over time:
+
+```txt frame=terminal
+knip --memory-realtime
+
+#  heapUsed  heapTotal  freemem
+-  --------  ---------  -------
+0     42.09      70.91  2251.00
+1    927.04    1042.58  1166.47
+...mem info keeps being logged...
+
+(results)
+```
+
+### `--performance`
+
+Use this flag to get the count and execution time of potentially expensive
+functions in a table. Example:
+
+```txt frame=terminal
+$ knip --performance
+
+(results)
+
+Name                           size  min       max       median    sum
+-----------------------------  ----  --------  --------  --------  --------
+findReferences                  648     84.98   7698.61     96.41  70941.70
+createProgram                     2   6295.84   7064.68   6680.26  13360.52
+glob                              6      0.05    995.78    513.82   3150.87
+findESLintDependencies            2      0.01     74.41     37.21     74.41
+findGithubActionsDependencies     6      0.16     12.71      0.65     23.45
+findBabelDependencies             2      0.00     38.75     19.37     38.75
+...
+
+Total running time: 5s
+```
+
+- `name`: the internal Knip function name
+- `size`: number of function invocations
+- `min`: the fastest invocation
+- `max`: the slowest invocation
+- `median`: the median invocation
+- `sum`: the accumulated time of all invocations
+
+This is not yet available in Bun, since it does not support
+`performance.timerify` ([GitHub issue][20]).
+
+### `--duration`
+
+Shortcut: `-u`
+
+Print total running time. Zero overhead — no `timerify` instrumentation, unlike
+`--performance`.
+
+### `--performance-fn`
+
+Limit the output of `--performance` to a single function to minimize the
+overhead of the `timerify` Node.js built-in and focus on that function alone:
+
+```txt frame=terminal
+$ knip --performance-fn resolveSync
+
+(results)
+
+Name         size   min   max   median   sum
+-----------  -----  ----  ----  ------  ------
+resolveSync  66176  0.00  5.69    0.00  204.85
+
+Total running time: 12.9s
+```
+
+### `--trace`
+
+Trace exports to see where they are imported.
+
+Also see [Trace][21].
+
+### `--trace-dependency [name]`
+
+Trace package or binary name to see where it's referenced. Implies
+[`--trace`][22].
+
+### `--trace-export [name]`
+
+Trace export name to see where it's imported. Implies [`--trace`][22].
+
+### `--trace-file [path]`
+
+Trace file to see where its exports are imported. Implies [`--trace`][22].
+
+[1]: ./integrations.md
+[2]: https://bun.sh
+[3]: ../reference/known-issues.md
+[4]: https://no-color.org/
+[5]: https://www.npmx.dev/package/picocolors
+[6]: ./known-issues.md#stale-cache-results
+[7]: ./configuration.md#includeentryexports
+[8]: ./configuration.md#includesubpathexports
+[9]: ../features/production-mode.md
+[10]: #--production
+[11]: ../features/monorepos-and-workspaces.md#filter-workspaces
+[12]: ../guides/namespace-imports.md
+[13]: ./issue-types.md
+[14]: ../features/reporters.md#cycles
+[15]: ../features/auto-fix.mdx
+[16]: #--reporter-reporter
+[17]: ../features/reporters.md
+[18]: ../features/reporters.md#writing-to-a-file
+[19]: ../guides/troubleshooting.md#debug
+[20]: https://github.com/oven-sh/bun/issues/9271
+[21]: ../guides/troubleshooting.md#trace
+[22]: #--trace

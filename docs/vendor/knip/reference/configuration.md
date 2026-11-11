@@ -1,0 +1,568 @@
+---
+title: Configuration
+description: Every knip.json option, including entry, project, paths, workspaces, plugins, rules, tags, ignores and compilers.
+---
+
+This page lists all configuration file options.
+
+## File Types
+
+### JSON Schema
+
+A `$schema` field is a URL that you put at the top of your JSON file. This
+allows you to get red squiggly lines inside of your IDE when you make a typo or
+provide an otherwise invalid configuration option.
+
+In JSON, use the provided JSON schema:
+
+```json title="knip.json"
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json"
+}
+```
+
+### JSONC
+
+In JSONC, use the provided JSONC schema:
+
+```json title="knip.jsonc"
+{
+  "$schema": "https://unpkg.com/knip@6/schema-jsonc.json"
+}
+```
+
+Use JSONC if you want to use comments and/or trailing commas.
+
+### TypeScript
+
+See [dynamic configuration][1] about dynamic and typed configuration files.
+
+## Project
+
+### `entry`
+
+Array of glob patterns to find entry files. Prefix with `!` for negation.
+Example:
+
+```json title="knip.json"
+{
+  "entry": ["src/index.ts", "scripts/*.ts", "!scripts/except-this-one.ts"]
+}
+```
+
+Also see [configuration][2] and [entry files][3].
+
+### `project`
+
+Array of glob patterns to find project files. Example:
+
+```json title="knip.json"
+{
+  "project": ["src/**/*.ts", "scripts/**/*.ts"]
+}
+```
+
+Also see [configuration][2] and [entry files][3].
+
+### `paths`
+
+Tools like TypeScript, webpack and Babel support import aliases in various ways.
+Knip automatically includes `compilerOptions.paths` from the TypeScript
+configuration, but does not automatically use other types of import aliases.
+They can be configured manually:
+
+```json title="knip.json"
+{
+  "paths": {
+    "@lib": ["./lib/index.ts"],
+    "@lib/*": ["./lib/*"]
+  }
+}
+```
+
+Each workspace can have its own `paths` configured. Knip `paths` follow the
+TypeScript semantics:
+
+- Path values are an array of relative paths.
+- Paths without an `*` are exact matches.
+
+## Workspaces
+
+### `workspaces`
+
+Configure `entry`, `project`, plugins and most other options per workspace. Keys
+are workspace directories (globs allowed); the root workspace is `"."`.
+
+```json title="knip.json"
+{
+  "workspaces": {
+    ".": {
+      "entry": ["scripts/*.ts"],
+      "project": ["scripts/**/*.ts"]
+    },
+    "packages/*": {
+      "entry": ["src/index.ts"],
+      "project": ["src/**/*.ts"]
+    }
+  }
+}
+```
+
+Workspaces configured here that aren't already defined in the root
+`package.json` (or `pnpm-workspace.yaml`) are added to the analysis. Also see
+[Monorepos & Workspaces][4].
+
+Individual workspace configurations may contain all other options listed on this
+page, except for the following root-only options:
+
+- `exclude` / `include`
+- `ignoreWorkspaces`
+- `workspaces`
+
+Workspaces can't be nested in a Knip configuration, but they can be nested in a
+monorepo folder structure.
+
+Also see [Monorepos and workspaces][4].
+
+## Plugins
+
+There are a few options to modify the behavior of a plugin:
+
+- Override a plugin's `config` or `entry` location
+- Force-enable a plugin by setting its value to `true`
+- Disable a plugin by setting its value to `false`
+
+```json title="knip.json"
+{
+  "mocha": {
+    "config": "config/mocha.config.js",
+    "entry": ["**/*.spec.js"]
+  },
+  "playwright": true,
+  "webpack": false
+}
+```
+
+It should be rarely necessary to override the `entry` patterns, since plugins
+also read custom entry file patterns from the tooling configuration (see
+[Plugins → entry files][5]).
+
+Plugin configuration can be set on root and on a per-workspace level. If enabled
+on root level, it can be disabled on workspace level by setting it to `false`
+there, and vice versa.
+
+Also see [Plugins][6].
+
+## Rules & Filters
+
+### `rules`
+
+See [Rules & Filters][7].
+
+### `include`
+
+See [Rules & Filters][7].
+
+### `exclude`
+
+See [Rules & Filters][7].
+
+### `tags`
+
+Exports can be tagged with known or arbitrary JSDoc/TSDoc tags:
+
+```ts
+/**
+ * Description of my exported value
+ *
+ * @type number
+ * @internal Important matters
+ * @lintignore
+ */
+export const myExport = 1;
+```
+
+And then include (`+`) or exclude (`-`) these tagged exports from the report
+like so:
+
+```json
+{
+  "tags": ["-lintignore"]
+}
+```
+
+This way, you can either focus on or ignore specific tagged exports with tags
+you define yourself. This also works for individual enum and namespace members.
+
+The default directive is `+` (include) and the `@` prefix is ignored, so the
+notation below is valid and will report only exports tagged `@lintignore` or
+`@internal`:
+
+```json
+{
+  "tags": ["@lintignore", "@internal"]
+}
+```
+
+:::caution
+
+Tags must not contain hyphens or plus symbols, so it is recommended to stick to
+letters and avoid snake-case.
+
+:::
+
+Also see [JSDoc & TSDoc Tags][8].
+
+### `preprocessor`
+
+Preprocess the results before providing them to the reporter(s). Can be a single
+preprocessor or an array of preprocessors. Each value is a path to a local file
+or an npm package name.
+
+```json title="knip.json"
+{
+  "preprocessor": ["./first.ts", "./second.ts"]
+}
+```
+
+Also see [Preprocessors][9].
+
+### `preprocessorOptions`
+
+Extra options to pass to the preprocessor.
+
+```json title="knip.json"
+{
+  "preprocessor": "./my-preprocessor.ts",
+  "preprocessorOptions": { "key": "value" }
+}
+```
+
+### `treatConfigHintsAsErrors`
+
+Exit with non-zero code (1) if there are any configuration hints.
+
+```json title="knip.json"
+{
+  "treatConfigHintsAsErrors": true
+}
+```
+
+### `treatTagHintsAsErrors`
+
+Exit with non-zero code (1) if there are any tag hints.
+
+```json title="knip.json"
+{
+  "treatTagHintsAsErrors": true
+}
+```
+
+## Ignore Issues
+
+### `ignore`
+
+:::tip
+
+Please read [configuring project files][10] before using the `ignore` option.
+
+:::
+
+Avoid `ignore` patterns. There is almost always a better solution:
+
+- Follow up on configuration hints (if there are any).
+- Fine-tune `entry` and `project` patterns.
+- Use [production mode][11].
+- Other `ignore*` options.
+
+**NOTE**: An exception to the rule: to _temporarily_ report only issues in files
+that match the negated `ignore` pattern:
+
+```json title="knip.json"
+{
+  "ignore": ["!src/dir/**"]
+}
+```
+
+### `ignoreFiles`
+
+Array of glob patterns of files to exclude from the "Unused files" section only.
+
+Unlike `ignore`, which suppresses all issue types for matching files,
+`ignoreFiles` only affects the `files` issue type. Use this when a file should
+remain analyzed for other issues (exports, dependencies, unresolved) but should
+not be considered for unused file detection.
+
+```json title="knip.json"
+{
+  "ignoreFiles": ["src/generated/**", "fixtures/**"]
+}
+```
+
+Suffix an item with `!` to enable it only in production mode.
+
+### `ignoreBinaries`
+
+Exclude binaries that are used but not provided by any dependency from the
+report. Value is an array of binary names or regular expressions. Example:
+
+```json title="knip.json"
+{
+  "ignoreBinaries": ["zip", "docker-compose", "pm2-.+"]
+}
+```
+
+Actual regular expressions can be used in dynamic configurations:
+
+```ts title="knip.ts"
+export default {
+  ignoreBinaries: [/^pm2-.+/],
+};
+```
+
+Suffix an item with `!` to enable it only in production mode.
+
+### `ignoreGlobalBinaries`
+
+Defaults to `true`, suppressing missing-binary reports for common global
+commands such as `git` and `docker`. Set it to `false` to report these commands
+where a project dependency is expected:
+
+```json title="knip.json"
+{
+  "ignoreGlobalBinaries": false,
+  "ignoreBinaries": ["git"]
+}
+```
+
+Dependencies that provide a referenced binary still count as used, and
+`ignoreBinaries` still applies. Optional commands, including bare CI/hook
+commands and commands installed on demand, produce no missing-binary reports.
+Workspaces inherit the top-level value unless they override it.
+
+### `ignoreDependencies`
+
+Array of package names to exclude from the report. Regular expressions allowed.
+Example:
+
+```json title="knip.json"
+{
+  "ignoreDependencies": ["hidden-package", "@org/.+"]
+}
+```
+
+Actual regular expressions can be used in dynamic configurations:
+
+```ts title="knip.ts"
+export default {
+  ignoreDependencies: [/@org\/.*/, /^lib-.+/],
+};
+```
+
+Suffix an item with `!` to enable it only in production mode.
+
+Also see [Unused dependencies][12].
+
+### `ignoreMembers`
+
+Array of enum and namespace members to exclude from the report. Regular
+expressions allowed. Example:
+
+```json title="knip.json"
+{
+  "ignoreMembers": ["render", "on.+"]
+}
+```
+
+Actual regular expressions can be used in dynamic configurations.
+
+### `ignoreUnresolved`
+
+Array of specifiers to exclude from the report. Regular expressions allowed.
+Example:
+
+```json title="knip.json"
+{
+  "ignoreUnresolved": ["ignore-unresolved-import", "#virtual/.+"]
+}
+```
+
+Actual regular expressions can be used in dynamic configurations:
+
+```ts title="knip.ts"
+export default {
+  ignoreUnresolved: [/^#virtual\/.+/],
+};
+```
+
+### `ignoreWorkspaces`
+
+Array of workspaces to ignore, globs allowed. Example:
+
+```json title="knip.json"
+{
+  "ignoreWorkspaces": [
+    "packages/go-server",
+    "packages/flat/*",
+    "packages/deep/**"
+  ]
+}
+```
+
+Suffix an item with `!` to enable it only in production mode.
+
+Prefix an item with `!` to override an earlier wildcard.
+
+### `ignoreIssues`
+
+Ignore specific issue types for specific file patterns. Keys are glob patterns
+and values are arrays of issue types to ignore for matching files. This allows
+ignoring specific issues (like unused exports) in generated files while still
+reporting other issues in those same files.
+
+```json title="knip.json"
+{
+  "ignoreIssues": {
+    "src/generated/**": ["exports", "types"],
+    "**/*.generated.ts": ["exports", "enumMembers", "namespaceMembers"]
+  }
+}
+```
+
+### `cycles`
+
+Configure circular dependency (`cycles`) detection.
+
+Set `dynamicImports` to include dynamic `import()` edges, which are excluded by
+default (a dynamic import defers evaluation, so it does not cause the
+initialization hazard cycles are meant to catch).
+
+Use `allow` to accept specific cycles by exact path while keeping other `cycles`
+issues enabled. Path entries are relative to the project root and omit the
+closing repeat of the first file.
+
+```json title="knip.json"
+{
+  "cycles": {
+    "dynamicImports": true,
+    "allow": [["src/i18n/index.ts", "src/i18n/middleware.ts"]]
+  }
+}
+```
+
+## Exports
+
+### `ignoreExportsUsedInFile`
+
+In files with multiple exports, some of them might be used only internally. If
+these exports should not be reported, there is a `ignoreExportsUsedInFile`
+option available. With this option enabled, when something is also no longer
+used internally, it will be reported as unused.
+
+```json title="knip.json"
+{
+  "ignoreExportsUsedInFile": true
+}
+```
+
+In a more fine-grained manner, to ignore only specific issue types:
+
+```json title="knip.json"
+{
+  "ignoreExportsUsedInFile": {
+    "interface": true,
+    "type": true
+  }
+}
+```
+
+Valid keys are the symbol types Knip distinguishes: `class`, `enum`, `function`,
+`interface`, `member`, `namespace`, `type` and `variable`.
+
+Set this option at root level to enable this globally, or within workspace
+configurations individually.
+
+### `includeEntryExports`
+
+By default, Knip does not report unused exports in entry files. When a
+repository (or workspace) is self-contained or private, you may want to include
+entry files when reporting unused exports:
+
+```json title="knip.json"
+{
+  "includeEntryExports": true
+}
+```
+
+If enabled, Knip will report unused exports in entry source files. But not in
+entry and configuration files as configured by plugins, such as `next.config.js`
+or `src/routes/+page.svelte`. Entry files discovered only through `package.json`
+scripts are also excluded; add them to `entry` to include their exports.
+
+This will also enable reporting unused members of exported enums and namespaces.
+
+Set this option at root level to enable this globally, or within workspace
+configurations individually.
+
+### `includeSubpathExports`
+
+By default, the targets of the `exports` field in `package.json` are entry files
+and its subpaths are not reported, since other packages may import them. When a
+workspace is only consumed within the repository, you may want to include its
+`exports` when reporting unused subpaths:
+
+```json title="knip.json"
+{
+  "includeSubpathExports": true
+}
+```
+
+If enabled, a subpath in `exports` that is not imported anywhere is reported as
+an unused subpath, and its targets are entry files only when the subpath is
+imported. An unreferenced `.` subpath means nothing imports the package at all.
+Subpaths whose targets are not module files, such as `./package.json` or a
+stylesheet, are not reported.
+
+The `imports` field (subpath imports) is always reported this way, since subpath
+imports are internal to the package by design.
+
+Dependent workspaces must be part of the analysis to find the references. In
+[strict mode][13] combined with `--workspace` they are not, so `exports` are
+treated as public in that case.
+
+Set this option at root level to enable this globally, or within workspace
+configurations individually. A workspace that is private altogether typically
+also sets [`includeEntryExports`][14].
+
+## Compilers
+
+Knip supports custom compilers to transform files before analysis.
+
+:::note
+
+Since compilers are functions, they can only be used in dynamic configuration
+files (`.js` or `.ts`), not in JSON configuration files.
+
+:::
+
+### `compilers`
+
+Override built-in compilers or add custom compilers for additional file types.
+
+Also see [Compilers][15].
+
+[1]: ../reference/dynamic-configuration.mdx
+[2]: ../overview/configuration.md
+[3]: ../explanations/entry-files.md
+[4]: ../features/monorepos-and-workspaces.md
+[5]: ../explanations/plugins.md#entry-files
+[6]: ../explanations/plugins.md
+[7]: ../features/rules-and-filters.md#filters
+[8]: ./jsdoc-tsdoc-tags.md
+[9]: ../features/reporters.md#preprocessors
+[10]: ../guides/configuring-project-files.md
+[11]: ../features/production-mode.md
+[12]: ../guides/handling-issues.mdx#unused-dependencies
+[13]: ../features/production-mode.md#strict-mode
+[14]: #includeentryexports
+[15]: ../features/compilers.md
