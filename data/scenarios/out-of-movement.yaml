@@ -1,0 +1,15 @@
+name: Запас хода кончается и восстанавливается на новый день
+map: test-small
+seed: 1
+steps:
+  - move: { hero: A, path: [S, S, S, S, S, S, E, E, E, E, E] }
+    expectError: NOT_ENOUGH_MOVEMENT
+  - move: { hero: A, path: [S, S, S, S, S, S, E, E, E, E] }
+  - move: { hero: A, path: [E] }
+    expectError: NOT_ENOUGH_MOVEMENT
+  - endTurn: {}
+  - move: { hero: A, path: [E] }
+expect:
+  day: 2
+  heroes:
+    A: { x: 6, y: 7, movement: 900 }

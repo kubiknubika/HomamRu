@@ -1,0 +1,18 @@
+name: После седьмого дня начинается вторая неделя
+map: test-small
+seed: 1
+steps:
+  - endTurn: {}
+  - endTurn: {}
+  - endTurn: {}
+  - endTurn: {}
+  - endTurn: {}
+  - endTurn: {}
+  - endTurn: {}
+  - move: { hero: A, path: [N] }
+  - move: { hero: A, path: [N] }
+    expectError: STEP_BLOCKED
+expect:
+  day: 8
+  heroes:
+    A: { x: 1, y: 0, movement: 900 }
