@@ -1,0 +1,76 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "import", "react", "vitest", "unicorn", "oxc"],
+  "categories": {
+    "correctness": "error",
+    "suspicious": "error"
+  },
+  "ignorePatterns": ["docs/vendor/**", "**/dist/**"],
+  "rules": {
+    "eqeqeq": "error",
+    "no-console": "error",
+    "max-lines": ["error", { "max": 300, "skipBlankLines": true, "skipComments": true }],
+    "typescript/no-explicit-any": "error",
+    "typescript/no-non-null-assertion": "error",
+    "import/no-cycle": "error",
+    "import/no-unassigned-import": ["error", { "allow": ["**/*.css"] }],
+    "react/react-in-jsx-scope": "off"
+  },
+  "overrides": [
+    {
+      "files": ["packages/core/**"],
+      "rules": {
+        "no-restricted-globals": [
+          "error",
+          { "name": "Date", "message": "Догма 7: в ядре нет системного времени." },
+          { "name": "performance", "message": "Догма 7: в ядре нет системного времени." },
+          { "name": "setTimeout", "message": "Догма 7: в ядре нет таймеров." },
+          { "name": "setInterval", "message": "Догма 7: в ядре нет таймеров." },
+          { "name": "crypto", "message": "Догма 7: случайность только через генератор из rng.ts." },
+          { "name": "window", "message": "Догма 5: ядро не знает о браузере." },
+          { "name": "document", "message": "Догма 5: ядро не знает о браузере." }
+        ],
+        "no-restricted-properties": [
+          "error",
+          {
+            "object": "Math",
+            "property": "random",
+            "message": "Догма 7: случайность только через генератор из rng.ts."
+          }
+        ],
+        "no-restricted-imports": [
+          "error",
+          {
+            "paths": [
+              { "name": "phaser", "message": "Догма 5: ядро не зависит от отрисовки." },
+              { "name": "react", "message": "Догма 5: ядро не зависит от интерфейса." },
+              { "name": "react-dom", "message": "Догма 5: ядро не зависит от интерфейса." }
+            ],
+            "patterns": [
+              { "group": ["@homamru/*"], "message": "Ядро не зависит от других пакетов проекта." },
+              { "group": ["node:*"], "message": "Догма 5: ядро не зависит от платформы." }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["packages/data/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "paths": [
+              { "name": "phaser", "message": "Пакет данных не зависит от отрисовки." },
+              { "name": "react", "message": "Пакет данных не зависит от интерфейса." },
+              { "name": "react-dom", "message": "Пакет данных не зависит от интерфейса." }
+            ],
+            "patterns": [
+              { "group": ["@homamru/client"], "message": "Пакет данных не зависит от клиента." }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

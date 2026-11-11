@@ -15,3 +15,11 @@ HomamRu — это проект-клон игровых механик сери�
 ## Разработка
 
 Проект целиком пишется ИИ-агентами (вайбкодинг). Обязательные правила разработки — в [AGENTS.md](AGENTS.md).
+
+Стек: TypeScript, Phaser 4, React, упаковка под Android через Capacitor. Устройство проекта — в [docs/architecture.md](docs/architecture.md), планы — в [docs/roadmap.md](docs/roadmap.md).
+
+```sh
+pnpm install     # зависимости (нужны Node.js 22+ и pnpm 12)
+pnpm run dev     # игра в браузере
+pnpm run check   # полная проверка
+```

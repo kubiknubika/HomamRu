@@ -21,3 +21,20 @@
 | `docs/vendor/typescript/` (остальное) | https://github.com/microsoft/TypeScript-Website | Microsoft Corporation | CC BY 4.0 |
 
 Документация Oxlint и Oxfmt не скопирована: у её репозитория нет лицензии.
+
+## Библиотеки
+
+Прямые зависимости проекта. В репозитории их кода нет: они ставятся командой `pnpm install`.
+
+| Библиотека | Лицензия | Где используется |
+|---|---|---|
+| phaser | MIT | клиент |
+| react, react-dom | MIT | клиент |
+| zod | MIT | данные |
+| yaml | ISC | данные |
+| vite, @vitejs/plugin-react | MIT | сборка |
+| vitest | MIT | тесты |
+| typescript | Apache-2.0 | проверка типов |
+| oxlint, oxfmt | MIT | линтер и форматтер |
+| knip | ISC | поиск мёртвого кода |
+| @types/react, @types/react-dom | MIT | типы |

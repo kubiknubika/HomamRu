@@ -1,0 +1,57 @@
+html,
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: #14171c;
+  color: #e8e4d8;
+  font-family: system-ui, sans-serif;
+  touch-action: none;
+}
+
+#game {
+  position: fixed;
+  inset: 0;
+}
+
+/* Слой интерфейса лежит поверх холста и сам не перехватывает нажатия. */
+#ui {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+
+.panel {
+  position: absolute;
+  top: max(12px, env(safe-area-inset-top));
+  left: max(12px, env(safe-area-inset-left));
+  max-width: min(320px, calc(100vw - 24px));
+  padding: 12px 16px;
+  border: 1px solid #5a4a2a;
+  border-radius: 8px;
+  background: rgb(20 23 28 / 88%);
+  pointer-events: auto;
+}
+
+.panel h1 {
+  margin: 0 0 4px;
+  font-size: 18px;
+}
+
+.panel p {
+  margin: 0 0 10px;
+  font-size: 13px;
+  line-height: 1.4;
+  opacity: 0.85;
+}
+
+.panel button {
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid #8a6f35;
+  border-radius: 6px;
+  background: #3a2f1a;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
