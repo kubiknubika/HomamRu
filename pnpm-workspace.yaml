@@ -1,0 +1,8 @@
+packages:
+  - packages/*
+
+# Справочники Phaser для агентов уже лежат в docs/vendor/phaser/skills,
+# поэтому pnpm их отдельно не подключает.
+permissions:
+  phaser:
+    skills: false

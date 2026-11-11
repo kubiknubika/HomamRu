@@ -1,0 +1,99 @@
+---
+title: Dynamic Configuration
+description: Write a typed Knip config in JavaScript or TypeScript, including an async function that returns the config object.
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+## TypeScript
+
+Instead of a JSON file, you can use a JavaScript or TypeScript file for a
+dynamic configuration and type annotations:
+
+<Tabs syncKey="lang">
+  <TabItem label="TypeScript">
+    ```ts title="knip.ts"
+    import type { KnipConfig } from 'knip';
+
+    const config: KnipConfig = {
+      entry: ['src/index.ts'],
+      project: ['src/**/*.ts'],
+    };
+
+    export default config;
+    ```
+  </TabItem>
+
+  <TabItem label="JavaScript">
+    ```js title="knip.js"
+    /** @type {import('knip').KnipConfig} */
+    const config = {
+      entry: ['src/index.ts'],
+      project: ['src/**/*.ts'],
+    };
+
+    export default config;
+    ```
+  </TabItem>
+</Tabs>
+
+## Function
+
+You can export a regular or async function that returns the configuration object
+as well:
+
+<Tabs syncKey="lang">
+  <TabItem label="TypeScript">
+    ```ts title="knip.ts"
+    import type { KnipConfig } from 'knip';
+
+    const config: KnipConfig = async () => {
+      const items = await fetchRepoInfo();
+
+      return {
+        entry: ['src/index.ts', ...items],
+        project: ['src/**/*.ts'],
+      };
+    };
+
+    export default config;
+    ```
+  </TabItem>
+
+  <TabItem label="JavaScript">
+    ```ts title="knip.js"
+    const config = async () => ({
+      entry: ['src/index.ts'],
+      project: ['src/**/*.ts'],
+    });
+
+    export default config;
+    ```
+  </TabItem>
+</Tabs>
+
+## defineConfig
+
+Knip also exports a `defineConfig` helper. It returns the configuration
+unchanged, so its only purpose is to type what you pass in:
+
+```ts title="knip.ts"
+import { defineConfig } from 'knip/config';
+
+export default defineConfig({
+  entry: ['src/index.ts'],
+  project: ['src/**/*.ts'],
+});
+```
+
+The same works in a JavaScript configuration file, without the JSDoc annotation.
+A function is accepted as well:
+
+```ts title="knip.ts"
+import { defineConfig } from 'knip/config';
+
+export default defineConfig(async () => ({
+  entry: ['src/index.ts', ...(await fetchRepoInfo())],
+  project: ['src/**/*.ts'],
+}));
+```

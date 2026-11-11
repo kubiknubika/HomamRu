@@ -1,0 +1,30 @@
+{
+  "name": "homamru",
+  "version": "0.0.0",
+  "private": true,
+  "license": "GPL-3.0-or-later",
+  "type": "module",
+  "scripts": {
+    "check": "pnpm run format:check && pnpm run lint && pnpm run boundaries && pnpm run typecheck && pnpm run test && pnpm run knip && pnpm run build",
+    "format": "oxfmt",
+    "format:check": "oxfmt --check",
+    "lint": "oxlint --deny-warnings",
+    "boundaries": "node scripts/check-boundaries.mjs",
+    "typecheck": "pnpm -r run typecheck",
+    "test": "vitest run",
+    "knip": "KNIP_DISABLE_RAW_TRANSFER=1 knip",
+    "build": "pnpm --filter @homamru/client run build",
+    "dev": "pnpm --filter @homamru/client run dev"
+  },
+  "devDependencies": {
+    "knip": "6.44.2",
+    "oxfmt": "0.78.0",
+    "oxlint": "1.93.0",
+    "typescript": "7.0.2",
+    "vitest": "5.1.0"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "packageManager": "pnpm@12.18.0"
+}
