@@ -32,4 +32,6 @@ pnpm run check   # полная проверка
 - Ассеты, контент и документация — под [CC BY-SA 4.0](LICENSE-ASSETS).
 - Копии чужой документации в `docs/vendor/` — под лицензиями их авторов, см. [docs/licenses.md](docs/licenses.md).
 
+Как участвовать — в [CONTRIBUTING.md](CONTRIBUTING.md).
+
 © 2026 авторы проекта «Герои Ру».
