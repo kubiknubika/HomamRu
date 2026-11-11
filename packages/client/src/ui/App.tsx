@@ -1,30 +1,33 @@
-import { useState } from "react";
+import { calendarOf, DAILY_MOVEMENT } from "@homamru/core";
+import { useSyncExternalStore } from "react";
+import { activeHero } from "../game/session.ts";
+import type { Session } from "../game/session.ts";
 
 interface AppProps {
-  readonly initialSeed: number;
-  readonly onSeedChange: (seed: number) => void;
+  readonly session: Session;
 }
 
-/** Проверочная панель каркаса: показывает сид и позволяет его сменить. */
-export function App({ initialSeed, onSeedChange }: AppProps) {
-  const [seed, setSeed] = useState(initialSeed);
-
-  const nextSeed = () => {
-    const next = seed + 1;
-    setSeed(next);
-    onSeedChange(next);
-  };
+/** Интерфейс поверх карты: дата, запас хода героя, кнопка конца дня. */
+export function App({ session }: AppProps) {
+  const { state } = useSyncExternalStore(session.subscribe, session.getSnapshot);
+  const { month, week, weekday } = calendarOf(state.day);
+  const hero = activeHero(state);
 
   return (
-    <div className="panel">
-      <h1>HomamRu</h1>
-      <p>
-        Проверка каркаса: поле рисует Phaser, цвета выбирает ядро, эта панель — обычная вёрстка.
-        Сид: {seed}.
-      </p>
-      <button type="button" onClick={nextSeed}>
-        Следующий сид
+    <>
+      <div className="hud hud-info">
+        <div className="hud-date">
+          Месяц {month}, неделя {week}, день {weekday}
+        </div>
+        {hero !== undefined && (
+          <div className="hud-movement">
+            Запас хода: {hero.movement} из {DAILY_MOVEMENT}
+          </div>
+        )}
+      </div>
+      <button type="button" className="hud hud-end-day" onClick={session.endTurn}>
+        Конец дня
       </button>
-    </div>
+    </>
   );
 }
