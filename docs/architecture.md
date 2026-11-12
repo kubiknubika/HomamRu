@@ -76,6 +76,7 @@
 - Упаковка — Capacitor 8. Настройки — `packages/client/capacitor.config.ts`; проект Android — `packages/client/android/` (создан командой `cap add android`, хранится в репозитории).
 - Проект Android руками не правится без нужды: `cap sync android` копирует в него сборку клиента и обновляет служебные файлы.
 - APK собирает `.github/workflows/android.yml` на каждый коммит: сборка клиента, `cap sync android`, `gradlew assembleDebug`. Файл попадает в артефакты запуска и в выпуск `android-latest`.
+- Отладочные сборки подписаны открытым ключом `android/app/debug.p12` (настройка — в `android/app/build.gradle`). Файл не удалять и не пересоздавать: иначе обновление перестанет ставиться поверх.
 - В песочнице агента собрать APK нельзя: нет Java и Android SDK.
 
 ## Как догмы проверяются автоматически
