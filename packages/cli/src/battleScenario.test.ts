@@ -3,7 +3,8 @@ import { describe, expect, it } from "vitest";
 import { createBattle } from "@homamru/core";
 import type { BattleScenario } from "@homamru/data";
 import { runBattleScenario } from "./battleScenario.ts";
-import { listBattleFiles, loadBattle, loadCreatures } from "./files.ts";
+import { BUILDINGS } from "@homamru/core/testkit";
+import { listBattleFiles, loadBattle, loadBuildings, loadCreatures } from "./files.ts";
 
 const creatures = loadCreatures();
 const files = listBattleFiles();
@@ -34,6 +35,10 @@ describe("файлы из папок data/creatures и data/battles", () => {
       ["militia", 5, 5, 2, 3, 12, 4, false, 0, 60, 14],
       ["slinger", 5, 3, 1, 4, 9, 5, false, 10, 100, 9],
     ]);
+  });
+
+  it("здания — те же, что в тестах ядра (30-town.md)", () => {
+    expect(loadBuildings()).toEqual(BUILDINGS);
   });
 
   it("папка боёв не пуста", () => {

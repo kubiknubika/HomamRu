@@ -1,0 +1,27 @@
+name: Строительство в городе — одно здание в день, требования и цена
+map: test-town
+seed: 1
+steps:
+  - build: { town: o1, building: barracks }
+    expectError: REQUIREMENT_MISSING
+  - build: { town: o1, building: smithy }
+  - build: { town: o1, building: town-hall }
+    expectError: BUILT_TODAY
+  - endTurn: {}
+  - build: { town: o1, building: barracks }
+  - endTurn: {}
+  - build: { town: o1, building: town-hall }
+  - endTurn: {}
+  - build: { town: o1, building: fort }
+    expectError: ALREADY_BUILT
+expect:
+  day: 4
+  # 20000 − 1000 − 2000 − 2500 и доход: 500 + 500 + 1000.
+  resources:
+    - { gold: 16500, wood: 15, ore: 15 }
+  objects:
+    o1:
+      buildings: [tavern, fort, militia-yard, smithy, barracks, town-hall]
+      available:
+        - { creature: militia, count: 14 }
+        - { creature: armsman, count: 4 }

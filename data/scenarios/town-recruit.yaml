@@ -1,0 +1,29 @@
+name: Наём в гарнизон и передача отряда герою
+map: test-town
+seed: 1
+steps:
+  - recruit: { town: o1, creature: militia, count: 15 }
+    expectError: NOT_AVAILABLE
+  - recruit: { town: o1, creature: slinger, count: 1 }
+    expectError: NO_DWELLING
+  - recruit: { town: o1, creature: militia, count: 14 }
+  - transfer: { town: o1, from: garrison, creature: militia, count: 14 }
+    expectError: HERO_NOT_IN_TOWN
+  - move: { hero: A, path: [SE] }
+  - transfer: { town: o1, from: garrison, creature: militia, count: 14 }
+  - transfer: { town: o1, from: hero, creature: militia, count: 24 }
+    expectError: LAST_STACK
+  - transfer: { town: o1, from: hero, creature: militia, count: 4 }
+expect:
+  # 14 ополченцев по 60 золота.
+  resources:
+    - { gold: 19160 }
+  heroes:
+    A:
+      x: 2
+      y: 2
+      army: [{ creature: militia, count: 20 }]
+  objects:
+    o1:
+      available: []
+      garrison: [{ creature: militia, count: 4 }]

@@ -1,0 +1,24 @@
+name: Недельный прирост — с цитаделью больше наполовину
+map: test-town
+seed: 1
+steps:
+  - build: { town: o1, building: citadel }
+  - endTurn: {}
+  - build: { town: o1, building: slinger-range }
+  - endTurn: {}
+  - endTurn: {}
+  - endTurn: {}
+  - endTurn: {}
+  - endTurn: {}
+  - endTurn: {}
+expect:
+  day: 8
+  # Было 14 ополченцев и 9 пращников; в день 8 пришло 21 и 13.
+  objects:
+    o1:
+      available:
+        - { creature: militia, count: 35 }
+        - { creature: slinger, count: 22 }
+  # 20000 − 2500 − 1000 и семь дней по 500.
+  resources:
+    - { gold: 20000 }

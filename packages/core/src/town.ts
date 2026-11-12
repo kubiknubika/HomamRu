@@ -131,8 +131,8 @@ function withDwellingStock(state: GameState, town: TownState, buildingId: string
   if (creature === undefined) {
     return town;
   }
-  const added = weeklyGrowth(state, town, creature.growth);
-  return { ...town, available: addToArmy(town.available, creature.id, added) };
+  // Основной прирост, без прибавки цитадели и замка: она считается только в начале недели.
+  return { ...town, available: addToArmy(town.available, creature.id, creature.growth) };
 }
 
 /** Город в начале партии: в построенных жилищах уже ждёт недельный прирост. */
