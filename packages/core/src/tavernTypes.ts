@@ -35,12 +35,21 @@ export interface TavernOffer {
   readonly army: readonly ArmyStack[];
 }
 
+/** Настройки компьютерного игрока (42-opponent.md). */
+export interface OpponentRules {
+  /** Во сколько раз армия должна быть дороже цели, чтобы напасть, в процентах: 150 — в полтора раза. */
+  readonly advantagePercent: number;
+  /** В каком порядке компьютер строит здания. */
+  readonly buildOrder: readonly string[];
+}
+
 /** Контент игры, из которого создаётся партия; хранится в состоянии целиком. */
 export interface GameContent {
   readonly creatures: readonly CreatureDefinition[];
   readonly buildings: readonly BuildingDefinition[];
   readonly heroes: readonly HeroKind[];
   readonly tavern: TavernRules;
+  readonly opponent: OpponentRules;
 }
 
 export interface HireHeroCommand {

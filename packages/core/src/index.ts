@@ -16,6 +16,7 @@ export type {
   GameContent,
   HeroKind,
   HireHeroCommand,
+  OpponentRules,
   TavernOffer,
   TavernRules,
 } from "./tavernTypes.ts";
@@ -37,6 +38,10 @@ export {
 } from "./guards.ts";
 export { MAX_STACKS } from "./battle/types.ts";
 export { guardBattleCommand, playBattleOut } from "./battleAuto.ts";
+export { chooseMapCommand, computerCommand } from "./opponent.ts";
+export { playComputerGame, TURN_COMMAND_LIMIT } from "./opponentGame.ts";
+export type { ComputerGame } from "./opponentGame.ts";
+export { armyValue } from "./opponentTown.ts";
 export type { BattlePlayedOut } from "./battleAuto.ts";
 export { experienceForLevel, levelOf, MAX_LEVEL } from "./hero.ts";
 export type { BattleOutcome, StackLoss } from "./events.ts";

@@ -2,7 +2,13 @@
  * Типы игрового состояния, команд и событий.
  * Спецификация: docs/mechanics/00-state-and-commands.md.
  */
-import type { HeroKind, HireHeroCommand, TavernOffer, TavernRules } from "./tavernTypes.ts";
+import type {
+  HeroKind,
+  HireHeroCommand,
+  OpponentRules,
+  TavernOffer,
+  TavernRules,
+} from "./tavernTypes.ts";
 import type {
   BattleCommand,
   BattleRejectCode,
@@ -13,7 +19,7 @@ import type { GameEvent } from "./events.ts";
 import type { RngState } from "./rng.ts";
 
 /** Номер версии формата состояния. Увеличивается при любом изменении формата. */
-export const STATE_VERSION = 6;
+export const STATE_VERSION = 7;
 
 /** Направления шага в порядке из спецификации перемещения. */
 export const DIRECTIONS = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"] as const;
@@ -250,6 +256,8 @@ export interface GameState {
   readonly heroKinds: readonly HeroKind[];
   /** Правила таверны: цена героя и его случайная армия. */
   readonly tavern: TavernRules;
+  /** Настройки компьютерного игрока: перевес для нападения и порядок стройки. */
+  readonly opponent: OpponentRules;
   /** Идущий бой; `null` — боя нет. */
   readonly battle: MapBattle | null;
   /**

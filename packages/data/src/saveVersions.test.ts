@@ -30,6 +30,7 @@ const NO_BATTLES = {
   buildings: TEST_DEFAULTS.buildings,
   heroKinds: TEST_DEFAULTS.heroes,
   tavern: TEST_DEFAULTS.tavern,
+  opponent: TEST_DEFAULTS.opponent,
   battle: null,
   outcome: null,
   winner: null,

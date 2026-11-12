@@ -3,13 +3,22 @@
  * Запуск из корня: pnpm run play — все сценарии; pnpm run play <файл> — один.
  * Файл .json считается дампом ошибки: партия из него повторяется и сверяется.
  * pnpm run play --autobattles [число] — сводка автобоёв (по умолчанию 1000);
- * pnpm run play --autobattle <сид> — один автобой целиком.
+ * pnpm run play --autobattle <сид> — один автобой целиком;
+ * pnpm run play --rivals [число] — сводка партий «компьютер против компьютера» (по умолчанию 100);
+ * pnpm run play --rival <сид> — одна такая партия целиком.
  */
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { runAutoBattles, showAutoBattle } from "./autobattle.ts";
 import { runDump } from "./dump.ts";
-import { listScenarioFiles, loadCreatures, loadDefaults, runScenarioFile } from "./files.ts";
+import {
+  listScenarioFiles,
+  loadCreatures,
+  loadDefaults,
+  loadRivalsMap,
+  runScenarioFile,
+} from "./files.ts";
+import { runComputerGames, showComputerGame } from "./rivals.ts";
 import type { ScenarioRun } from "./scenario.ts";
 
 function print(text: string): void {
@@ -17,6 +26,7 @@ function print(text: string): void {
 }
 
 const DEFAULT_AUTO_BATTLES = 1000;
+const DEFAULT_RIVAL_GAMES = 100;
 
 function playFiles(args: readonly string[]): boolean {
   // pnpm запускает скрипт из папки пакета, а путь игрок пишет от папки, где стоит.
@@ -61,6 +71,13 @@ function main(args: readonly string[]): boolean {
   }
   if (mode === "--autobattle") {
     return playAuto(showAutoBattle(Number(value ?? 1), loadCreatures()));
+  }
+  if (mode === "--rivals") {
+    const count = value === undefined ? DEFAULT_RIVAL_GAMES : Number(value);
+    return playAuto(runComputerGames(count, loadRivalsMap(), loadDefaults()));
+  }
+  if (mode === "--rival") {
+    return playAuto(showComputerGame(Number(value ?? 1), loadRivalsMap(), loadDefaults()));
   }
   return playFiles(args);
 }

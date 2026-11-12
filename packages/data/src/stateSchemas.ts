@@ -172,6 +172,7 @@ export const looseStateSchema = z.object({
   buildings: z.array(z.unknown()).catch([]),
   heroKinds: z.unknown().optional(),
   tavern: z.unknown().optional(),
+  opponent: z.unknown().optional(),
   battle: z.unknown().optional(),
   outcome: z.enum(["defeat", "victory"]).nullable().catch(DEFAULTS.outcome),
   winner: playerNumberSchema.nullable().catch(DEFAULTS.winner),

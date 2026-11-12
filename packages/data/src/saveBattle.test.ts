@@ -1,7 +1,7 @@
 // Параметры шага 3.2 в сохранении: docs/mechanics/04-save.md и 23-map-battle.md.
 import { applyCommand, createGame, playBattleOut, replay } from "@homamru/core";
 import type { Command, GameState } from "@homamru/core";
-import { BUILDINGS, CONTENT, CREATURES, HEROES, TAVERN } from "@homamru/core/testkit";
+import { BUILDINGS, CONTENT, CREATURES, HEROES, OPPONENT, TAVERN } from "@homamru/core/testkit";
 import { describe, expect, it } from "vitest";
 import { encodeSave, verifySave } from "./save.ts";
 import {
@@ -104,7 +104,7 @@ describe("параметры шага 3.2: чего нет — начально�
     );
     const state = {
       ...old,
-      version: 6,
+      version: 7,
       // Города в записи нет — нет и таверны.
       players: FULL.players.map((player) => ({ ...player, tavern: [] })),
       heroes: [
@@ -123,6 +123,7 @@ describe("параметры шага 3.2: чего нет — начально�
       buildings: BUILDINGS,
       heroKinds: HEROES,
       tavern: TAVERN,
+      opponent: OPPONENT,
       battle: null,
       outcome: null,
       winner: null,

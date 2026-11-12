@@ -9,13 +9,28 @@ import { applyCommand } from "./commands.ts";
 import type { GameEvent } from "./events.ts";
 import type { GameState } from "./types.ts";
 
+/** Ходит ли за сторону боя компьютер: за охранника — всегда, иначе решает вид игрока. */
+function sideIsComputer(state: GameState, side: 0 | 1): boolean {
+  const { battle } = state;
+  if (battle === null || (side === 1 && battle.guardId !== null)) {
+    return true;
+  }
+  const heroId = side === 0 ? battle.heroId : battle.defenderHeroId;
+  const hero = state.heroes.find((candidate) => candidate.id === heroId);
+  const town = state.objects.find((object) => object.id === battle.townId);
+  const owner = hero?.owner ?? (town?.type === "town" ? town.owner : undefined);
+  return state.players.find((player) => player.id === owner)?.kind !== "human";
+}
+
 /**
- * Команда компьютера за охранника, если сейчас его ход; иначе `undefined`.
+ * Команда компьютера в бою, если сейчас ходит его отряд: охранника или компьютерного
+ * игрока (40-two-players.md); иначе `undefined` — ходит человек.
  * Тот, кто ведёт партию (экран, сценарий), применяет её как обычную команду.
  */
 export function guardBattleCommand(state: GameState): BattleCommand | undefined {
   const battle = state.battle?.state;
-  if (battle === undefined || activeStackOf(battle)?.side !== 1) {
+  const side = battle === undefined ? undefined : activeStackOf(battle)?.side;
+  if (battle === undefined || side === undefined || !sideIsComputer(state, side)) {
     return undefined;
   }
   return chooseBattleCommand(battle);
@@ -30,7 +45,7 @@ export interface BattlePlayedOut {
 
 /**
  * Доигрывает идущий бой простым компьютером за обе стороны.
- * `onlyGuard` — ходит только охранник: бой останавливается, когда ход переходит герою.
+ * `onlyGuard` — ходит только компьютер: бой останавливается, когда ход переходит человеку.
  */
 export function playBattleOut(initial: GameState, onlyGuard = false): BattlePlayedOut {
   let state = initial;

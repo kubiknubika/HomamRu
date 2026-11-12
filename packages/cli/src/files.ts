@@ -81,6 +81,11 @@ export function loadMap(path: string): MapDefinition {
   return unwrap(parseMapFile(fromRoot(path), readFileSync(path, "utf8"), loadDefaults()));
 }
 
+/** Карта для партий «компьютер против компьютера». */
+export function loadRivalsMap(): MapDefinition {
+  return loadMap(join(MAPS_DIR, "test-rivals.yaml"));
+}
+
 /** Пути всех файлов боёв, по алфавиту. */
 export function listBattleFiles(): string[] {
   return readdirSync(BATTLES_DIR)

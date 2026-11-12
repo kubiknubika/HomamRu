@@ -1,7 +1,7 @@
 /**
  * Помощники для тестов ядра. В игре не используются.
  */
-import type { GameContent, HeroKind, TavernRules } from "./tavernTypes.ts";
+import type { GameContent, HeroKind, OpponentRules, TavernRules } from "./tavernTypes.ts";
 import { CREATURES } from "./battle/testkit.ts";
 import { createGame, DAILY_MOVEMENT, heroIdOf } from "./game.ts";
 import { NO_RESOURCES } from "./objects.ts";
@@ -50,6 +50,22 @@ export const HEROES: readonly HeroKind[] = [
 ];
 
 /** Правила таверны для тестов: те же, что в data/defaults.yaml. */
+export const OPPONENT: OpponentRules = {
+  advantagePercent: 150,
+  buildOrder: [
+    "town-hall",
+    "militia-yard",
+    "slinger-range",
+    "smithy",
+    "barracks",
+    "falcon-tower",
+    "citadel",
+    "castle",
+    "tavern",
+    "fort",
+  ],
+};
+
 export const TAVERN: TavernRules = {
   price: 2500,
   army: [
@@ -161,6 +177,7 @@ export function fromPicture(rows: readonly string[]): Picture {
     buildings: BUILDINGS,
     heroKinds: HEROES,
     tavern: TAVERN,
+    opponent: OPPONENT,
     battle: null,
     outcome: null,
     winner: null,
@@ -180,6 +197,7 @@ export const CONTENT: GameContent = {
   buildings: BUILDINGS,
   heroes: HEROES,
   tavern: TAVERN,
+  opponent: OPPONENT,
 };
 
 /**

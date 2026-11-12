@@ -12,7 +12,7 @@ const HERO_ROWS = [
   "- { id: c, name: В, attack: 2, defense: 2 }",
 ];
 const DEFAULTS_TEXT = (rule: string) =>
-  `heroArmy: [{ creature: militia, count: 10 }]\ntavern:\n  price: 2500\n  army:\n    - ${rule}`;
+  `heroArmy: [{ creature: militia, count: 10 }]\ntavern:\n  price: 2500\n  army:\n    - ${rule}\nopponent: { advantagePercent: 150, buildOrder: [tavern] }`;
 const SURE = "{ creature: militia, min: 10, max: 20, chance: 100 }";
 
 function defaultsErrors(rule: string): string[] {
@@ -66,6 +66,46 @@ describe("правила таверны в файле начальных зна�
     ["шанс больше 100", SURE.replace("100", "101")],
   ])("отвергаются: %s", (_, rule) => {
     expect(defaultsErrors(rule)).not.toEqual([]);
+  });
+});
+
+const withOpponent = (opponent: string) =>
+  parseDefaultsFile(
+    "data/defaults.yaml",
+    DEFAULTS_TEXT(SURE).replace(/opponent: .*$/, `opponent: ${opponent}`),
+    CONTENT,
+  );
+
+describe("настройки компьютерного игрока", () => {
+  it("читаются из файла начальных значений", () => {
+    expect(withOpponent("{ advantagePercent: 150, buildOrder: [tavern, fort] }")).toMatchObject({
+      ok: true,
+      value: { opponent: { advantagePercent: 150, buildOrder: ["tavern", "fort"] } },
+    });
+  });
+
+  it("незнакомое здание в списке стройки — ошибка с местом", () => {
+    expect(withOpponent("{ advantagePercent: 150, buildOrder: [tavern, palace] }")).toMatchObject({
+      ok: false,
+      errors: [{ field: "opponent.buildOrder.1", message: "Здания «palace» нет." }],
+    });
+  });
+
+  it("перевес не целый или меньше 100 — ошибка", () => {
+    expect(withOpponent("{ advantagePercent: 1.5, buildOrder: [tavern] }").ok).toBe(false);
+    expect(withOpponent("{ advantagePercent: 99, buildOrder: [tavern] }").ok).toBe(false);
+  });
+
+  it("в сохранении: записанные остаются; нет, не читаются или здание незнакомо — из игры", () => {
+    const written = { advantagePercent: 200, buildOrder: ["fort"] };
+    expect(stateWith({ opponent: written })?.opponent).toEqual(written);
+    expect(stateWith({ opponent: undefined })?.opponent).toEqual(TEST_DEFAULTS.opponent);
+    expect(stateWith({ opponent: { advantagePercent: "много" } })?.opponent).toEqual(
+      TEST_DEFAULTS.opponent,
+    );
+    expect(stateWith({ opponent: { ...written, buildOrder: ["palace"] } })?.opponent).toEqual(
+      TEST_DEFAULTS.opponent,
+    );
   });
 });
 

@@ -130,7 +130,7 @@ describe("создание партии", () => {
     expect(createGame(mapOf({ players }), 42, CONTENT)).toEqual({
       ok: true,
       state: {
-        version: 6,
+        version: 7,
         rng: { s: 42 },
         map: {
           id: "test",
@@ -172,6 +172,7 @@ describe("создание партии", () => {
         buildings: BUILDINGS,
         heroKinds: CONTENT.heroes,
         tavern: CONTENT.tavern,
+        opponent: CONTENT.opponent,
         battle: null,
         outcome: null,
         winner: null,

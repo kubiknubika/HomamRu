@@ -116,6 +116,7 @@ export const FULL_STATE: GameState = {
   buildings: CONTENT.buildings,
   heroKinds: CONTENT.heroes,
   tavern: CONTENT.tavern,
+  opponent: CONTENT.opponent,
   battle: null,
   outcome: null,
   winner: null,
