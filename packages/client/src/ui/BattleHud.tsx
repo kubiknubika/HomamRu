@@ -1,7 +1,7 @@
-import { activeStackOf, findStack, turnQueue } from "@homamru/core";
-import type { BattleResult, BattleState, StackState } from "@homamru/core";
+import { activeStackOf, canShoot, findStack, turnQueue } from "@homamru/core";
+import type { BattleResult, BattleState } from "@homamru/core";
 import { useEffect, useState, useSyncExternalStore } from "react";
-import { canRotateScreen, lockLandscape, unlockOrientation } from "../battle/orientation.ts";
+import { describeStack, lostCount } from "../battle/battleLog.ts";
 import { PLAYER_SIDE, playerStack } from "../battle/battleSession.ts";
 import type { BattleSelection, BattleSession } from "../battle/battleSession.ts";
 import { Dialog, DialogButton } from "./Dialog.tsx";
@@ -34,36 +34,18 @@ function usePortrait(): boolean {
   return portrait;
 }
 
-/**
- * На телефоне поворачивает экран на время боя и возвращает после него.
- * Сообщает, не вышло ли повернуть: тогда игрока просят повернуть устройство самому.
- */
-function useLandscapeLock(): boolean {
-  const [failed, setFailed] = useState(false);
-  useEffect(() => {
-    let closed = false;
-    void lockLandscape().then((locked) => {
-      if (!closed && canRotateScreen() && !locked) {
-        setFailed(true);
-      }
-    });
-    return () => {
-      closed = true;
-      void unlockOrientation();
-    };
-  }, []);
-  return failed;
-}
-
 function hintOf(selection: BattleSelection | null): string | null {
   if (selection === null || selection.kind === "move") {
     return null;
   }
   const { min, max } = selection.damage;
   const damage = min === max ? `${min}` : `от ${min} до ${max}`;
-  return selection.kind === "shoot"
-    ? `Выстрел: урон ${damage}. Коснитесь врага ещё раз.`
-    : `Удар: урон ${damage}. Коснитесь красной клетки.`;
+  if (selection.kind === "shoot") {
+    return `Выстрел: урон ${damage}. Коснитесь врага ещё раз.`;
+  }
+  return selection.from === null
+    ? `Удар: урон ${damage}. Выберите красную клетку, откуда бить.`
+    : `Удар: урон ${damage}. Коснитесь оранжевой клетки или врага ещё раз.`;
 }
 
 function reasonOf(result: BattleResult): string {
@@ -82,48 +64,9 @@ function Losses({ state, side }: { readonly state: BattleState; readonly side: 0
         .filter((stack) => stack.side === side)
         .map((stack) => (
           <div key={stack.id}>
-            {stack.creature.name}: {stack.initialCount - stack.count} из {stack.initialCount}
+            {stack.creature.name}: {lostCount(state, stack)} из {stack.initialCount}
           </div>
         ))}
-    </div>
-  );
-}
-
-/** Прибавка к характеристике в скобках. */
-function bonus(value: number): string {
-  return value > 0 ? ` (+${value})` : "";
-}
-
-function StackInfo({ state, stack }: { readonly state: BattleState; readonly stack: StackState }) {
-  const hero = state.sides[stack.side].hero;
-  const { creature } = stack;
-  return (
-    <div className="dialog-text battle-info">
-      <div>
-        Существ: {stack.count} из {stack.initialCount}
-      </div>
-      <div>
-        Атака: {creature.attack}
-        {bonus(hero?.attack ?? 0)}
-      </div>
-      <div>
-        Защита: {creature.defense}
-        {bonus((hero?.defense ?? 0) + stack.defendBonus)}
-      </div>
-      <div>
-        Урон: {creature.damageMin}–{creature.damageMax}
-      </div>
-      <div>
-        Здоровье: {stack.firstHealth} из {creature.health}
-      </div>
-      <div>Скорость: {creature.speed}</div>
-      {creature.flying && <div>Летает</div>}
-      {creature.shots > 0 && (
-        <div>
-          Выстрелов: {stack.shots} из {creature.shots}
-        </div>
-      )}
-      {stack.retaliated && <div>Уже отвечал на удар в этом раунде</div>}
     </div>
   );
 }
@@ -132,14 +75,10 @@ function StackInfo({ state, stack }: { readonly state: BattleState; readonly sta
 export function BattleHud({ battle, onClose }: BattleHudProps) {
   const snapshot = useSyncExternalStore(battle.subscribe, battle.getSnapshot);
   const [confirmFlee, setConfirmFlee] = useState(false);
+  const [journal, setJournal] = useState(false);
   const portrait = usePortrait();
-  const lockFailed = useLandscapeLock();
-  const { state, selection, locked, log, inspected } = snapshot;
+  const { state, selection, locked, log, history, inspected } = snapshot;
 
-  if (portrait && canRotateScreen() && !lockFailed) {
-    // Телефон поворачивает экран сам; до конца поворота ничего не показываем.
-    return null;
-  }
   if (portrait) {
     return (
       <Dialog title="Поверните устройство">
@@ -153,11 +92,20 @@ export function BattleHud({ battle, onClose }: BattleHudProps) {
   const active = activeStackOf(state);
   const queue = turnQueue(state).slice(0, QUEUE_LENGTH);
   const inspectedStack = inspected === null ? undefined : findStack(state, inspected);
-  const hint = hintOf(selection);
+  // Строка над панелью: рассматриваемый отряд, подсказка к выбору, подсказка стрелку, журнал.
+  const shooterHint =
+    me !== undefined && canShoot(state, me)
+      ? `${me.creature.name} — стрелок, выстрелов ${me.shots}: коснитесь врага в красном кольце.`
+      : null;
+  const status =
+    (inspectedStack === undefined ? null : describeStack(state, inspectedStack)) ??
+    hintOf(selection) ??
+    shooterHint ??
+    log;
 
   return (
     <>
-      <div className="battle-log">{hint ?? log}</div>
+      <div className="battle-log">{status}</div>
       <div className="battle-bar">
         <div className="battle-round">
           Раунд {state.round}
@@ -181,6 +129,15 @@ export function BattleHud({ battle, onClose }: BattleHudProps) {
             );
           })}
         </div>
+        <button
+          type="button"
+          className="battle-button"
+          onClick={() => {
+            setJournal(true);
+          }}
+        >
+          Журнал
+        </button>
         <button
           type="button"
           className="battle-button"
@@ -226,10 +183,21 @@ export function BattleHud({ battle, onClose }: BattleHudProps) {
           />
         </Dialog>
       )}
-      {inspectedStack !== undefined && (
-        <Dialog title={inspectedStack.creature.name}>
-          <StackInfo state={state} stack={inspectedStack} />
-          <DialogButton label="Закрыть" onClick={battle.closeInspect} />
+      {journal && (
+        <Dialog title="Журнал боя">
+          <div className="dialog-text battle-journal">
+            {history.length === 0 && "Ходов ещё не было."}
+            {history.map((line, index) => (
+              // Строки журнала только добавляются в конец и срезаются с начала.
+              <div key={`${history.length - index}:${line}`}>{line}</div>
+            ))}
+          </div>
+          <DialogButton
+            label="Закрыть"
+            onClick={() => {
+              setJournal(false);
+            }}
+          />
         </Dialog>
       )}
       {state.result !== null && !locked && (

@@ -14,6 +14,7 @@ import {
 } from "@homamru/core";
 import type { BattleCommand, BattleEvent, BattleState, Cell, StackState } from "@homamru/core";
 import { describeEvents } from "./battleLog.ts";
+import { routeOf } from "./battleRoute.ts";
 
 /** Игрок — нападающий, компьютер — обороняющийся. */
 export const PLAYER_SIDE = 0;
@@ -32,6 +33,8 @@ export type BattleSelection =
       readonly targetId: string;
       /** Клетки, с которых можно ударить эту цель. */
       readonly cells: readonly Cell[];
+      /** Клетка, выбранная для удара; повторное касание её или врага — удар. */
+      readonly from: Cell | null;
       readonly damage: DamageRange;
     };
 
@@ -42,21 +45,32 @@ export interface BattleSnapshot {
   readonly locked: boolean;
   /** Последняя строка журнала боя. */
   readonly log: string;
-  /** Отряд, характеристики которого открыты. */
+  /** Журнал боя: по строке на каждый из последних ходов, старые сверху. */
+  readonly history: readonly string[];
+  /** Отряд, который игрок рассматривает: видны его характеристики и клетки хода. */
   readonly inspected: string | null;
 }
 
-/** Слушатель получает новый снимок и события команды, если она была. */
-type Listener = (snapshot: BattleSnapshot, events: readonly BattleEvent[]) => void;
+/** Сколько последних ходов хранит журнал боя. */
+export const HISTORY_LENGTH = 20;
+
+/**
+ * Слушатель получает новый снимок, события команды, если она была,
+ * и клетки, по которым отряд прошёл в этой команде.
+ */
+type Listener = (
+  snapshot: BattleSnapshot,
+  events: readonly BattleEvent[],
+  route: readonly Cell[],
+) => void;
 
 export interface BattleSession {
   getSnapshot(): BattleSnapshot;
   subscribe(listener: Listener): () => void;
   /** Касание клетки: первое выбирает, второе подтверждает. */
   tapCell(cell: Cell): void;
-  /** Удержание пальца на клетке: открывает характеристики отряда. */
+  /** Удержание пальца на клетке: показывает характеристики отряда и клетки его хода. */
   inspectCell(cell: Cell): void;
-  closeInspect(): void;
   wait(): void;
   defend(): void;
   flee(): void;
@@ -96,7 +110,22 @@ function selectEnemy(
     return null;
   }
   const damage = damageRange(state.sides, me, enemy, "melee");
-  return { kind: "attack", targetId: enemy.id, cells, damage };
+  // Клетка одна — она сразу выбрана.
+  const from = cells.length === 1 ? (cells[0] ?? null) : null;
+  return { kind: "attack", targetId: enemy.id, cells, from, damage };
+}
+
+/** Враги, которых отряд игрока может сейчас ударить или обстрелять. */
+export function attackableTargets(snapshot: BattleSnapshot): StackState[] {
+  const me = playerStack(snapshot);
+  if (me === undefined) {
+    return [];
+  }
+  const { state } = snapshot;
+  const enemies = state.stacks.filter((stack) => stack.count > 0 && stack.side !== PLAYER_SIDE);
+  return canShoot(state, me)
+    ? enemies
+    : enemies.filter((enemy) => attackCells(state, me, enemy).length > 0);
 }
 
 export function createBattleSession(initial: BattleState): BattleSession {
@@ -105,14 +134,19 @@ export function createBattleSession(initial: BattleState): BattleSession {
     selection: null,
     locked: true,
     log: "",
+    history: [],
     inspected: null,
   };
   const listeners = new Set<Listener>();
 
-  function publish(changes: Partial<BattleSnapshot>, events: readonly BattleEvent[] = []): void {
+  function publish(
+    changes: Partial<BattleSnapshot>,
+    events: readonly BattleEvent[] = [],
+    route: readonly Cell[] = [],
+  ): void {
     snapshot = { ...snapshot, ...changes };
     for (const listener of listeners) {
-      listener(snapshot, events);
+      listener(snapshot, events, route);
     }
   }
 
@@ -123,8 +157,21 @@ export function createBattleSession(initial: BattleState): BattleSession {
       publish({ selection: null });
       return;
     }
-    const log = describeEvents(result.events, result.state) || snapshot.log;
-    publish({ state: result.state, selection: null, locked: true, log }, result.events);
+    const route = routeOf(snapshot.state, command);
+    const line = describeEvents(result.events, result.state);
+    const history = line === "" ? snapshot.history : [...snapshot.history, line];
+    publish(
+      {
+        state: result.state,
+        selection: null,
+        locked: true,
+        inspected: null,
+        log: line || snapshot.log,
+        history: history.slice(-HISTORY_LENGTH),
+      },
+      result.events,
+      route,
+    );
   }
 
   function tapEnemy(state: BattleState, me: StackState, enemy: StackState): void {
@@ -133,11 +180,13 @@ export function createBattleSession(initial: BattleState): BattleSession {
       send({ type: "battleShoot", side: PLAYER_SIDE, target: enemy.id });
       return;
     }
-    // Клетка для удара одна: второе касание по врагу бьёт с неё.
-    const sameTarget = selection?.kind === "attack" && selection.targetId === enemy.id;
-    const [from, another] = selection?.kind === "attack" ? selection.cells : [];
-    if (sameTarget && from !== undefined && another === undefined) {
-      send({ type: "battleAttack", side: PLAYER_SIDE, target: enemy.id, from });
+    // Клетка удара уже выбрана: касание по врагу подтверждает удар с неё.
+    if (
+      selection?.kind === "attack" &&
+      selection.targetId === enemy.id &&
+      selection.from !== null
+    ) {
+      send({ type: "battleAttack", side: PLAYER_SIDE, target: enemy.id, from: selection.from });
       return;
     }
     publish({ selection: selectEnemy(state, me, enemy) });
@@ -146,7 +195,12 @@ export function createBattleSession(initial: BattleState): BattleSession {
   function tapFree(state: BattleState, me: StackState, cell: Cell): void {
     const { selection } = snapshot;
     if (selection?.kind === "attack" && selection.cells.some((from) => sameCell(from, cell))) {
-      send({ type: "battleAttack", side: PLAYER_SIDE, target: selection.targetId, from: cell });
+      // Первое касание клетки удара выбирает её, второе — бьёт.
+      if (selection.from !== null && sameCell(selection.from, cell)) {
+        send({ type: "battleAttack", side: PLAYER_SIDE, target: selection.targetId, from: cell });
+      } else {
+        publish({ selection: { ...selection, from: cell } });
+      }
       return;
     }
     if (selection?.kind === "move" && sameCell(selection.cell, cell)) {
@@ -172,6 +226,10 @@ export function createBattleSession(initial: BattleState): BattleSession {
       };
     },
     tapCell: (cell) => {
+      if (snapshot.inspected !== null) {
+        // Касание убирает показ рассматриваемого отряда.
+        publish({ inspected: null });
+      }
       const me = playerStack(snapshot);
       if (me === undefined) {
         return;
@@ -192,9 +250,6 @@ export function createBattleSession(initial: BattleState): BattleSession {
       if (target !== undefined) {
         publish({ inspected: target.id });
       }
-    },
-    closeInspect: () => {
-      publish({ inspected: null });
     },
     wait: () => {
       simple("battleWait");

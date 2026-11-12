@@ -1,6 +1,6 @@
 /** Журнал боя для игрока: события одной команды одной строкой. */
 import { findStack } from "@homamru/core";
-import type { BattleEvent, BattleState } from "@homamru/core";
+import type { BattleEvent, BattleState, StackState } from "@homamru/core";
 
 const STRIKE_VERBS = { melee: "бьёт", retaliation: "отвечает", shot: "стреляет" } as const;
 
@@ -13,7 +13,7 @@ function describeEvent(event: BattleEvent, nameOf: (id: string) => string): stri
     case "strike": {
       const luck = event.lucky ? ", удача" : "";
       const who = `${nameOf(event.attackerId)} ${STRIKE_VERBS[event.kind]}`;
-      return `${who} (цель: ${nameOf(event.targetId)}): урон ${event.damage}${luck}, погибло ${event.killed}`;
+      return `${who}: ${nameOf(event.targetId)}, урон ${event.damage}${luck}, погибло ${event.killed}`;
     }
     case "stackDied":
       return `${nameOf(event.stackId)}: отряд погиб`;
@@ -37,7 +37,13 @@ function describeEvent(event: BattleEvent, nameOf: (id: string) => string): stri
  * строка о перемещении.
  */
 export function describeEvents(events: readonly BattleEvent[], state: BattleState): string {
-  const nameOf = (id: string): string => findStack(state, id)?.creature.name ?? id;
+  // В бою у сторон бывают одинаковые существа — в журнале сказано, чей отряд.
+  const nameOf = (id: string): string => {
+    const stack = findStack(state, id);
+    return stack === undefined
+      ? id
+      : `${stack.creature.name} (${stack.side === 0 ? "ваш" : "враг"})`;
+  };
   const parts: string[] = [];
   for (const event of events) {
     const text = describeEvent(event, nameOf);
@@ -50,4 +56,39 @@ export function describeEvents(events: readonly BattleEvent[], state: BattleStat
     parts.unshift(`${nameOf(moved.stackId)} перемещается`);
   }
   return parts.join("; ");
+}
+
+/**
+ * Сколько существ отряд потерял в бою. Бежавшая сторона теряет армию целиком,
+ * как в Heroes 3 (docs/mechanics/11-battle-turns.md).
+ */
+export function lostCount(state: BattleState, stack: StackState): number {
+  const fled = state.result?.reason === "fled" && state.result.winner !== stack.side;
+  return fled ? stack.initialCount : stack.initialCount - stack.count;
+}
+
+/** Характеристики отряда одной строкой — для показа по удержанию пальца. */
+export function describeStack(state: BattleState, stack: StackState): string {
+  const { creature } = stack;
+  const hero = state.sides[stack.side].hero;
+  const attack = creature.attack + (hero?.attack ?? 0);
+  const defense = creature.defense + (hero?.defense ?? 0) + stack.defendBonus;
+  const parts = [
+    `${creature.name}: ${stack.count} из ${stack.initialCount}`,
+    `атака ${attack}`,
+    `защита ${defense}`,
+    `урон ${creature.damageMin}–${creature.damageMax}`,
+    `здоровье ${stack.firstHealth} из ${creature.health}`,
+    `скорость ${creature.speed}`,
+  ];
+  if (creature.flying) {
+    parts.push("летает");
+  }
+  if (creature.shots > 0) {
+    parts.push(`стрелок, выстрелов ${stack.shots} из ${creature.shots}`);
+  }
+  if (stack.retaliated) {
+    parts.push("уже отвечал на удар");
+  }
+  return parts.join(" · ");
 }

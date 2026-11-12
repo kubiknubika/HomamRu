@@ -37,6 +37,7 @@ export {
   canShoot,
   findStack,
   reachableCells,
+  walkSteps,
 } from "./battle/queries.ts";
 export { formatBattleEvent, renderBattle } from "./battle/render.ts";
 export { BATTLE_REJECT_CODES, BATTLE_VERSION } from "./battle/types.ts";

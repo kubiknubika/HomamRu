@@ -2,31 +2,22 @@
  * Сцена боя. Только показывает состояние и передаёт касания в бой;
  * правил боя здесь нет (догма 5). Спецификация: docs/mechanics/16-battle-screen.md.
  */
-import {
-  activeStackOf,
-  BATTLE_HEIGHT,
-  BATTLE_WIDTH,
-  findStack,
-  reachableCells,
-} from "@homamru/core";
+import { BATTLE_HEIGHT, BATTLE_WIDTH } from "@homamru/core";
 import type { BattleEvent, BattleState, Cell } from "@homamru/core";
 import * as Phaser from "phaser";
 import type { FrameMeter } from "../game/frameMeter.ts";
 import { showStrike, tracePath } from "./battleEffects.ts";
+import { highlightsOf } from "./battleHighlights.ts";
 import { cellAt, cellCenter, cellCorners, layoutOf } from "./battleGeometry.ts";
 import type { BattleLayout } from "./battleGeometry.ts";
-import { playerStack } from "./battleSession.ts";
 import type { BattleSession, BattleSnapshot } from "./battleSession.ts";
 import {
-  ACTIVE_OUTLINE_COLOR,
-  ATTACK_CELL_COLOR,
+  CELL_MARK_STYLES,
   createStackStub,
   FIELD_COLOR,
   FIELD_LINE_COLOR,
   OBSTACLE_COLOR,
-  REACHABLE_COLOR,
-  SELECTED_COLOR,
-  TARGET_COLOR,
+  RING_MARK_STYLES,
 } from "./battleStubs.ts";
 import type { StackStub } from "./battleStubs.ts";
 
@@ -35,6 +26,8 @@ const BOTTOM_HEIGHT = 72;
 const MARGIN = 6;
 
 const MOVE_MS = 260;
+/** Один шаг пешего отряда по пути. */
+const STEP_MS = 110;
 /** Пауза после показа событий, чтобы игрок успел увидеть, что произошло. */
 const PAUSE_MS = 220;
 const HOLD_MS = 500;
@@ -54,6 +47,8 @@ export class BattleScene extends Phaser.Scene {
   /** События, которые ещё предстоит показать. */
   private pending: BattleEvent[] = [];
   private showing = false;
+  /** Клетки пути отряда в показываемой команде. */
+  private route: Cell[] = [];
   private hold: Phaser.Time.TimerEvent | undefined;
   private held = false;
 
@@ -75,8 +70,8 @@ export class BattleScene extends Phaser.Scene {
     this.scale.on(Phaser.Scale.Events.RESIZE, this.rebuild, this);
     this.input.on(Phaser.Input.Events.POINTER_DOWN, this.onDown, this);
     this.input.on(Phaser.Input.Events.POINTER_UP, this.onUp, this);
-    const unsubscribe = this.session.subscribe((snapshot, events) => {
-      this.onChange(snapshot, events);
+    const unsubscribe = this.session.subscribe((snapshot, events, route) => {
+      this.onChange(snapshot, events, route);
     });
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       unsubscribe();
@@ -152,26 +147,7 @@ export class BattleScene extends Phaser.Scene {
     }
   }
 
-  private fillCell(cell: Cell, color: number, alpha: number): void {
-    const graphics = this.highlights;
-    if (graphics !== undefined) {
-      graphics.fillStyle(color, alpha);
-      tracePath(graphics, cellCorners(this.layout, cell));
-      graphics.fillPath();
-    }
-  }
-
-  private ringAround(cell: Cell, color: number): void {
-    const center = cellCenter(this.layout, cell);
-    this.highlights?.lineStyle(3, color, 1);
-    this.highlights?.strokeCircle(
-      center.x,
-      center.y - this.stackSize() * 0.1,
-      this.stackSize() * 0.42,
-    );
-  }
-
-  /** Подсветка: обводка отряда, чей ход; клетки хода; выбор игрока. */
+  /** Подсветка: клетки хода, выбор игрока, обводки отрядов (что именно — battleHighlights.ts). */
   private drawHighlights(snapshot: BattleSnapshot): void {
     const graphics = this.highlights;
     if (graphics === undefined) {
@@ -181,34 +157,31 @@ export class BattleScene extends Phaser.Scene {
     if (this.showing) {
       return;
     }
-    const { state, selection } = snapshot;
-    const active = activeStackOf(state);
-    if (active !== undefined) {
-      this.ringAround(active, ACTIVE_OUTLINE_COLOR);
+    const highlights = highlightsOf(snapshot);
+    for (const { cell, mark } of highlights.cells) {
+      const style = CELL_MARK_STYLES[mark];
+      graphics.fillStyle(style.color, style.alpha);
+      tracePath(graphics, cellCorners(this.layout, cell));
+      graphics.fillPath();
     }
-    const me = playerStack(snapshot);
-    if (me === undefined) {
-      return;
-    }
-    for (const cell of reachableCells(state, me).values()) {
-      this.fillCell(cell, REACHABLE_COLOR, 0.28);
-    }
-    if (selection?.kind === "move") {
-      this.fillCell(selection.cell, SELECTED_COLOR, 0.55);
-      return;
-    }
-    const target = selection === null ? undefined : findStack(state, selection.targetId);
-    if (target !== undefined) {
-      this.ringAround(target, TARGET_COLOR);
-    }
-    if (selection?.kind === "attack") {
-      for (const cell of selection.cells) {
-        this.fillCell(cell, ATTACK_CELL_COLOR, 0.6);
-      }
+    const size = this.stackSize();
+    for (const { stack, mark } of highlights.rings) {
+      const style = RING_MARK_STYLES[mark];
+      const center = cellCenter(this.layout, stack);
+      graphics.lineStyle(style.width, style.color, 1);
+      graphics.strokeCircle(
+        center.x,
+        center.y - size * 0.1,
+        size * (mark === "active" ? 0.42 : 0.5),
+      );
     }
   }
 
-  private onChange(snapshot: BattleSnapshot, events: readonly BattleEvent[]): void {
+  private onChange(
+    snapshot: BattleSnapshot,
+    events: readonly BattleEvent[],
+    route: readonly Cell[],
+  ): void {
     if (events.length === 0) {
       if (!this.showing) {
         this.drawHighlights(snapshot);
@@ -216,11 +189,32 @@ export class BattleScene extends Phaser.Scene {
       return;
     }
     this.pending.push(...events);
+    this.route = [...route];
     if (!this.showing) {
       this.showing = true;
       this.highlights?.clear();
       this.showNext();
     }
+  }
+
+  /** Отряд идёт по клеткам пути одна за другой. */
+  private walk(stub: StackStub, cells: readonly Cell[], onComplete: () => void): void {
+    const [first, ...rest] = cells;
+    if (first === undefined) {
+      onComplete();
+      return;
+    }
+    const to = cellCenter(this.layout, first);
+    this.tweens.add({
+      targets: stub.container,
+      x: to.x,
+      y: to.y,
+      // Перелёт или один шаг — плавно; длинный путь пешком — быстрее на клетку.
+      duration: this.route.length <= 1 ? MOVE_MS : STEP_MS,
+      onComplete: () => {
+        this.walk(stub, rest, onComplete);
+      },
+    });
   }
 
   /** Показывает события по одному: переезд, удар. Остальные видны в журнале. */
@@ -241,15 +235,11 @@ export class BattleScene extends Phaser.Scene {
     };
     if (event.type === "stackMoved") {
       const stub = this.stubs.get(event.stackId);
-      const to = cellCenter(this.layout, event.to);
       if (stub !== undefined) {
-        this.tweens.add({
-          targets: stub.container,
-          x: to.x,
-          y: to.y,
-          duration: MOVE_MS,
-          onComplete: next,
-        });
+        // Путь известен — идём по нему; иначе сразу в конечную клетку.
+        const last = this.route.at(-1);
+        const known = last !== undefined && last.col === event.to.col && last.row === event.to.row;
+        this.walk(stub, known ? this.route : [event.to], next);
         return;
       }
     }

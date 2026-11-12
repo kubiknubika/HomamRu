@@ -1,88 +1,8 @@
-import { createBattle, findStack } from "@homamru/core";
-import type { BattleDefinition, BattleEvent, BattleState, CreatureDefinition } from "@homamru/core";
+import { findStack } from "@homamru/core";
+import type { BattleEvent } from "@homamru/core";
 import { describe, expect, it } from "vitest";
 import { createBattleSession, playerStack } from "./battleSession.ts";
-import type { BattleSession } from "./battleSession.ts";
-
-const MILITIA: CreatureDefinition = {
-  id: "militia",
-  name: "Ополченец",
-  attack: 5,
-  defense: 5,
-  damageMin: 2,
-  damageMax: 3,
-  health: 12,
-  speed: 4,
-  flying: false,
-  shots: 0,
-};
-const SLINGER: CreatureDefinition = {
-  ...MILITIA,
-  id: "slinger",
-  name: "Пращник",
-  defense: 3,
-  damageMin: 1,
-  damageMax: 4,
-  health: 9,
-  speed: 5,
-  shots: 10,
-};
-const FALCON: CreatureDefinition = {
-  ...MILITIA,
-  id: "falcon",
-  name: "Сокол",
-  attack: 7,
-  damageMin: 3,
-  damageMax: 5,
-  health: 18,
-  speed: 8,
-  flying: true,
-};
-
-function army(stacks: string[], withHero: boolean) {
-  return {
-    hero: withHero ? { attack: 0, defense: 0 } : undefined,
-    morale: 0,
-    luck: 0,
-    army: stacks.map((entry) => {
-      const [creature = "", count = "1"] = entry.split(":");
-      return { creature, count: Number(count) };
-    }),
-  };
-}
-
-function battle(attacker: string[], defender: string[], hero = false): BattleState {
-  const definition: BattleDefinition = {
-    id: "t",
-    name: "t",
-    obstacles: [],
-    attacker: army(attacker, hero),
-    defender: army(defender, false),
-  };
-  const created = createBattle(definition, [MILITIA, SLINGER, FALCON], 1);
-  if (!created.ok) {
-    throw new Error("бой не создан");
-  }
-  return created.state;
-}
-
-/** Сессия, в которой экран уже всё показал и ход у игрока. */
-function ready(state: BattleState): BattleSession {
-  const session = createBattleSession(state);
-  session.animationDone();
-  return session;
-}
-
-/** Ставит отряды в нужные клетки. */
-function place(state: BattleState, cells: Record<string, [number, number]>): BattleState {
-  return {
-    ...state,
-    stacks: state.stacks.map((stack) => {
-      const cell = cells[stack.id];
-      return cell === undefined ? stack : { ...stack, col: cell[0], row: cell[1] };
-    }),
-  };
-}
+import { battle, place, ready } from "./testkit.ts";
 
 function types(events: readonly BattleEvent[]): string[] {
   return events.map((event) => event.type);
@@ -107,7 +27,11 @@ describe("управление в бою — 16-battle-screen.md", () => {
     session.tapCell({ col: 3, row: 5 });
     const snapshot = session.getSnapshot();
     expect(findStack(snapshot.state, "a1")).toMatchObject({ col: 3, row: 5 });
-    expect(snapshot).toMatchObject({ selection: null, locked: true, log: "Сокол перемещается" });
+    expect(snapshot).toMatchObject({
+      selection: null,
+      locked: true,
+      log: "Сокол (ваш) перемещается",
+    });
   });
 
   it("касание недостижимой клетки и другой клетки снимает или меняет выбор", () => {
@@ -149,11 +73,23 @@ describe("управление в бою — 16-battle-screen.md", () => {
     // Второе касание по врагу при нескольких клетках ничего не отправляет.
     session.tapCell({ col: 5, row: 5 });
     expect(session.getSnapshot().locked).toBe(false);
+    // Первое касание клетки удара только выбирает её (оранжевая), второе — бьёт.
+    session.tapCell({ col: 4, row: 5 });
+    expect(session.getSnapshot()).toMatchObject({
+      locked: false,
+      selection: { from: { col: 4, row: 5 } },
+    });
+    session.tapCell({ col: 6, row: 5 });
+    expect(session.getSnapshot()).toMatchObject({
+      locked: false,
+      selection: { from: { col: 6, row: 5 } },
+    });
+    session.tapCell({ col: 4, row: 5 });
     session.tapCell({ col: 4, row: 5 });
     const snapshot = session.getSnapshot();
     expect(findStack(snapshot.state, "a1")).toMatchObject({ col: 4, row: 5 });
     expect(snapshot.log).toMatch(
-      /^Сокол бьёт \(цель: Ополченец\): урон \d+, погибло \d+; Ополченец отвечает/,
+      /^Сокол \(ваш\) бьёт: Ополченец \(враг\), урон \d+, погибло \d+; Ополченец \(враг\) отвечает/,
     );
   });
 
@@ -191,7 +127,9 @@ describe("управление в бою — 16-battle-screen.md", () => {
     const session = ready(battle(["militia:5"], ["militia:5"]));
     session.inspectCell({ col: 14, row: 5 });
     expect(session.getSnapshot().inspected).toBe("b1");
-    session.closeInspect();
+    // Касание поля убирает показ; удержание на пустой клетке ничего не открывает.
+    session.tapCell({ col: 7, row: 7 });
+    expect(session.getSnapshot().inspected).toBeNull();
     session.inspectCell({ col: 7, row: 7 });
     expect(session.getSnapshot().inspected).toBeNull();
   });
@@ -201,19 +139,22 @@ describe("кнопки и ход компьютера", () => {
   it("«Ждать» и «Защищаться» передают ход; компьютер ходит, когда экран всё показал", () => {
     const session = ready(battle(["falcon:5"], ["militia:5"]));
     session.wait();
-    expect(session.getSnapshot()).toMatchObject({ locked: true, log: "Сокол ждёт" });
+    expect(session.getSnapshot()).toMatchObject({ locked: true, log: "Сокол (ваш) ждёт" });
     expect(session.getSnapshot().state.activeStack).toBe("b1");
     // Пока экран показывает события, кнопки не работают.
     session.defend();
     expect(session.getSnapshot().state.activeStack).toBe("b1");
     session.animationDone();
     // Компьютер подошёл; ход вернулся к ждавшему соколу, но экран ещё показывает.
-    expect(session.getSnapshot()).toMatchObject({ locked: true, log: "Ополченец перемещается" });
+    expect(session.getSnapshot()).toMatchObject({
+      locked: true,
+      log: "Ополченец (враг) перемещается",
+    });
     expect(findStack(session.getSnapshot().state, "b1")).toMatchObject({ col: 10, row: 5 });
     session.animationDone();
     expect(playerStack(session.getSnapshot())?.id).toBe("a1");
     session.defend();
-    expect(session.getSnapshot().log).toBe("Сокол защищается: защита +1; Раунд 2");
+    expect(session.getSnapshot().log).toBe("Сокол (ваш) защищается: защита +1; Раунд 2");
   });
 
   it("«Бежать» без героя не работает, с героем заканчивает бой поражением", () => {
@@ -239,6 +180,6 @@ describe("кнопки и ход компьютера", () => {
       }
     }
     expect(session.getSnapshot().state.result).toMatchObject({ winner: 1, reason: "destroyed" });
-    expect(session.getSnapshot().log).toContain("Ополченец: отряд погиб");
+    expect(session.getSnapshot().log).toContain("Ополченец (ваш): отряд погиб");
   });
 });

@@ -278,7 +278,7 @@ body {
 .battle-button {
   flex: none;
   height: 44px;
-  padding: 0 12px;
+  padding: 0 10px;
   border: 1px solid #8a6f35;
   border-radius: 8px;
   background: #3a2f1a;
@@ -298,6 +298,16 @@ body {
   cursor: default;
 }
 
-.battle-info {
-  font-variant-numeric: tabular-nums;
+/* Журнал боя прокручивается пальцем внутри окна. */
+.battle-journal {
+  max-height: 50vh;
+  overflow-y: auto;
+  font-size: 13px;
+  touch-action: pan-y;
+  pointer-events: auto;
+}
+
+.battle-journal div {
+  padding: 3px 0;
+  border-bottom: 1px solid #2c323c;
 }
