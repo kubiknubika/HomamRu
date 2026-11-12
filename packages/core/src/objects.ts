@@ -2,8 +2,10 @@
  * Объекты карты и ресурсы игроков: кучки, шахты, доход.
  * Спецификация: docs/mechanics/20-map-objects.md.
  */
+import { mergeArmy } from "./army.ts";
 import { POWER_PER_CREATURE } from "./guards.ts";
 import { nextInt } from "./rng.ts";
+import { townIncome } from "./town.ts";
 import type { RngState } from "./rng.ts";
 import { RESOURCES } from "./types.ts";
 import type {
@@ -65,6 +67,21 @@ export function createObjects(
       const { creature, count } = definition;
       return { id, type: "guard", x, y, creature, count, power: count * POWER_PER_CREATURE };
     }
+    if (definition.type === "town") {
+      const { owner, buildings = [], garrison = [] } = definition;
+      // Существа в жилищах появятся, когда партия собрана целиком (game.ts).
+      return {
+        id,
+        type: "town",
+        x,
+        y,
+        owner,
+        buildings: [...buildings],
+        builtToday: false,
+        available: [],
+        garrison: mergeArmy(garrison),
+      };
+    }
     const { resource } = definition;
     if (definition.amount !== undefined) {
       return { id, type: "pile", x, y, resource, amount: definition.amount };
@@ -77,10 +94,13 @@ export function createObjects(
   return { objects, rng };
 }
 
-/** Дневной доход игрока от его шахт. */
+/** Дневной доход игрока от его шахт и города. */
 export function incomeOf(state: GameState, player: number): Resources {
   let income = NO_RESOURCES;
   for (const object of state.objects) {
+    if (object.type === "town" && object.owner === player) {
+      income = addResources(income, { gold: townIncome(state, object) });
+    }
     if (object.type === "mine" && object.owner === player) {
       const { resource, amount } = MINE_INCOME[object.kind];
       income = addResources(income, { [resource]: amount });

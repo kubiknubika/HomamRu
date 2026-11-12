@@ -4,6 +4,7 @@
 import { DAILY_MOVEMENT } from "./game.ts";
 import { growGuards } from "./guards.ts";
 import { giveIncome } from "./objects.ts";
+import { startTownDay } from "./town.ts";
 import type { CommandResult, EndTurnCommand, GameEvent, GameState } from "./types.ts";
 
 const DAYS_IN_WEEK = 7;
@@ -40,7 +41,10 @@ export function applyEndTurn(state: GameState, command: EndTurnCommand): Command
     heroes: state.heroes.map((hero) => ({ ...hero, movement: DAILY_MOVEMENT })),
   };
   // Первый день недели, начиная со второй: растут охранники (21-guards.md).
-  const grown = calendarOf(day).weekday === 1 ? growGuards(started, events) : started;
+  const newWeek = calendarOf(day).weekday === 1;
+  const guarded = newWeek ? growGuards(started, events) : started;
+  // В городах снова можно строить; в начале недели жилища дают прирост (31-recruitment.md).
+  const grown = startTownDay(guarded, newWeek, events);
   // Доход приходит в начале хода владельца шахт, до его первой команды.
   return { ok: true, state: giveIncome(grown, 0, events), events };
 }

@@ -1,0 +1,18 @@
+# Проверочная карта с городом (docs/mechanics/30-town.md, 31-recruitment.md).
+id: test-town
+name: Проверочная карта с городом
+terrain:
+  - "........"
+  - "........"
+  - "...##..."
+  - "........"
+  - "........"
+  - "........"
+  - "........"
+  - "........"
+players:
+  - hero: { x: 1, y: 1, army: [{ creature: militia, count: 10 }] }
+    resources: { gold: 20000, wood: 20, ore: 20 }
+objects:
+  - { type: town, x: 2, y: 2, owner: 0, buildings: [tavern, fort, militia-yard] }
+  - { type: mine, x: 1, y: 5, kind: gold-mine }

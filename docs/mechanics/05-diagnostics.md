@@ -87,6 +87,16 @@ expect:
 
 Шаг `move` с героем и путём — команда карты, с клеткой поля боя — команда боя.
 
+Шаги города (шаг 4.1; команду отдаёт игрок, чей ход):
+
+| Шаг | Что делает |
+|---|---|
+| `build: { town, building }` | построить здание (`30-town.md`) |
+| `recruit: { town, creature, count }` | нанять существ в гарнизон (`31-recruitment.md`) |
+| `transfer: { town, from, creature, count }` | передать отряд; `from` — `garrison` или `hero` |
+
+Ожидание для города в `objects`: `{ buildings, available, garrison }` — сверяется только названное; порядок в списках важен.
+
 У шага боя можно ожидать и отказ партии (`NO_BATTLE`, `GAME_OVER`), и отказ боя (`NOT_A_SHOOTER` и другие из `12-battle-actions.md`).
 
 | Ожидание | Что сверяется |

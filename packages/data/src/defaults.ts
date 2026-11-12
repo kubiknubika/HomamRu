@@ -3,7 +3,7 @@
  * Ими дополняется сохранение другой версии (docs/mechanics/04-save.md, «Сохранения других версий»).
  */
 import { MAX_STACKS } from "@homamru/core";
-import type { ArmyStack, CreatureDefinition } from "@homamru/core";
+import type { ArmyStack, BuildingDefinition, CreatureDefinition } from "@homamru/core";
 import { z } from "zod";
 import { armyStackSchema } from "./map.ts";
 import { parseContentFile } from "./parse.ts";
@@ -12,6 +12,8 @@ import type { ContentResult } from "./parse.ts";
 export interface SaveDefaults {
   /** Существа игры: ими дополняется список существ партии. */
   readonly creatures: readonly CreatureDefinition[];
+  /** Здания игры: ими дополняется список зданий партии. */
+  readonly buildings: readonly BuildingDefinition[];
   /** Армия героя, у которого в сохранении армии нет. */
   readonly heroArmy: readonly ArmyStack[];
 }
@@ -29,6 +31,7 @@ export function parseDefaultsFile(
   file: string,
   text: string,
   creatures: readonly CreatureDefinition[],
+  buildings: readonly BuildingDefinition[],
 ): ContentResult<SaveDefaults> {
   const parsed = parseContentFile(file, text, defaultsSchema);
   if (!parsed.ok) {
@@ -49,5 +52,5 @@ export function parseDefaultsFile(
   if (errors.length > 0) {
     return { ok: false, errors };
   }
-  return { ok: true, value: { creatures, heroArmy: parsed.value.heroArmy } };
+  return { ok: true, value: { creatures, buildings, heroArmy: parsed.value.heroArmy } };
 }

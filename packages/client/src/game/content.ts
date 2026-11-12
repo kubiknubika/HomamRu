@@ -1,7 +1,9 @@
-/** Контент игры, нужный партии: существа и начальные значения для старых сохранений. */
-import type { CreatureDefinition } from "@homamru/core";
-import { parseCreatureFile, parseDefaultsFile } from "@homamru/data";
+/** Контент игры, нужный партии: существа, здания и начальные значения для старых сохранений. */
+import type { BuildingDefinition, CreatureDefinition } from "@homamru/core";
+import { parseBuildingsFile, parseCreatureFile, parseDefaultsFile } from "@homamru/data";
 import type { ContentError, SaveDefaults } from "@homamru/data";
+import buildingsText from "../../../../data/buildings.yaml?raw";
+import armsmanText from "../../../../data/creatures/armsman.json?raw";
 import falconText from "../../../../data/creatures/falcon.json?raw";
 import militiaText from "../../../../data/creatures/militia.json?raw";
 import slingerText from "../../../../data/creatures/slinger.json?raw";
@@ -9,7 +11,10 @@ import defaultsText from "../../../../data/defaults.yaml?raw";
 
 const DEFAULTS_FILE = "data/defaults.yaml";
 
+const BUILDINGS_FILE = "data/buildings.yaml";
+
 const CREATURE_FILES = [
+  { file: "data/creatures/armsman.json", text: armsmanText },
   { file: "data/creatures/falcon.json", text: falconText },
   { file: "data/creatures/militia.json", text: militiaText },
   { file: "data/creatures/slinger.json", text: slingerText },
@@ -28,8 +33,14 @@ export function loadCreatures(): CreatureDefinition[] {
   });
 }
 
+/** Все здания игры (docs/mechanics/30-town.md). */
+export function loadBuildings(): BuildingDefinition[] {
+  const parsed = parseBuildingsFile(BUILDINGS_FILE, buildingsText, loadCreatures());
+  return parsed.ok ? parsed.value : failContent(parsed.errors);
+}
+
 /** Начальные значения из контента (docs/mechanics/04-save.md, «Сохранения других версий»). */
 export function loadDefaults(): SaveDefaults {
-  const parsed = parseDefaultsFile(DEFAULTS_FILE, defaultsText, loadCreatures());
+  const parsed = parseDefaultsFile(DEFAULTS_FILE, defaultsText, loadCreatures(), loadBuildings());
   return parsed.ok ? parsed.value : failContent(parsed.errors);
 }

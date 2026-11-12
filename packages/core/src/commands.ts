@@ -5,10 +5,17 @@
 import { applyMapBattleCommand } from "./mapBattle.ts";
 import { applyMoveHero } from "./movement.ts";
 import { applyEndTurn } from "./time.ts";
+import { applyTownCommand } from "./town.ts";
 import { reject } from "./types.ts";
 import type { Command, CommandRejected, CommandResult, GameEvent, GameState } from "./types.ts";
 
-const MAP_COMMANDS: ReadonlySet<string> = new Set(["moveHero", "endTurn"]);
+const MAP_COMMANDS: ReadonlySet<string> = new Set([
+  "moveHero",
+  "endTurn",
+  "build",
+  "recruit",
+  "transfer",
+]);
 const BATTLE_COMMANDS: ReadonlySet<string> = new Set([
   "battleMove",
   "battleAttack",
@@ -30,7 +37,13 @@ export function applyCommand(state: GameState, command: Command): CommandResult 
   if (state.outcome !== null) {
     return reject("GAME_OVER", "Партия окончена.");
   }
-  if (command.type !== "moveHero" && command.type !== "endTurn") {
+  if (
+    command.type !== "moveHero" &&
+    command.type !== "endTurn" &&
+    command.type !== "build" &&
+    command.type !== "recruit" &&
+    command.type !== "transfer"
+  ) {
     return applyMapBattleCommand(state, command);
   }
   if (state.battle !== null) {
@@ -45,8 +58,10 @@ export function applyCommand(state: GameState, command: Command): CommandResult 
   switch (command.type) {
     case "moveHero":
       return applyMoveHero(state, command);
-    default:
+    case "endTurn":
       return applyEndTurn(state, command);
+    default:
+      return applyTownCommand(state, command);
   }
 }
 

@@ -1,7 +1,7 @@
 /** Помощники для тестов сохранения. В игру не входят. */
 import { STATE_VERSION } from "@homamru/core";
 import type { GameState } from "@homamru/core";
-import { CREATURES } from "@homamru/core/testkit";
+import { BUILDINGS, CREATURES } from "@homamru/core/testkit";
 import type { SaveDefaults } from "./defaults.ts";
 import { parseDump } from "./dump.ts";
 import { parseMapFile } from "./map.ts";
@@ -11,6 +11,7 @@ import { readState } from "./state.ts";
 /** Начальные значения из контента — как их дал бы файл `data/defaults.yaml`. */
 export const TEST_DEFAULTS: SaveDefaults = {
   creatures: CREATURES,
+  buildings: BUILDINGS,
   heroArmy: [{ creature: "militia", count: 10 }],
 };
 
@@ -68,10 +69,25 @@ export const FULL_STATE: GameState = {
     { id: "o1", type: "pile", x: 2, y: 0, resource: "wood", amount: 8 },
     { id: "o3", type: "mine", x: 0, y: 2, kind: "gold-mine", owner: 1 },
     { id: "o4", type: "guard", x: 3, y: 1, creature: "falcon", count: 12, power: 12_840 },
+    {
+      id: "o5",
+      type: "town",
+      x: 2,
+      y: 2,
+      owner: 1,
+      buildings: ["tavern", "fort", "militia-yard", "citadel"],
+      builtToday: true,
+      available: [{ creature: "militia", count: 31 }],
+      garrison: [
+        { creature: "militia", count: 4 },
+        { creature: "falcon", count: 2 },
+      ],
+    },
   ],
   day: 9,
   currentPlayer: 1,
   creatures: CREATURES,
+  buildings: BUILDINGS,
   battle: null,
   outcome: null,
 };
@@ -92,4 +108,5 @@ export const decodeTestSave = (text: string) => decodeSave(text, TEST_DEFAULTS);
 export const chooseTestSave = (copies: readonly [string | null, string | null]) =>
   chooseSave(copies, TEST_DEFAULTS);
 export const parseTestDump = (text: string) => parseDump(text, TEST_DEFAULTS);
-export const parseTestMap = (file: string, text: string) => parseMapFile(file, text, CREATURES);
+export const parseTestMap = (file: string, text: string) =>
+  parseMapFile(file, text, CREATURES, BUILDINGS);

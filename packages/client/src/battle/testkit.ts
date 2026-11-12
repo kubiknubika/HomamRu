@@ -15,6 +15,8 @@ const MILITIA: CreatureDefinition = {
   speed: 4,
   flying: false,
   shots: 0,
+  price: 60,
+  growth: 14,
 };
 const SLINGER: CreatureDefinition = {
   ...MILITIA,

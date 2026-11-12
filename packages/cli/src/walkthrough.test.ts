@@ -1,24 +1,15 @@
 // Карта первой версии проходима: docs/mechanics/25-first-map.md.
 import { createGame } from "@homamru/core";
-import { parseMapFile } from "@homamru/data";
-import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { loadCreatures } from "./files.ts";
+import { resolve } from "node:path";
+import { loadBuildings, loadCreatures, loadMap } from "./files.ts";
 import { walkThrough } from "./walkthrough.ts";
 
 const FILE = "data/maps/four-corners.yaml";
 
 function play(seed: number) {
-  const creatures = loadCreatures();
-  const map = parseMapFile(
-    FILE,
-    readFileSync(new URL(`../../../${FILE}`, import.meta.url), "utf8"),
-    creatures,
-  );
-  if (!map.ok) {
-    throw new Error(map.errors.map((error) => `${error.field}: ${error.message}`).join("\n"));
-  }
-  const created = createGame(map.value, seed, creatures);
+  const map = loadMap(resolve(import.meta.dirname, "../../..", FILE));
+  const created = createGame(map, seed, loadCreatures(), loadBuildings());
   if (!created.ok) {
     throw new Error(created.errors.map((error) => error.message).join("\n"));
   }

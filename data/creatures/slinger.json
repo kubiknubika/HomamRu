@@ -8,5 +8,7 @@
   "health": 9,
   "speed": 5,
   "flying": false,
-  "shots": 10
+  "shots": 10,
+  "price": 100,
+  "growth": 9
 }

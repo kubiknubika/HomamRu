@@ -1,0 +1,47 @@
+# Здания города (docs/mechanics/30-town.md, 31-recruitment.md).
+# Цены и приросты — по образцу Heroes 3; названия свои.
+- id: tavern
+  name: Таверна
+  cost: { gold: 500, wood: 5 }
+  tavern: true
+- id: town-hall
+  name: Ратуша
+  cost: { gold: 2500 }
+  requires: [tavern]
+  income: 1000
+- id: fort
+  name: Форт
+  cost: { gold: 5000, wood: 20, ore: 20 }
+- id: citadel
+  name: Цитадель
+  cost: { gold: 2500, ore: 5 }
+  requires: [fort]
+  growthPercent: 50
+- id: castle
+  name: Замок
+  cost: { gold: 5000, wood: 10, ore: 10 }
+  requires: [citadel]
+  growthPercent: 100
+- id: smithy
+  name: Кузница
+  cost: { gold: 1000, wood: 5 }
+- id: militia-yard
+  name: Двор ополченцев
+  cost: { gold: 500, ore: 10 }
+  requires: [fort]
+  dwelling: militia
+- id: slinger-range
+  name: Стрельбище пращников
+  cost: { gold: 1000, wood: 5, ore: 5 }
+  requires: [militia-yard]
+  dwelling: slinger
+- id: barracks
+  name: Казарма
+  cost: { gold: 2000, ore: 5 }
+  requires: [smithy, militia-yard]
+  dwelling: armsman
+- id: falcon-tower
+  name: Соколиная башня
+  cost: { gold: 1000, ore: 5 }
+  requires: [barracks]
+  dwelling: falcon

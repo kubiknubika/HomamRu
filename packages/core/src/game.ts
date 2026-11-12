@@ -1,13 +1,15 @@
 /**
  * Создание партии. Спецификация: docs/mechanics/00-state-and-commands.md.
  */
+import { mergeArmy } from "./army.ts";
 import type { CreatureDefinition } from "./battle/types.ts";
 import { validateMap } from "./map.ts";
 import type { MapError } from "./map.ts";
 import { addResources, createObjects, NO_RESOURCES } from "./objects.ts";
 import { createRng } from "./rng.ts";
 import { STATE_VERSION } from "./types.ts";
-import type { GameState, MapDefinition } from "./types.ts";
+import { stockTown } from "./town.ts";
+import type { BuildingDefinition, GameState, MapDefinition } from "./types.ts";
 
 /** Запас хода героя на день. */
 export const DAILY_MOVEMENT = 1000;
@@ -28,47 +30,52 @@ export function createGame(
   map: MapDefinition,
   seed: number,
   creatures: readonly CreatureDefinition[],
+  buildings: readonly BuildingDefinition[],
 ): CreateGameResult {
-  const errors = validateMap(map, creatures);
+  const errors = validateMap(map, creatures, buildings);
   if (errors.length > 0) {
     return { ok: false, errors };
   }
   const { objects, rng } = createObjects(map.objects ?? [], createRng(seed));
-  return {
-    ok: true,
-    state: {
-      version: STATE_VERSION,
-      rng,
-      map: {
-        id: map.id,
-        name: map.name,
-        width: map.terrain[0]?.length ?? 0,
-        height: map.terrain.length,
-        terrain: [...map.terrain],
-        starts: map.players.map((player) => ({ x: player.hero.x, y: player.hero.y })),
-      },
-      players: map.players.map((player, id) => ({
-        id,
-        resources: addResources(NO_RESOURCES, player.resources ?? {}),
-      })),
-      heroes: map.players.map((player, owner) => ({
-        id: heroIdOf(owner),
-        owner,
-        x: player.hero.x,
-        y: player.hero.y,
-        movement: DAILY_MOVEMENT,
-        attack: player.hero.attack ?? 0,
-        defense: player.hero.defense ?? 0,
-        army: player.hero.army.map(({ creature, count }) => ({ creature, count })),
-        experience: 0,
-        level: 1,
-      })),
-      objects,
-      day: 1,
-      currentPlayer: 0,
-      creatures: creatures.map((creature) => ({ ...creature })),
-      battle: null,
-      outcome: null,
+  const state: GameState = {
+    version: STATE_VERSION,
+    rng,
+    map: {
+      id: map.id,
+      name: map.name,
+      width: map.terrain[0]?.length ?? 0,
+      height: map.terrain.length,
+      terrain: [...map.terrain],
+      starts: map.players.map((player) => ({ x: player.hero.x, y: player.hero.y })),
     },
+    players: map.players.map((player, id) => ({
+      id,
+      resources: addResources(NO_RESOURCES, player.resources ?? {}),
+    })),
+    heroes: map.players.map((player, owner) => ({
+      id: heroIdOf(owner),
+      owner,
+      x: player.hero.x,
+      y: player.hero.y,
+      movement: DAILY_MOVEMENT,
+      attack: player.hero.attack ?? 0,
+      defense: player.hero.defense ?? 0,
+      // Один отряд на вид существ: одинаковые сливаются (31-recruitment.md).
+      army: mergeArmy(player.hero.army),
+      experience: 0,
+      level: 1,
+    })),
+    objects,
+    day: 1,
+    currentPlayer: 0,
+    creatures: creatures.map((creature) => ({ ...creature })),
+    buildings: buildings.map((building) => ({ ...building })),
+    battle: null,
+    outcome: null,
   };
+  // В жилищах, построенных с начала, уже ждёт недельный прирост.
+  const stocked = state.objects.map((object) =>
+    object.type === "town" ? stockTown(state, object) : object,
+  );
+  return { ok: true, state: { ...state, objects: stocked } };
 }

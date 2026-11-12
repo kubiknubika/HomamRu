@@ -1,7 +1,7 @@
 // Бюджеты скорости ядра из docs/mechanics/stage-1.md.
 // Тест лежит здесь, а не в ядре: ядру запрещено системное время.
 // Стоимости путей посчитаны скриптом docs/mechanics/examples/movement.py.
-import { CREATURES, TEST_ARMY } from "@homamru/core/testkit";
+import { BUILDINGS, CREATURES, TEST_ARMY } from "@homamru/core/testkit";
 import { performance } from "node:perf_hooks";
 import { describe, expect, it } from "vitest";
 import { applyCommand, createGame, findPath, playBattleOut, replay } from "@homamru/core";
@@ -22,6 +22,7 @@ function gameOn(terrain: string[]): GameState {
     },
     1,
     CREATURES,
+    BUILDINGS,
   );
   if (!created.ok) {
     throw new Error(created.errors.map((error) => error.message).join("\n"));
@@ -79,6 +80,7 @@ function guardedGame(): GameState {
     },
     1,
     CREATURES,
+    BUILDINGS,
   );
   if (!created.ok) {
     throw new Error(created.errors.map((error) => error.message).join("\n"));

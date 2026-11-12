@@ -14,7 +14,7 @@ import {
 } from "@homamru/core";
 import type { BattleState, Command } from "@homamru/core";
 import { z } from "zod";
-import { creatureSchema } from "./battle.ts";
+import { savedCreatureSchema } from "./battle.ts";
 
 /**
  * Начальные значения параметров состояния — те, что вписываются, когда в записи их нет.
@@ -84,6 +84,18 @@ export const objectSchema = z.discriminatedUnion("type", [
     // Сила сверяется с числом существ при чтении; 0 — «нет».
     power: z.int().min(0).catch(0),
   }),
+  z.object({
+    id: z.string(),
+    type: z.literal("town"),
+    x: z.int(),
+    y: z.int(),
+    owner: playerNumberSchema,
+    // Списки сверяются со зданиями и существами партии при чтении (stateTown.ts).
+    buildings: z.array(z.string()).catch([]),
+    builtToday: z.boolean().catch(false),
+    available: z.array(z.unknown()).catch([]),
+    garrison: z.array(z.unknown()).catch([]),
+  }),
 ]);
 
 export const cellSchema = z.object({ x: z.int(), y: z.int() });
@@ -134,6 +146,7 @@ export const looseStateSchema = z.object({
   day: z.int().min(1).catch(DEFAULTS.day),
   currentPlayer: z.int().min(0).catch(DEFAULTS.currentPlayer),
   creatures: z.array(z.unknown()).catch([]),
+  buildings: z.array(z.unknown()).catch([]),
   battle: z.unknown().optional(),
   outcome: z.literal("defeat").nullable().catch(DEFAULTS.outcome),
 });
@@ -161,7 +174,7 @@ const battleStateSchema = z.strictObject({
       id: z.string(),
       side: battleSideSchema,
       slot: z.int(),
-      creature: creatureSchema,
+      creature: savedCreatureSchema,
       count: z.int(),
       initialCount: z.int(),
       firstHealth: z.int(),
@@ -195,6 +208,27 @@ export const commandSchema = z.discriminatedUnion("type", [
     path: z.array(z.enum(DIRECTIONS)),
   }),
   z.strictObject({ type: z.literal("endTurn"), player: z.int() }),
+  z.strictObject({
+    type: z.literal("build"),
+    player: z.int(),
+    townId: z.string(),
+    building: z.string(),
+  }),
+  z.strictObject({
+    type: z.literal("recruit"),
+    player: z.int(),
+    townId: z.string(),
+    creature: z.string(),
+    count: z.number(),
+  }),
+  z.strictObject({
+    type: z.literal("transfer"),
+    player: z.int(),
+    townId: z.string(),
+    from: z.enum(["garrison", "hero"]),
+    creature: z.string(),
+    count: z.number(),
+  }),
   z.strictObject({ type: z.literal("battleMove"), side: battleSideSchema, to: battleCellSchema }),
   z.strictObject({
     type: z.literal("battleAttack"),

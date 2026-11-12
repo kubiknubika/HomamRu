@@ -42,6 +42,10 @@ export function describeObject(state: GameState, object: ObjectState): string {
   if (object.type === "guard") {
     return `Охранник: ${describeGuard(state, object)}`;
   }
+  if (object.type === "town") {
+    // Экран города — шаг 4.3; пока только подпись.
+    return `Город, ${object.owner === state.currentPlayer ? "ваш" : `игрока ${object.owner + 1}`}`;
+  }
   const { resource, amount } = MINE_INCOME[object.kind];
   const owner = ownerText(state, object.owner);
   return `${MINE_NAMES[object.kind]}, ${owner}. В день: ${RESOURCE_NAMES[resource]} +${amount}`;

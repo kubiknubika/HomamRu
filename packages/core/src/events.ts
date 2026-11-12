@@ -2,7 +2,7 @@
  * События партии. Описание: docs/mechanics/00-state-and-commands.md и документы механик.
  */
 import type { BattleEvent } from "./battle/types.ts";
-import type { Position, Resource, Resources } from "./types.ts";
+import type { Position, Resource, ResourceAmounts, Resources } from "./types.ts";
 
 interface HeroSteppedEvent {
   readonly type: "heroStepped";
@@ -86,6 +86,35 @@ export type GameEvent =
       readonly heroId: string;
       readonly amount: number;
       readonly total: number;
+    }
+  | {
+      readonly type: "buildingBuilt";
+      readonly townId: string;
+      readonly building: string;
+      /** Сколько заплачено. */
+      readonly spent: ResourceAmounts;
+    }
+  | {
+      readonly type: "creaturesGrew";
+      readonly townId: string;
+      readonly creature: string;
+      readonly added: number;
+      readonly available: number;
+    }
+  | {
+      readonly type: "creaturesRecruited";
+      readonly townId: string;
+      readonly creature: string;
+      readonly count: number;
+      readonly cost: number;
+    }
+  | {
+      readonly type: "creaturesTransferred";
+      readonly townId: string;
+      readonly heroId: string;
+      readonly from: "garrison" | "hero";
+      readonly creature: string;
+      readonly count: number;
     }
   | {
       readonly type: "levelGained";

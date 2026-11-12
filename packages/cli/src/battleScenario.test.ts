@@ -3,7 +3,8 @@ import { describe, expect, it } from "vitest";
 import { createBattle } from "@homamru/core";
 import type { BattleScenario } from "@homamru/data";
 import { runBattleScenario } from "./battleScenario.ts";
-import { listBattleFiles, loadBattle, loadCreatures } from "./files.ts";
+import { BUILDINGS } from "@homamru/core/testkit";
+import { listBattleFiles, loadBattle, loadBuildings, loadCreatures } from "./files.ts";
 
 const creatures = loadCreatures();
 const files = listBattleFiles();
@@ -14,7 +15,7 @@ function scenarioOf(changes: Partial<BattleScenario>): BattleScenario {
 }
 
 describe("файлы из папок data/creatures и data/battles", () => {
-  it("существа — три, с числами из 14-creatures.md", () => {
+  it("существа — четыре, с числами из 14-creatures.md и 31-recruitment.md", () => {
     const rows = creatures.map((c) => [
       c.id,
       c.attack,
@@ -25,12 +26,19 @@ describe("файлы из папок data/creatures и data/battles", () => {
       c.speed,
       c.flying,
       c.shots,
+      c.price,
+      c.growth,
     ]);
     expect(rows).toEqual([
-      ["falcon", 7, 5, 3, 5, 18, 8, true, 0],
-      ["militia", 5, 5, 2, 3, 12, 4, false, 0],
-      ["slinger", 5, 3, 1, 4, 9, 5, false, 10],
+      ["armsman", 9, 11, 5, 8, 32, 5, false, 0, 300, 4],
+      ["falcon", 7, 5, 3, 5, 18, 8, true, 0, 200, 7],
+      ["militia", 5, 5, 2, 3, 12, 4, false, 0, 60, 14],
+      ["slinger", 5, 3, 1, 4, 9, 5, false, 10, 100, 9],
     ]);
+  });
+
+  it("здания — те же, что в тестах ядра (30-town.md)", () => {
+    expect(loadBuildings()).toEqual(BUILDINGS);
   });
 
   it("папка боёв не пуста", () => {

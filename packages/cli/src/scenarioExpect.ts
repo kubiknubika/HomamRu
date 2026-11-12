@@ -39,6 +39,33 @@ function checkHero(hero: HeroState, want: HeroWant): string[] {
   return failures;
 }
 
+function checkTown(
+  id: string,
+  object: ObjectState | undefined,
+  want: Exclude<ObjectWant, "absent" | { owner: unknown } | { count: unknown }>,
+): string[] {
+  if (object?.type !== "town") {
+    return [`Объект ${id}: ожидался город, но его нет.`];
+  }
+  const failures: string[] = [];
+  const built = object.buildings.join(", ") || "пусто";
+  if (want.buildings !== undefined && (want.buildings.join(", ") || "пусто") !== built) {
+    failures.push(`Город ${id}: ожидались здания ${want.buildings.join(", ")}, получены ${built}.`);
+  }
+  const armies = [
+    ["ждут найма", want.available, object.available],
+    ["гарнизон", want.garrison, object.garrison],
+  ] as const;
+  for (const [name, wanted, got] of armies) {
+    if (wanted !== undefined && armyText(wanted) !== armyText(got)) {
+      failures.push(
+        `Город ${id}: ${name} — ожидалось ${armyText(wanted)}, получено ${armyText(got)}.`,
+      );
+    }
+  }
+  return failures;
+}
+
 function checkObject(id: string, object: ObjectState | undefined, want: ObjectWant): string[] {
   if (want === "absent") {
     return object === undefined ? [] : [`Объект ${id}: ожидалось, что его нет, но он есть.`];
@@ -50,6 +77,9 @@ function checkObject(id: string, object: ObjectState | undefined, want: ObjectWa
     return object.owner === want.owner
       ? []
       : [`Шахта ${id}: ожидался владелец ${want.owner}, получен ${object.owner}.`];
+  }
+  if (!("count" in want)) {
+    return checkTown(id, object, want);
   }
   if (object?.type !== "guard") {
     return [`Объект ${id}: ожидался охранник, но его нет.`];

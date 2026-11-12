@@ -1,5 +1,5 @@
 // Шаги боя в сценарии карты: docs/mechanics/23-map-battle.md, «Сценарии».
-import { CREATURES } from "@homamru/core/testkit";
+import { BUILDINGS, CREATURES } from "@homamru/core/testkit";
 import type { MapDefinition } from "@homamru/core";
 import type { Scenario } from "@homamru/data";
 import { describe, expect, it } from "vitest";
@@ -17,7 +17,7 @@ const ENTER = { move: { hero: "A", path: ["E" as const, "E" as const, "E" as con
 
 function run(steps: Scenario["steps"], expected?: Scenario["expect"]) {
   const scenario = { name: "Проверка", map: "guarded", seed: 1, steps, expect: expected };
-  return runScenario(scenario, MAP, CREATURES);
+  return runScenario(scenario, MAP, CREATURES, BUILDINGS);
 }
 
 describe("шаги боя в сценарии карты", () => {

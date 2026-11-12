@@ -23,6 +23,10 @@ export interface CreatureDefinition {
   readonly flying: boolean;
   /** Запас выстрелов; 0 — существо не стрелок. */
   readonly shots: number;
+  /** Цена найма одного существа, золото (31-recruitment.md). */
+  readonly price: number;
+  /** Основной недельный прирост в жилище. */
+  readonly growth: number;
 }
 
 interface BattleHero {

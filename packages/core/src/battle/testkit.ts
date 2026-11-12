@@ -26,6 +26,8 @@ export const MILITIA: CreatureDefinition = {
   speed: 4,
   flying: false,
   shots: 0,
+  price: 60,
+  growth: 14,
 };
 
 export const SLINGER: CreatureDefinition = {
@@ -39,6 +41,8 @@ export const SLINGER: CreatureDefinition = {
   speed: 5,
   flying: false,
   shots: 10,
+  price: 100,
+  growth: 9,
 };
 
 export const FALCON: CreatureDefinition = {
@@ -52,9 +56,26 @@ export const FALCON: CreatureDefinition = {
   speed: 8,
   flying: true,
   shots: 0,
+  price: 200,
+  growth: 7,
 };
 
-export const CREATURES = [MILITIA, SLINGER, FALCON];
+const ARMSMAN: CreatureDefinition = {
+  id: "armsman",
+  name: "Латник",
+  attack: 9,
+  defense: 11,
+  damageMin: 5,
+  damageMax: 8,
+  health: 32,
+  speed: 5,
+  flying: false,
+  shots: 0,
+  price: 300,
+  growth: 4,
+};
+
+export const CREATURES = [MILITIA, SLINGER, FALCON, ARMSMAN];
 
 /** Армия без героя, с нулевыми боевым духом и удачей. Запись отряда: `"militia:20"`. */
 export function army(
