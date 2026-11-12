@@ -47,7 +47,10 @@ function select(state: GameState, target: Position): Selection | null {
   return { target, path: findPath(state, hero.id, target) };
 }
 
-export function createSession(initial: GameState): Session {
+/** Вызывается после каждой принятой команды: по нему партия сохраняется. */
+type OnAccepted = (command: Command, state: GameState) => void;
+
+export function createSession(initial: GameState, onAccepted?: OnAccepted): Session {
   let snapshot: SessionSnapshot = { state: initial, selection: null };
   const listeners = new Set<Listener>();
 
@@ -64,6 +67,7 @@ export function createSession(initial: GameState): Session {
     if (!result.ok) {
       return;
     }
+    onAccepted?.(command, result.state);
     const target = snapshot.selection?.target;
     const selection = target === undefined ? null : select(result.state, target);
     publish({ state: result.state, selection }, result.events);

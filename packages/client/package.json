@@ -11,6 +11,8 @@
   },
   "dependencies": {
     "@capacitor/core": "8.6.0",
+    "@capacitor/filesystem": "8.1.5",
+    "@capacitor/share": "8.0.3",
     "@homamru/core": "workspace:*",
     "@homamru/data": "workspace:*",
     "phaser": "4.2.1",

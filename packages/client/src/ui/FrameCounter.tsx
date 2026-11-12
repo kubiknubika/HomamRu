@@ -1,10 +1,8 @@
 import { useEffect, useState } from "react";
+import { BUILD_ID } from "../diagnostics/version.ts";
 import type { FrameMeter } from "../game/frameMeter.ts";
 
 const REFRESH_MS = 500;
-
-/** Номер сборки: его подставляет CI, чтобы было видно, какая версия установлена. */
-const BUILD_ID: unknown = import.meta.env["VITE_BUILD_ID"];
 
 interface FrameCounterProps {
   readonly frameMeter: FrameMeter;
@@ -26,7 +24,7 @@ export function FrameCounter({ frameMeter }: FrameCounterProps) {
   return (
     <div className="hud hud-frames">
       Кадров: {stats.fps} · мин {stats.minFps} · худший {stats.worstFrameMs} мс
-      {typeof BUILD_ID === "string" && <div className="hud-build">Сборка {BUILD_ID}</div>}
+      {BUILD_ID !== null && <div className="hud-build">Сборка {BUILD_ID}</div>}
     </div>
   );
 }

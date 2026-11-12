@@ -14,6 +14,12 @@ const MAP_FILES = [
 
 export const MAP_COUNT = MAP_FILES.length;
 
+/** Номер карты по её идентификатору; неизвестная карта — первая. */
+export function mapIndexOf(id: string): number {
+  const index = MAP_FILES.findIndex((entry) => entry.file.endsWith(`/${id}.yaml`));
+  return Math.max(index, 0);
+}
+
 /** Короткое название карты для отладочной кнопки. */
 export function mapLabel(index: number): string {
   return MAP_FILES[index]?.label ?? "";

@@ -1,5 +1,7 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
+import { installErrorScreen, showErrorScreen } from "./diagnostics/errorScreen.ts";
+import { pickStorage } from "./save/saveStorage.ts";
 import "./styles.css";
 import { App } from "./ui/App.tsx";
 
@@ -11,8 +13,11 @@ function requireElement(id: string): HTMLElement {
   return element;
 }
 
-createRoot(requireElement("ui")).render(
+installErrorScreen();
+
+// Ошибку при отрисовке интерфейса React сюда и приносит: показываем тот же экран.
+createRoot(requireElement("ui"), { onUncaughtError: showErrorScreen }).render(
   <StrictMode>
-    <App gameParent={requireElement("game")} />
+    <App gameParent={requireElement("game")} storage={pickStorage()} />
   </StrictMode>,
 );
