@@ -94,6 +94,9 @@ expect:
 | `build: { town, building }` | построить здание (`30-town.md`) |
 | `recruit: { town, creature, count }` | нанять существ в гарнизон (`31-recruitment.md`) |
 | `transfer: { town, from, creature, count }` | передать отряд; `from` — `garrison` или `hero` |
+| `hireHero: { town, offer }` | нанять героя таверны с номером 0 или 1 (`32-hero-hire.md`; шаг 4.2) |
+
+У героя в ожиданиях можно назвать `kind` — идентификатор героя из файла героев.
 
 Ожидание для города в `objects`: `{ buildings, available, garrison }` — сверяется только названное; порядок в списках важен.
 

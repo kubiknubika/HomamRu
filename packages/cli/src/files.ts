@@ -13,6 +13,7 @@ import {
   parseBuildingsFile,
   parseCreatureFile,
   parseDefaultsFile,
+  parseHeroesFile,
   parseMapFile,
   parseScenarioFile,
 } from "@homamru/data";
@@ -27,6 +28,7 @@ const SCENARIOS_DIR = join(ROOT, "data/scenarios");
 const BATTLES_DIR = join(ROOT, "data/battles");
 const CREATURES_DIR = join(ROOT, "data/creatures");
 const BUILDINGS_FILE = join(ROOT, "data/buildings.yaml");
+const HEROES_FILE = join(ROOT, "data/heroes.yaml");
 const DEFAULTS_FILE = join(ROOT, "data/defaults.yaml");
 
 function fromRoot(path: string): string {
@@ -66,16 +68,17 @@ export function loadBuildings(): BuildingDefinition[] {
   return unwrap(parseBuildingsFile(fromRoot(BUILDINGS_FILE), text, loadCreatures()));
 }
 
-/** Читает и проверяет файл карты. Ошибка в файле — исключение. */
-export function loadMap(path: string): MapDefinition {
-  const text = readFileSync(path, "utf8");
-  return unwrap(parseMapFile(fromRoot(path), text, loadCreatures(), loadBuildings()));
+/** Контент игры целиком и начальные значения для старого сохранения. */
+export function loadDefaults(): SaveDefaults {
+  const heroes = unwrap(parseHeroesFile(fromRoot(HEROES_FILE), readFileSync(HEROES_FILE, "utf8")));
+  const content = { creatures: loadCreatures(), buildings: loadBuildings(), heroes };
+  const text = readFileSync(DEFAULTS_FILE, "utf8");
+  return unwrap(parseDefaultsFile(fromRoot(DEFAULTS_FILE), text, content));
 }
 
-/** Начальные значения из контента: существа, здания и армия героя для старого сохранения. */
-export function loadDefaults(): SaveDefaults {
-  const text = readFileSync(DEFAULTS_FILE, "utf8");
-  return unwrap(parseDefaultsFile(fromRoot(DEFAULTS_FILE), text, loadCreatures(), loadBuildings()));
+/** Читает и проверяет файл карты. Ошибка в файле — исключение. */
+export function loadMap(path: string): MapDefinition {
+  return unwrap(parseMapFile(fromRoot(path), readFileSync(path, "utf8"), loadDefaults()));
 }
 
 /** Пути всех файлов боёв, по алфавиту. */
@@ -104,7 +107,7 @@ export function runScenarioFile(path: string): ScenarioRun {
   }
   const scenario = unwrap(parseScenarioFile(fromRoot(path), text));
   const mapPath = join(MAPS_DIR, `${scenario.map}.yaml`);
-  return runScenario(scenario, loadMap(mapPath), loadCreatures(), loadBuildings());
+  return runScenario(scenario, loadMap(mapPath), loadDefaults());
 }
 
 /** Пути всех файлов карт, по алфавиту. */
@@ -117,12 +120,7 @@ export function listMapFiles(): string[] {
 
 /** Проверяет файл карты; возвращает список ошибок с именем файла и местом. */
 export function checkMapFile(path: string): string[] {
-  const result = parseMapFile(
-    fromRoot(path),
-    readFileSync(path, "utf8"),
-    loadCreatures(),
-    loadBuildings(),
-  );
+  const result = parseMapFile(fromRoot(path), readFileSync(path, "utf8"), loadDefaults());
   if (result.ok) {
     const expected = `${result.value.id}.yaml`;
     return path.endsWith(`/${expected}`)

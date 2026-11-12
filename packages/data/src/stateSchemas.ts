@@ -55,6 +55,8 @@ const playerSchema = z.object({
   resources: z
     .object({ gold: amountSchema, wood: amountSchema, ore: amountSchema })
     .catch(NO_RESOURCES),
+  // Таверна сверяется с героями и существами партии при чтении (stateTavern.ts).
+  tavern: z.unknown().optional(),
 });
 
 export const objectSchema = z.discriminatedUnion("type", [
@@ -107,6 +109,8 @@ export const armyStackSchema = z.object({ creature: z.string(), count: z.int().m
 export const NO_HERO = {
   id: undefined,
   owner: undefined,
+  kind: undefined,
+  name: undefined,
   x: undefined,
   y: undefined,
   movement: DEFAULTS.movement,
@@ -119,6 +123,8 @@ export const NO_HERO = {
 export const heroSchema = z.object({
   id: z.string().optional().catch(undefined),
   owner: playerNumberSchema.optional().catch(undefined),
+  kind: z.string().optional().catch(undefined),
+  name: z.string().optional().catch(undefined),
   x: z.int().optional().catch(undefined),
   y: z.int().optional().catch(undefined),
   movement: z.int().min(0).catch(DEFAULTS.movement),
@@ -147,6 +153,8 @@ export const looseStateSchema = z.object({
   currentPlayer: z.int().min(0).catch(DEFAULTS.currentPlayer),
   creatures: z.array(z.unknown()).catch([]),
   buildings: z.array(z.unknown()).catch([]),
+  heroKinds: z.unknown().optional(),
+  tavern: z.unknown().optional(),
   battle: z.unknown().optional(),
   outcome: z.literal("defeat").nullable().catch(DEFAULTS.outcome),
 });
@@ -208,6 +216,12 @@ export const commandSchema = z.discriminatedUnion("type", [
     path: z.array(z.enum(DIRECTIONS)),
   }),
   z.strictObject({ type: z.literal("endTurn"), player: z.int() }),
+  z.strictObject({
+    type: z.literal("hireHero"),
+    player: z.int(),
+    townId: z.string(),
+    offer: z.number(),
+  }),
   z.strictObject({
     type: z.literal("build"),
     player: z.int(),

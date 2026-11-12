@@ -24,6 +24,10 @@ const stepSchema = z.union([
     expectError,
   }),
   z.strictObject({
+    hireHero: z.strictObject({ town: z.string(), offer: z.number() }),
+    expectError,
+  }),
+  z.strictObject({
     transfer: z.strictObject({
       town: z.string(),
       from: z.enum(["garrison", "hero"]),
@@ -55,6 +59,8 @@ const scenarioSchema = z.strictObject({
             /** Героя нет на карте: разбит или бежал. */
             z.literal("absent"),
             z.strictObject({
+              /** Идентификатор героя из файла героев. */
+              kind: z.string().optional(),
               x: z.int().optional(),
               y: z.int().optional(),
               movement: z.int().optional(),

@@ -1,9 +1,10 @@
 /**
  * Ходы игроков и календарь. Спецификация: docs/mechanics/03-time.md.
  */
-import { DAILY_MOVEMENT } from "./game.ts";
+import { DAILY_MOVEMENT } from "./heroIds.ts";
 import { growGuards } from "./guards.ts";
 import { giveIncome } from "./objects.ts";
+import { refreshTavern } from "./tavern.ts";
 import { startTownDay } from "./town.ts";
 import type { CommandResult, EndTurnCommand, GameEvent, GameState } from "./types.ts";
 
@@ -44,7 +45,11 @@ export function applyEndTurn(state: GameState, command: EndTurnCommand): Command
   const newWeek = calendarOf(day).weekday === 1;
   const guarded = newWeek ? growGuards(started, events) : started;
   // В городах снова можно строить; в начале недели жилища дают прирост (31-recruitment.md).
-  const grown = startTownDay(guarded, newWeek, events);
+  let grown = startTownDay(guarded, newWeek, events);
+  // В начале недели в тавернах новые герои (32-hero-hire.md).
+  for (const player of newWeek ? grown.players : []) {
+    grown = refreshTavern(grown, player.id, events);
+  }
   // Доход приходит в начале хода владельца шахт, до его первой команды.
   return { ok: true, state: giveIncome(grown, 0, events), events };
 }

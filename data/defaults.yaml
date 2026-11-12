@@ -2,3 +2,12 @@
 # Армия героя, у которого в сохранении армии нет или в ней не осталось знакомых существ.
 heroArmy:
   - { creature: militia, count: 10 }
+
+# Таверна (docs/mechanics/32-hero-hire.md): цена героя и его случайная армия.
+# Бросается число от 1 до 100; отряд есть, если число не больше chance.
+tavern:
+  price: 2500
+  army:
+    - { creature: militia, min: 10, max: 20, chance: 100 }
+    - { creature: slinger, min: 4, max: 7, chance: 88 }
+    - { creature: falcon, min: 2, max: 3, chance: 25 }

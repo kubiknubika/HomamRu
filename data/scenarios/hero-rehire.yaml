@@ -1,0 +1,30 @@
+name: Герой погиб, город цел — партия продолжается, нанят новый герой
+map: test-town-guard
+seed: 1
+steps:
+  - hireHero: { town: o1, offer: 0 }
+    expectError: HERO_EXISTS
+  - move: { hero: A, path: [E, E] }
+  - fight: {}
+  - move: { hero: A, path: [W] }
+    expectError: UNKNOWN_HERO
+  - hireHero: { town: o1, offer: 2 }
+    expectError: BAD_OFFER
+  - hireHero: { town: o1, offer: 0 }
+    expectError: NOT_ENOUGH_RESOURCES
+  - endTurn: {}
+  - recruit: { town: o1, creature: militia, count: 5 }
+  - hireHero: { town: o1, offer: 1 }
+  - transfer: { town: o1, from: garrison, creature: militia, count: 5 }
+expect:
+  day: 2
+  outcome: none
+  battle: false
+  # Было 2400; день принёс 500; 5 ополченцев по 60 и герой за 2500.
+  resources:
+    - { gold: 100 }
+  heroes:
+    A: { kind: zhdana, x: 2, y: 2, level: 1, experience: 0 }
+  objects:
+    o1:
+      garrison: []

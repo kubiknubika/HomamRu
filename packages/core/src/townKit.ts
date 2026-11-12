@@ -19,9 +19,10 @@ export function townGame(
   resources: ResourceAmounts = RICH,
   extra: readonly MapObjectDefinition[] = [],
   army: readonly string[] = ["militia:10"],
+  seed = 1,
 ): GameState {
   const definition = { type: "town", x: 1, y: 1, owner: 0, buildings } as const;
-  return gameWith(ROWS, [definition, ...extra], { resources, army });
+  return gameWith(ROWS, [definition, ...extra], { resources, army, seed });
 }
 
 /** Применяет команды подряд; любая отклонённая — ошибка теста. */
@@ -41,6 +42,7 @@ export type TownStep =
   | "endTurn"
   | "enter"
   | { build: string }
+  | { hire: number }
   | { recruit: string; count: number }
   | { give: string; count: number }
   | { take: string; count: number };
@@ -52,6 +54,9 @@ export function toCommand(step: TownStep): Command {
   }
   if (step === "enter") {
     return { type: "moveHero", player: 0, heroId: "A", path: ["SE"] };
+  }
+  if ("hire" in step) {
+    return { type: "hireHero", ...base, offer: step.hire };
   }
   if ("build" in step) {
     return { type: "build", ...base, building: step.build };

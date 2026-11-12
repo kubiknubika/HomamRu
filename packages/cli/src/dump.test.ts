@@ -1,12 +1,12 @@
 // Проигрывание дампа: docs/mechanics/05-diagnostics.md.
 import { applyCommand, createGame, STATE_VERSION } from "@homamru/core";
 import type { Command } from "@homamru/core";
-import { BUILDINGS, CREATURES, TEST_ARMY } from "@homamru/core/testkit";
+import { TEST_ARMY, CONTENT } from "@homamru/core/testkit";
 import { buildDump } from "@homamru/data";
 import { describe, expect, it } from "vitest";
 import { runDump } from "./dump.ts";
 
-const DEFAULTS = { creatures: CREATURES, buildings: BUILDINGS, heroArmy: TEST_ARMY };
+const DEFAULTS = { ...CONTENT, heroArmy: TEST_ARMY };
 const DEVICE = { screenWidth: 1, screenHeight: 1, pixelRatio: 1, platform: "web", userAgent: "" };
 const COMMANDS: Command[] = [
   { type: "moveHero", player: 0, heroId: "A", path: ["E", "E"] },
@@ -23,8 +23,7 @@ function dumpText(change: (raw: Record<string, unknown>) => void = () => {}): st
       players: [{ hero: { x: 1, y: 1, army: TEST_ARMY } }],
     },
     1,
-    CREATURES,
-    BUILDINGS,
+    CONTENT,
   );
   if (!created.ok) {
     throw new Error("партия не создана");

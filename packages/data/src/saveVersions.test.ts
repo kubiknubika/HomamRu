@@ -14,12 +14,22 @@ import {
 const NO_RESOURCES = { gold: 0, wood: 0, ore: 0 };
 
 /** Начальные значения параметров героя, появившихся на шаге 3.2. */
-const FRESH = { attack: 0, defense: 0, army: TEST_DEFAULTS.heroArmy, experience: 0, level: 1 };
+const FRESH = {
+  kind: "ratibor",
+  name: "Ратибор",
+  attack: 0,
+  defense: 0,
+  army: TEST_DEFAULTS.heroArmy,
+  experience: 0,
+  level: 1,
+};
 
 /** Начальные значения параметров состояния, появившихся на шаге 3.2. */
 const NO_BATTLES = {
   creatures: TEST_DEFAULTS.creatures,
   buildings: TEST_DEFAULTS.buildings,
+  heroKinds: TEST_DEFAULTS.heroes,
+  tavern: TEST_DEFAULTS.tavern,
   battle: null,
   outcome: null,
 };
@@ -47,7 +57,7 @@ describe("чего в записи нет — берётся начальное 
         terrain: ["#...", "....", "....", "...."],
         starts: [],
       },
-      players: [{ id: 0, resources: NO_RESOURCES }],
+      players: [{ id: 0, resources: NO_RESOURCES, tavern: [] }],
       heroes: [{ id: "A", owner: 0, x: 1, y: 0, movement: 1000, ...FRESH }],
       objects: [],
       day: 1,
@@ -124,8 +134,8 @@ describe("чего в записи нет — берётся начальное 
       version: STATE_VERSION,
       map: { ...old.map, starts: [] },
       players: [
-        { id: 0, resources: NO_RESOURCES },
-        { id: 1, resources: NO_RESOURCES },
+        { id: 0, resources: NO_RESOURCES, tavern: [] },
+        { id: 1, resources: NO_RESOURCES, tavern: [] },
       ],
       heroes: old.heroes.map((hero) => ({ ...hero, ...FRESH })),
       objects: [],
@@ -153,8 +163,8 @@ describe("чего в записи нет — берётся начальное 
     expect(state).toMatchObject({
       rng: { s: 0 },
       players: [
-        { id: 0, resources: NO_RESOURCES },
-        { id: 1, resources: NO_RESOURCES },
+        { id: 0, resources: NO_RESOURCES, tavern: [] },
+        { id: 1, resources: NO_RESOURCES, tavern: [] },
       ],
       heroes: [
         { id: "A", owner: 0, x: 0, y: 0, movement: 1000 },
@@ -173,8 +183,8 @@ describe("чего в записи нет — берётся начальное 
       objects: [{ id: "o1", type: "mine", x: 2, y: 2, kind: "ore-pit", owner: 1 }],
     });
     expect(state?.players).toEqual([
-      { id: 0, resources: NO_RESOURCES },
-      { id: 1, resources: NO_RESOURCES },
+      { id: 0, resources: NO_RESOURCES, tavern: [] },
+      { id: 1, resources: NO_RESOURCES, tavern: [] },
     ]);
   });
 });

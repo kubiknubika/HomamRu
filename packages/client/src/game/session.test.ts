@@ -1,4 +1,4 @@
-import { BUILDINGS, CREATURES, TEST_ARMY } from "@homamru/core/testkit";
+import { TEST_ARMY, CONTENT } from "@homamru/core/testkit";
 import { createGame } from "@homamru/core";
 import type { GameEvent, GameState } from "@homamru/core";
 import { describe, expect, it } from "vitest";
@@ -14,8 +14,7 @@ function newGame(terrain?: string[]): GameState {
       players: [{ hero: { x: 0, y: 0, army: TEST_ARMY } }],
     },
     1,
-    CREATURES,
-    BUILDINGS,
+    CONTENT,
   );
   if (!created.ok) {
     throw new Error(created.errors.map((error) => error.message).join("\n"));

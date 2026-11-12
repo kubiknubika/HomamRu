@@ -1,5 +1,5 @@
 import { MINE_KINDS, RESOURCES, validateMap } from "@homamru/core";
-import type { BuildingDefinition, CreatureDefinition, MapDefinition } from "@homamru/core";
+import type { GameContent, MapDefinition } from "@homamru/core";
 import { z } from "zod";
 import { parseContentFile } from "./parse.ts";
 import type { ContentResult } from "./parse.ts";
@@ -36,6 +36,7 @@ const objectSchema = z.discriminatedUnion("type", [
 
 /** Герой в файле карты. Описание полей: docs/mechanics/22-hero.md. */
 const heroSchema = z.strictObject({
+  name: z.string().optional(),
   x: z.int(),
   y: z.int(),
   attack: z.int().optional(),
@@ -65,20 +66,19 @@ const mapSchema = z.strictObject({
 
 /**
  * Разбирает файл карты: сначала по схеме, затем по смыслу — правилами ядра.
- * Существа нужны, чтобы проверить армии героев и охранников, здания — чтобы проверить города.
+ * Контент игры нужен, чтобы проверить армии, охранников, города и имена героев.
  * Ошибка называет файл и место.
  */
 export function parseMapFile(
   file: string,
   text: string,
-  creatures: readonly CreatureDefinition[],
-  buildings: readonly BuildingDefinition[],
+  content: Pick<GameContent, "creatures" | "buildings" | "heroes">,
 ): ContentResult<MapDefinition> {
   const parsed = parseContentFile(file, text, mapSchema);
   if (!parsed.ok) {
     return parsed;
   }
-  const errors = validateMap(parsed.value, creatures, buildings);
+  const errors = validateMap(parsed.value, content.creatures, content.buildings, content.heroes);
   if (errors.length > 0) {
     return { ok: false, errors: errors.map((error) => ({ file, ...error })) };
   }

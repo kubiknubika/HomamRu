@@ -1,5 +1,11 @@
-import { BATTLE_REJECT_CODES } from "@homamru/core";
-import type { BattleDefinition, BuildingDefinition, CreatureDefinition } from "@homamru/core";
+import { BATTLE_REJECT_CODES, MAX_STACKS } from "@homamru/core";
+import type {
+  BattleDefinition,
+  BuildingDefinition,
+  CreatureDefinition,
+  HeroKind,
+  TavernRules,
+} from "@homamru/core";
 import { z } from "zod";
 import { parseContentFile } from "./parse.ts";
 import type { ContentResult } from "./parse.ts";
@@ -47,6 +53,57 @@ export const savedCreatureSchema = z
     (creature) => creature.damageMin <= creature.damageMax,
     DAMAGE_ORDER,
   ) satisfies z.ZodType<CreatureDefinition>;
+
+/** Герой в файле героев. Описание: docs/mechanics/32-hero-hire.md. */
+export const heroKindSchema = z.strictObject({
+  id: z.string().regex(ID_PATTERN, ID_MESSAGE),
+  name: z.string().min(1),
+  attack: z.int().min(0),
+  defense: z.int().min(0),
+}) satisfies z.ZodType<HeroKind>;
+
+/** Правила таверны: цена героя и его случайная армия (32-hero-hire.md). */
+export const tavernRulesSchema = z.strictObject({
+  price: z.int().min(1),
+  army: z
+    .array(
+      z
+        .strictObject({
+          creature: z.string(),
+          min: z.int().min(1),
+          max: z.int().min(1),
+          chance: z.int().min(1).max(100),
+        })
+        .refine((rule) => rule.min <= rule.max, {
+          path: ["min"],
+          message: "Число «от» не может быть больше числа «до».",
+        }),
+    )
+    .min(1)
+    .max(MAX_STACKS)
+    // Хотя бы один отряд есть всегда: герой без армии не бывает.
+    .refine((army) => army.some((rule) => rule.chance === 100), {
+      message: "Хотя бы у одного отряда должно быть chance: 100.",
+    }),
+}) satisfies z.ZodType<TavernRules>;
+
+/** Сколько героев нужно игре: герой игрока и двое разных в таверне. */
+const MIN_HEROES = 3;
+
+/** Разбирает файл героев: идентификаторы не повторяются, героев хватает на таверну. */
+export function parseHeroesFile(file: string, text: string): ContentResult<HeroKind[]> {
+  const parsed = parseContentFile(file, text, z.array(heroKindSchema).min(MIN_HEROES));
+  if (!parsed.ok) {
+    return parsed;
+  }
+  const ids = parsed.value.map((kind) => kind.id);
+  const errors = ids.flatMap((id, index) =>
+    ids.indexOf(id) === index
+      ? []
+      : [{ file, field: `${index}.id`, message: `Герой «${id}» уже есть.` }],
+  );
+  return errors.length > 0 ? { ok: false, errors } : parsed;
+}
 
 const resourceCostSchema = z.strictObject({
   gold: z.int().min(1).optional(),

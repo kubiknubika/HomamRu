@@ -1,4 +1,4 @@
-import { BUILDINGS, CREATURES, TEST_ARMY } from "@homamru/core/testkit";
+import { CONTENT, TEST_ARMY } from "@homamru/core/testkit";
 import { applyCommand, createGame, STATE_VERSION } from "@homamru/core";
 import type { Command, GameState } from "@homamru/core";
 import { describe, expect, it } from "vitest";
@@ -21,8 +21,7 @@ function newState(): GameState {
       players: [{ hero: { x: 1, y: 1, army: TEST_ARMY } }],
     },
     1,
-    CREATURES,
-    BUILDINGS,
+    CONTENT,
   );
   if (!created.ok) {
     throw new Error("карта не создалась");

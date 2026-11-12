@@ -1,7 +1,7 @@
 /** Помощники для тестов сохранения. В игру не входят. */
 import { STATE_VERSION } from "@homamru/core";
 import type { GameState } from "@homamru/core";
-import { BUILDINGS, CREATURES } from "@homamru/core/testkit";
+import { CONTENT } from "@homamru/core/testkit";
 import type { SaveDefaults } from "./defaults.ts";
 import { parseDump } from "./dump.ts";
 import { parseMapFile } from "./map.ts";
@@ -10,8 +10,7 @@ import { readState } from "./state.ts";
 
 /** Начальные значения из контента — как их дал бы файл `data/defaults.yaml`. */
 export const TEST_DEFAULTS: SaveDefaults = {
-  creatures: CREATURES,
-  buildings: BUILDINGS,
+  ...CONTENT,
   heroArmy: [{ creature: "militia", count: 10 }],
 };
 
@@ -33,13 +32,28 @@ export const FULL_STATE: GameState = {
     ],
   },
   players: [
-    { id: 0, resources: { gold: 700, wood: 3, ore: 4 } },
-    { id: 1, resources: { gold: 5, wood: 6, ore: 7 } },
+    { id: 0, resources: { gold: 700, wood: 3, ore: 4 }, tavern: [] },
+    {
+      id: 1,
+      resources: { gold: 5, wood: 6, ore: 7 },
+      tavern: [
+        { kind: "milava", army: [{ creature: "militia", count: 13 }] },
+        {
+          kind: "ratibor",
+          army: [
+            { creature: "militia", count: 20 },
+            { creature: "slinger", count: 4 },
+          ],
+        },
+      ],
+    },
   ],
   heroes: [
     {
       id: "A",
       owner: 0,
+      kind: "velena",
+      name: "Велена",
       x: 0,
       y: 0,
       movement: 359,
@@ -55,6 +69,8 @@ export const FULL_STATE: GameState = {
     {
       id: "B",
       owner: 1,
+      kind: "gorislav",
+      name: "Горислав",
       x: 3,
       y: 3,
       movement: 1000,
@@ -86,8 +102,10 @@ export const FULL_STATE: GameState = {
   ],
   day: 9,
   currentPlayer: 1,
-  creatures: CREATURES,
-  buildings: BUILDINGS,
+  creatures: CONTENT.creatures,
+  buildings: CONTENT.buildings,
+  heroKinds: CONTENT.heroes,
+  tavern: CONTENT.tavern,
   battle: null,
   outcome: null,
 };
@@ -108,5 +126,4 @@ export const decodeTestSave = (text: string) => decodeSave(text, TEST_DEFAULTS);
 export const chooseTestSave = (copies: readonly [string | null, string | null]) =>
   chooseSave(copies, TEST_DEFAULTS);
 export const parseTestDump = (text: string) => parseDump(text, TEST_DEFAULTS);
-export const parseTestMap = (file: string, text: string) =>
-  parseMapFile(file, text, CREATURES, BUILDINGS);
+export const parseTestMap = (file: string, text: string) => parseMapFile(file, text, CONTENT);

@@ -1,6 +1,5 @@
 import { CREATURES } from "./battle/testkit.ts";
-import { BUILDINGS } from "./testkit.ts";
-import { TEST_ARMY } from "./testkit.ts";
+import { CONTENT, TEST_ARMY } from "./testkit.ts";
 import { describe, expect, it } from "vitest";
 import { applyCommand } from "./commands.ts";
 import { createGame } from "./game.ts";
@@ -26,7 +25,7 @@ function mapOf(objects: MapObjectDefinition[], players = 1): MapDefinition {
 }
 
 function start(objects: MapObjectDefinition[], seed = 1, players = 1): GameState {
-  const created = createGame(mapOf(objects, players), seed, CREATURES, BUILDINGS);
+  const created = createGame(mapOf(objects, players), seed, CONTENT);
   if (!created.ok) {
     throw new Error("партия не создана");
   }

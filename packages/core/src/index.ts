@@ -11,6 +11,14 @@ export { createRng, nextFloat, nextInt, nextUint32 } from "./rng.ts";
 export type { RngResult, RngState } from "./rng.ts";
 export { calendarOf } from "./time.ts";
 export { incomeOf, MINE_INCOME, objectAt } from "./objects.ts";
+export { TAVERN_OFFERS } from "./tavern.ts";
+export type {
+  GameContent,
+  HeroKind,
+  HireHeroCommand,
+  TavernOffer,
+  TavernRules,
+} from "./tavernTypes.ts";
 export {
   buildObstacle,
   missingResources,

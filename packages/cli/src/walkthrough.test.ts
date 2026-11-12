@@ -2,14 +2,14 @@
 import { createGame } from "@homamru/core";
 import { describe, expect, it } from "vitest";
 import { resolve } from "node:path";
-import { loadBuildings, loadCreatures, loadMap } from "./files.ts";
+import { loadDefaults, loadMap } from "./files.ts";
 import { walkThrough } from "./walkthrough.ts";
 
 const FILE = "data/maps/four-corners.yaml";
 
 function play(seed: number) {
   const map = loadMap(resolve(import.meta.dirname, "../../..", FILE));
-  const created = createGame(map, seed, loadCreatures(), loadBuildings());
+  const created = createGame(map, seed, loadDefaults());
   if (!created.ok) {
     throw new Error(created.errors.map((error) => error.message).join("\n"));
   }

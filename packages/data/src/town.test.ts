@@ -177,6 +177,7 @@ describe("город в сохранении", () => {
     const before = {
       ...FULL_STATE,
       currentPlayer: 0,
+      players: FULL_STATE.players.map((player) => ({ ...player, tavern: [] })),
       heroes: [hero],
       objects: [guard],
     } as GameState;

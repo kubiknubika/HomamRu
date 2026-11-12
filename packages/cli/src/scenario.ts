@@ -10,13 +10,7 @@ import {
   playBattleOut,
   renderState,
 } from "@homamru/core";
-import type {
-  BuildingDefinition,
-  Command,
-  CreatureDefinition,
-  GameState,
-  MapDefinition,
-} from "@homamru/core";
+import type { Command, GameContent, GameState, MapDefinition } from "@homamru/core";
 import type { BattleScenarioStep, Scenario, ScenarioStep } from "@homamru/data";
 import { battleStepCommand, describeBattleCommand } from "./battleScenario.ts";
 import { checkExpectations } from "./scenarioExpect.ts";
@@ -50,6 +44,9 @@ function toCommand(step: Exclude<ScenarioStep, { fight: object }>, state: GameSt
     const { town, creature, count } = step.recruit;
     return { type: "recruit", player, townId: town, creature, count };
   }
+  if ("hireHero" in step) {
+    return { type: "hireHero", player, townId: step.hireHero.town, offer: step.hireHero.offer };
+  }
   if ("transfer" in step) {
     const { town, from, creature, count } = step.transfer;
     return { type: "transfer", player, townId: town, from, creature, count };
@@ -70,6 +67,8 @@ function describe(command: Command): string {
       return `построить в городе ${command.townId}: ${command.building}`;
     case "recruit":
       return `нанять в городе ${command.townId}: ${command.creature} ${command.count}`;
+    case "hireHero":
+      return `нанять в городе ${command.townId} героя таверны с номером ${command.offer}`;
     case "transfer":
       return `передать в городе ${command.townId} ${
         command.from === "hero" ? "в гарнизон" : "герою"
@@ -98,10 +97,9 @@ function fightToEnd(state: GameState, lines: string[]): GameState {
 export function runScenario(
   scenario: Scenario,
   map: MapDefinition,
-  creatures: readonly CreatureDefinition[],
-  buildings: readonly BuildingDefinition[],
+  content: GameContent,
 ): ScenarioRun {
-  const created = createGame(map, scenario.seed, creatures, buildings);
+  const created = createGame(map, scenario.seed, content);
   if (!created.ok) {
     const failures = created.errors.map((error) => `Карта: ${error.field}: ${error.message}`);
     return { ok: false, lines: [], failures };

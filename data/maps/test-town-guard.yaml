@@ -1,0 +1,18 @@
+# Проверочная карта: город и сильный охранник рядом (docs/mechanics/32-hero-hire.md).
+id: test-town-guard
+name: Проверочная карта с городом и охранником
+terrain:
+  - "........"
+  - "........"
+  - "........"
+  - "........"
+  - "........"
+  - "........"
+  - "........"
+  - "........"
+players:
+  - hero: { name: velena, x: 1, y: 1, army: [{ creature: militia, count: 10 }] }
+    resources: { gold: 2400 }
+objects:
+  - { type: town, x: 2, y: 2, owner: 0, buildings: [tavern, fort, militia-yard] }
+  - { type: guard, x: 4, y: 1, creature: armsman, count: 200 }

@@ -2,6 +2,7 @@
  * Карта приключений: местность, шаги, проверка описания карты.
  * Спецификации: docs/mechanics/01-adventure-map.md и 02-hero-movement.md.
  */
+import type { HeroKind } from "./tavernTypes.ts";
 import type { CreatureDefinition } from "./battle/types.ts";
 import { contentErrors } from "./mapContent.ts";
 import { townErrors } from "./townContent.ts";
@@ -109,6 +110,7 @@ export function validateMap(
   map: MapDefinition,
   creatures: readonly CreatureDefinition[],
   buildings: readonly BuildingDefinition[] = [],
+  heroes: readonly HeroKind[] = [],
 ): MapError[] {
   const errors = terrainErrors(map.terrain);
   if (map.players.length < 1 || map.players.length > MAX_PLAYERS) {
@@ -137,7 +139,7 @@ export function validateMap(
   });
   errors.push(
     ...objectErrors(map, taken),
-    ...contentErrors(map, creatures),
+    ...contentErrors(map, creatures, heroes),
     ...townErrors(map, creatures, buildings),
   );
   return errors;
