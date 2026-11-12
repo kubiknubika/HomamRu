@@ -1,9 +1,10 @@
 /**
  * Простой проходчик карты: проверяет, что карту можно пройти (docs/mechanics/25-first-map.md).
- * Идёт к ближайшей цели, которую можно взять без боя; когда таких нет — к слабейшему охраннику.
+ * Идёт к ближайшей цели, которую можно взять без боя; когда таких нет — к слабейшему охраннику,
+ * если армия достаточно сильна, иначе — в город за пополнением. В городе строит и нанимает.
  * Бои ведёт простой компьютер за обе стороны. Игрок-человек играет не хуже.
  */
-import { applyCommand, findPath, playBattleOut } from "@homamru/core";
+import { applyCommand, findPath, playBattleOut, townOf } from "@homamru/core";
 import type {
   Command,
   GameState,
@@ -13,6 +14,8 @@ import type {
   PathResult,
 } from "@homamru/core";
 
+import { armyValue, strongEnough, townCommand } from "./walkthroughTown.ts";
+
 export interface Walkthrough {
   readonly state: GameState;
   /** Все принятые команды: по ним партию можно повторить. */
@@ -21,6 +24,8 @@ export interface Walkthrough {
   readonly journal: readonly string[];
   /** Все кучки собраны, все шахты заняты, все охранники побеждены. */
   readonly complete: boolean;
+  /** Сколько боёв проиграно: героя после них нанимали заново. */
+  readonly defeats: number;
 }
 
 /** Найденный путь. */
@@ -35,7 +40,11 @@ function activeHeroOf(state: GameState): HeroState | undefined {
   return state.heroes.find((hero) => hero.owner === state.currentPlayer);
 }
 
+/** Цель прохождения: чужая шахта, кучка, охранник. Свой город — не цель. */
 function wanted(state: GameState, object: ObjectState): boolean {
+  if (object.type === "town") {
+    return false;
+  }
   return object.type !== "mine" || object.owner !== state.currentPlayer;
 }
 
@@ -49,23 +58,45 @@ function cheapest(goals: readonly Goal[]): Goal | undefined {
   return goals.toSorted((a, b) => a.path.cost - b.path.cost)[0];
 }
 
-function weakest(guards: readonly (Goal & { object: GuardState })[]): Goal | undefined {
-  return guards.toSorted((a, b) => a.object.power - b.object.power)[0];
+/** Слабейший охранник — самый дешёвый в золоте: числа существ разных видов не сравнить. */
+function weakest(
+  state: GameState,
+  guards: readonly (Goal & { object: GuardState })[],
+): Goal | undefined {
+  return guards.toSorted((a, b) => armyValue(state, [a.object]) - armyValue(state, [b.object]))[0];
 }
 
-/** Куда идти дальше: сначала то, что берётся без боя, потом слабейший охранник. */
-function nextGoal(state: GameState, heroId: string): Goal | undefined {
+/**
+ * Куда идти дальше: сначала то, что берётся без боя; потом слабейший охранник, если армия
+ * достаточно сильна; иначе — в город за пополнением. `undefined` — стоять и ждать.
+ */
+function nextGoal(state: GameState, hero: HeroState): Goal | undefined {
   const free: Goal[] = [];
   const guards: (Goal & { object: GuardState })[] = [];
   for (const object of state.objects.filter((candidate) => wanted(state, candidate))) {
-    const goal = goalOf(state, heroId, object);
+    const goal = goalOf(state, hero.id, object);
     if (goal !== undefined && object.type === "guard") {
       guards.push({ object, path: goal.path });
     } else if (goal !== undefined) {
       free.push(goal);
     }
   }
-  return cheapest(free) ?? weakest(guards);
+  const nearest = cheapest(free);
+  if (nearest !== undefined) {
+    return nearest;
+  }
+  const guard = weakest(state, guards);
+  const town = townOf(state, hero.owner);
+  if (guard === undefined || town === undefined) {
+    return guard;
+  }
+  const ready = guard.object.type === "guard" && strongEnough(state, hero, guard.object);
+  return ready ? guard : goalOf(state, hero.id, town);
+}
+
+/** Осталось ли что брать на карте. */
+function unfinished(state: GameState): boolean {
+  return state.objects.some((object) => wanted(state, object));
 }
 
 function armyText(state: GameState): string {
@@ -90,20 +121,26 @@ export function walkThrough(initial: GameState, maxDays: number): Walkthrough {
     return result.ok;
   }
 
-  while (state.outcome === null && state.day <= maxDays) {
+  let defeats = 0;
+  while (state.outcome === null && state.day <= maxDays && unfinished(state)) {
+    const order = townCommand(state);
+    if (order !== undefined && send(order)) {
+      if (order.type === "build") {
+        journal.push(`день ${state.day}: построено ${order.building}`);
+      } else if (order.type === "hireHero") {
+        journal.push(`день ${state.day}: нанят герой; армия: ${armyText(state)}`);
+      }
+      continue;
+    }
     const hero = activeHeroOf(state);
-    if (hero === undefined) {
-      break;
-    }
-    const goal = nextGoal(state, hero.id);
-    if (goal === undefined) {
-      break;
-    }
-    const steps = goal.path.steps.slice(0, goal.path.stepsToday);
+    const goal = hero === undefined ? undefined : nextGoal(state, hero);
+    const steps = goal?.path.steps.slice(0, goal.path.stepsToday) ?? [];
     const moved =
+      hero !== undefined &&
       steps.length > 0 &&
       send({ type: "moveHero", player: state.currentPlayer, heroId: hero.id, path: steps });
     if (!moved) {
+      // Идти некуда или не на что: ждём следующего дня — доход, прирост, новый герой.
       if (!send({ type: "endTurn", player: state.currentPlayer })) {
         break;
       }
@@ -112,15 +149,18 @@ export function walkThrough(initial: GameState, maxDays: number): Walkthrough {
     if (state.battle !== null) {
       const guard = state.objects.find((object) => object.id === state.battle?.guardId);
       const before = guard?.type === "guard" ? `${guard.creature} ${guard.count}` : "?";
+      const mine = armyText(state);
       const played = playBattleOut(state);
       commands.push(...played.commands);
       ({ state } = played);
-      const result = state.outcome === null ? "победа" : "поражение";
-      journal.push(`день ${state.day}: бой с ${before} — ${result}; армия: ${armyText(state)}`);
+      const won = activeHeroOf(state) !== undefined;
+      defeats += won ? 0 : 1;
+      journal.push(
+        `день ${state.day}: бой с ${before} (армия: ${mine}) — ${won ? `победа; осталось: ${armyText(state)}` : "поражение"}`,
+      );
     }
   }
-  const complete =
-    state.outcome === null && state.objects.every((object) => !wanted(state, object));
+  const complete = state.outcome === null && !unfinished(state);
   journal.push(`день ${state.day}: ${complete ? "карта пройдена" : "карта не пройдена"}`);
-  return { state, commands, journal, complete };
+  return { state, commands, journal, complete, defeats };
 }
