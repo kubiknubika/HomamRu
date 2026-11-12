@@ -1,0 +1,12 @@
+{
+  "id": "militia",
+  "name": "Ополченец",
+  "attack": 5,
+  "defense": 5,
+  "damageMin": 2,
+  "damageMax": 3,
+  "health": 12,
+  "speed": 4,
+  "flying": false,
+  "shots": 0
+}

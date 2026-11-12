@@ -1,0 +1,13 @@
+name: Нападающий с героем бежит с поля боя
+battle: test-basic
+seed: 7
+steps:
+  # Первыми ходят соколы нападающего. У нападающего есть герой — бежать можно.
+  - flee: {}
+  - defend: {}
+    expectError: BATTLE_OVER
+expect:
+  winner: defender
+  stacks:
+    a1: { count: 20, cell: [0, 2] }
+    b1: { count: 30, cell: [14, 2] }

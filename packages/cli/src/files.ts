@@ -1,14 +1,24 @@
 /** Чтение карт и сценариев с диска. */
 import { readdirSync, readFileSync } from "node:fs";
 import { join, relative, resolve } from "node:path";
-import { parseMapFile, parseScenarioFile } from "@homamru/data";
+import type { BattleDefinition, CreatureDefinition } from "@homamru/core";
+import {
+  parseBattleFile,
+  parseBattleScenarioFile,
+  parseCreatureFile,
+  parseMapFile,
+  parseScenarioFile,
+} from "@homamru/data";
 import type { ContentResult } from "@homamru/data";
+import { runBattleScenario } from "./battleScenario.ts";
 import { runScenario } from "./scenario.ts";
 import type { ScenarioRun } from "./scenario.ts";
 
 const ROOT = resolve(import.meta.dirname, "../../..");
 const MAPS_DIR = join(ROOT, "data/maps");
 const SCENARIOS_DIR = join(ROOT, "data/scenarios");
+const BATTLES_DIR = join(ROOT, "data/battles");
+const CREATURES_DIR = join(ROOT, "data/creatures");
 
 function fromRoot(path: string): string {
   return relative(ROOT, path);
@@ -30,9 +40,42 @@ export function listScenarioFiles(): string[] {
     .map((name) => join(SCENARIOS_DIR, name));
 }
 
-/** Читает сценарий и его карту и проигрывает его. Ошибка в файлах — исключение. */
+/** Все существа из папки существ, по алфавиту файлов. */
+export function loadCreatures(): CreatureDefinition[] {
+  return readdirSync(CREATURES_DIR)
+    .filter((name) => name.endsWith(".json"))
+    .toSorted()
+    .map((name) => {
+      const path = join(CREATURES_DIR, name);
+      return unwrap(parseCreatureFile(fromRoot(path), readFileSync(path, "utf8")));
+    });
+}
+
+/** Пути всех файлов боёв, по алфавиту. */
+export function listBattleFiles(): string[] {
+  return readdirSync(BATTLES_DIR)
+    .filter((name) => name.endsWith(".yaml"))
+    .toSorted()
+    .map((name) => join(BATTLES_DIR, name));
+}
+
+/** Читает файл боя. Ошибка в файле — исключение. */
+export function loadBattle(path: string): BattleDefinition {
+  return unwrap(parseBattleFile(fromRoot(path), readFileSync(path, "utf8")));
+}
+
+/**
+ * Читает сценарий и проигрывает его. Сценарий с полем `battle` — сценарий боя,
+ * остальные — сценарии карты. Ошибка в файлах — исключение.
+ */
 export function runScenarioFile(path: string): ScenarioRun {
-  const scenario = unwrap(parseScenarioFile(fromRoot(path), readFileSync(path, "utf8")));
+  const text = readFileSync(path, "utf8");
+  if (/^battle:/m.test(text)) {
+    const battleScenario = unwrap(parseBattleScenarioFile(fromRoot(path), text));
+    const battle = loadBattle(join(BATTLES_DIR, `${battleScenario.battle}.yaml`));
+    return runBattleScenario(battleScenario, battle, loadCreatures());
+  }
+  const scenario = unwrap(parseScenarioFile(fromRoot(path), text));
   const mapPath = join(MAPS_DIR, `${scenario.map}.yaml`);
   const map = unwrap(parseMapFile(fromRoot(mapPath), readFileSync(mapPath, "utf8")));
   return runScenario(scenario, map);

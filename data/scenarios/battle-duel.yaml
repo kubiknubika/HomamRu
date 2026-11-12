@@ -1,0 +1,29 @@
+name: Соколы долетают до пращников и связывают их боем
+battle: test-duel
+seed: 1
+steps:
+  # Соколы быстрее и ходят первыми. За ход им не долететь: до врага 14 клеток, скорость 8.
+  - attack: { target: b1, from: [13, 5] }
+    expectError: CELL_UNREACHABLE
+  - move: [8, 5]
+  # Пращники стреляют: расстояние 6, урон полный, ответа нет.
+  - shoot: b1
+    expectError: TARGET_IS_ALLY
+  - shoot: a1
+  # Второй раунд. Соколы бьют, пращники отвечают вполсилы.
+  - attack: { target: b1, from: [13, 5] }
+  # Враг вплотную: стрелять нельзя, ждать можно один раз.
+  - shoot: a1
+    expectError: ENEMY_ADJACENT
+  - wait: {}
+  - wait: {}
+    expectError: ALREADY_WAITED
+  - defend: {}
+  # У сторон нет героев: бежать некому.
+  - flee: {}
+    expectError: NO_HERO
+expect:
+  active: a1
+  stacks:
+    a1: { cell: [13, 5] }
+    b1: { cell: [14, 5], shots: 9 }

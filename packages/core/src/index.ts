@@ -23,3 +23,31 @@ export type {
   Position,
   RejectCode,
 } from "./types.ts";
+export { applyBattleCommand, replayBattle } from "./battle/commands.ts";
+export type { BattleReplayResult } from "./battle/commands.ts";
+export { createBattle } from "./battle/create.ts";
+export type { CreateBattleResult } from "./battle/create.ts";
+export { BATTLE_HEIGHT, BATTLE_WIDTH, distance, neighbours } from "./battle/hex.ts";
+export type { Cell } from "./battle/hex.ts";
+export {
+  activeStackOf,
+  attackCells,
+  canShoot,
+  findStack,
+  reachableCells,
+} from "./battle/queries.ts";
+export { formatBattleEvent, renderBattle } from "./battle/render.ts";
+export { BATTLE_REJECT_CODES, BATTLE_VERSION } from "./battle/types.ts";
+export type {
+  ArmyDefinition,
+  BattleCommand,
+  BattleCommandResult,
+  BattleDefinition,
+  BattleEvent,
+  BattleRejectCode,
+  BattleResult,
+  BattleSide,
+  BattleState,
+  CreatureDefinition,
+  StackState,
+} from "./battle/types.ts";

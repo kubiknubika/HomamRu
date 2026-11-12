@@ -1,0 +1,12 @@
+{
+  "id": "slinger",
+  "name": "Пращник",
+  "attack": 5,
+  "defense": 3,
+  "damageMin": 1,
+  "damageMax": 4,
+  "health": 9,
+  "speed": 5,
+  "flying": false,
+  "shots": 10
+}
