@@ -1,0 +1,17 @@
+id: test-basic
+name: Проверочный бой
+obstacles: [[6, 3], [7, 5], [8, 7]]
+attacker:
+  hero: { attack: 1, defense: 1 }
+  morale: 1
+  luck: 0
+  army:
+    - { creature: militia, count: 20 }
+    - { creature: slinger, count: 12 }
+    - { creature: falcon, count: 5 }
+defender:
+  morale: 0
+  luck: 0
+  army:
+    - { creature: militia, count: 30 }
+    - { creature: slinger, count: 8 }

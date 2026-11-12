@@ -7,3 +7,5 @@ export { buildDump, DUMP_JOURNAL_COMMANDS, parseDump } from "./dump.ts";
 export type { Dump, DumpDevice, DumpError } from "./dump.ts";
 export { chooseSave, decodeSave, encodeSave, sameData, verifySave } from "./save.ts";
 export type { LoadResult, SaveBody, SaveSlot } from "./save.ts";
+export { parseBattleFile, parseBattleScenarioFile, parseCreatureFile } from "./battle.ts";
+export type { BattleScenario, BattleScenarioStep } from "./battle.ts";

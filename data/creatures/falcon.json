@@ -1,0 +1,12 @@
+{
+  "id": "falcon",
+  "name": "Сокол",
+  "attack": 7,
+  "defense": 5,
+  "damageMin": 3,
+  "damageMax": 5,
+  "health": 18,
+  "speed": 8,
+  "flying": true,
+  "shots": 0
+}

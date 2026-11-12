@@ -1,0 +1,14 @@
+# Самый простой бой для сценариев: без героев, боевого духа и удачи, без препятствий.
+id: test-duel
+name: Поединок
+obstacles: []
+attacker:
+  morale: 0
+  luck: 0
+  army:
+    - { creature: falcon, count: 10 }
+defender:
+  morale: 0
+  luck: 0
+  army:
+    - { creature: slinger, count: 10 }
