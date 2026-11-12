@@ -3,7 +3,10 @@ import type { SaveBody } from "@homamru/data";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { dumpSource, saveDump } from "../diagnostics/dump.ts";
 import { GAME_VERSION } from "../diagnostics/version.ts";
-import { createGame } from "../game/createGame.ts";
+import { createBattleSession } from "../battle/battleSession.ts";
+import type { BattleSession } from "../battle/battleSession.ts";
+import { startTrialBattle } from "../battle/trialBattle.ts";
+import { createBattleGame, createGame } from "../game/createGame.ts";
 import { createFrameMeter } from "../game/frameMeter.ts";
 import { MAP_COUNT, mapIndexOf, mapLabel, startGame } from "../game/maps.ts";
 import { createSession } from "../game/session.ts";
@@ -11,6 +14,7 @@ import type { Session } from "../game/session.ts";
 import { createSaver } from "../save/saver.ts";
 import type { Saver } from "../save/saver.ts";
 import type { SaveStorage } from "../save/saveStorage.ts";
+import { BattleHud } from "./BattleHud.tsx";
 import { Dialog, DialogButton } from "./Dialog.tsx";
 import { FrameCounter } from "./FrameCounter.tsx";
 import { Hud } from "./Hud.tsx";
@@ -53,6 +57,8 @@ export function App({ gameParent, storage }: AppProps) {
   const [phase, setPhase] = useState<Phase>({ kind: "loading" });
   const [overlay, setOverlay] = useState<Overlay>(NO_OVERLAY);
   const [saver, setSaver] = useState<Saver | null>(null);
+  /** Проверочный бой поверх карты; партия на карте при этом не меняется. */
+  const [battle, setBattle] = useState<BattleSession | null>(null);
   const frameMeter = useMemo(() => createFrameMeter(), []);
 
   const notice = useCallback((text: string, offerDump: boolean) => {
@@ -105,11 +111,14 @@ export function App({ gameParent, storage }: AppProps) {
     if (session === null) {
       return undefined;
     }
-    const game = createGame(gameParent, session, frameMeter);
+    const game =
+      battle === null
+        ? createGame(gameParent, session, frameMeter)
+        : createBattleGame(gameParent, battle, frameMeter);
     return () => {
       game.destroy(true);
     };
-  }, [gameParent, session, frameMeter]);
+  }, [gameParent, session, battle, frameMeter]);
 
   function exportDump(): void {
     void saveDump(null).then((failure) => {
@@ -192,6 +201,22 @@ export function App({ gameParent, storage }: AppProps) {
     );
   }
 
+  if (battle !== null) {
+    return (
+      <>
+        <div className="hud-debug">
+          <FrameCounter frameMeter={frameMeter} />
+        </div>
+        <BattleHud
+          battle={battle}
+          onClose={() => {
+            setBattle(null);
+          }}
+        />
+      </>
+    );
+  }
+
   const nextMap = (phase.mapIndex + 1) % MAP_COUNT;
   return (
     <>
@@ -229,6 +254,14 @@ export function App({ gameParent, storage }: AppProps) {
             label="Новая игра"
             onClick={() => {
               setOverlay({ kind: "confirmNew", mapIndex: phase.mapIndex });
+            }}
+          />
+          <DialogButton
+            label="Проверочный бой"
+            onClick={() => {
+              setOverlay(NO_OVERLAY);
+              // Каждый бой — с новым сидом; сам бой от сида зависит полностью.
+              setBattle(createBattleSession(startTrialBattle(Date.now() % 2_000_000_000)));
             }}
           />
           <DialogButton
