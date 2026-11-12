@@ -40,6 +40,7 @@ export function createGame(map: MapDefinition, seed: number): CreateGameResult {
         width: map.terrain[0]?.length ?? 0,
         height: map.terrain.length,
         terrain: [...map.terrain],
+        starts: map.players.map((player) => ({ x: player.hero.x, y: player.hero.y })),
       },
       players: map.players.map((player, id) => ({
         id,

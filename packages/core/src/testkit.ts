@@ -44,6 +44,7 @@ export function fromPicture(rows: readonly string[]): Picture {
       width: rows[0]?.length ?? 0,
       height: rows.length,
       terrain: rows.map((row) => row.replaceAll(/[STB]/g, ".")),
+      starts: positions,
     },
     players: positions.map((_, id) => ({ id, resources: NO_RESOURCES })),
     heroes: positions.map((position, owner) => ({

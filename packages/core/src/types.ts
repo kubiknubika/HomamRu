@@ -61,6 +61,11 @@ export interface MapState {
   readonly width: number;
   readonly height: number;
   readonly terrain: readonly string[];
+  /**
+   * Стартовые клетки игроков по порядку — из файла карты. В игре не меняются.
+   * Нужны при чтении сохранения: герой без клетки ставится сюда (04-save.md).
+   */
+  readonly starts: readonly Position[];
 }
 
 interface PlayerState {

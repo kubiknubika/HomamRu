@@ -15,7 +15,7 @@ import {
   TERRAIN_LAND,
   TERRAIN_OBSTACLE,
 } from "@homamru/core";
-import type { Command, GameState, ObjectState } from "@homamru/core";
+import type { Command, GameState, ObjectState, Position } from "@homamru/core";
 import { z } from "zod";
 
 /**
@@ -73,6 +73,25 @@ const objectSchema = z.discriminatedUnion("type", [
   }),
 ]);
 
+const cellSchema = z.object({ x: z.int(), y: z.int() });
+
+/** Герой, о котором в записи ничего нет: всё берётся начальное. */
+const NO_HERO = {
+  id: undefined,
+  owner: undefined,
+  x: undefined,
+  y: undefined,
+  movement: DEFAULTS.movement,
+} as const;
+
+const heroSchema = z.object({
+  id: z.string().optional().catch(undefined),
+  owner: playerNumberSchema.optional().catch(undefined),
+  x: z.int().optional().catch(undefined),
+  y: z.int().optional().catch(undefined),
+  movement: z.int().min(0).catch(DEFAULTS.movement),
+});
+
 /** Первый проход: поля по одному. Что зависит от соседних полей, доделывает `finishState`. */
 const looseStateSchema = z.object({
   rng: z
@@ -83,20 +102,10 @@ const looseStateSchema = z.object({
     name: z.string().catch(DEFAULTS.mapName),
     // Начального значения нет: без местности партию не продолжить.
     terrain: z.array(z.string().min(1)).min(1),
+    starts: z.array(z.unknown()).catch([]),
   }),
   players: z.array(playerSchema.catch({ resources: NO_RESOURCES })).catch([]),
-  heroes: z
-    .array(
-      z.object({
-        id: z.string().optional().catch(undefined),
-        owner: playerNumberSchema.optional().catch(undefined),
-        // Начального значения нет: клетку героя придумать нельзя.
-        x: z.int(),
-        y: z.int(),
-        movement: z.int().min(0).catch(DEFAULTS.movement),
-      }),
-    )
-    .min(1),
+  heroes: z.array(z.unknown()).catch([]),
   objects: z.array(z.unknown()).catch([]),
   day: z.int().min(1).catch(DEFAULTS.day),
   currentPlayer: z.int().min(0).catch(DEFAULTS.currentPlayer),
@@ -104,15 +113,36 @@ const looseStateSchema = z.object({
 
 type LooseState = z.infer<typeof looseStateSchema>;
 
-/** Незнакомые символы местности заменяются преградой. Строки разной длины — `null`. */
+/** Незнакомые символы местности заменяются обычной землёй. Строки разной длины — `null`. */
 function readTerrain(rows: readonly string[]): string[] | null {
   const width = rows[0]?.length ?? 0;
   if (rows.some((row) => row.length !== width)) {
     return null;
   }
   return rows.map((row) =>
-    [...row].map((symbol) => (symbol === TERRAIN_LAND ? TERRAIN_LAND : TERRAIN_OBSTACLE)).join(""),
+    [...row]
+      .map((symbol) => (symbol === TERRAIN_OBSTACLE ? TERRAIN_OBSTACLE : TERRAIN_LAND))
+      .join(""),
   );
+}
+
+/** Первая клетка земли, если читать карту по строкам. На ней стоит тот, кому больше негде. */
+function firstLand(terrain: readonly string[]): Position | null {
+  for (const [y, row] of terrain.entries()) {
+    const x = row.indexOf(TERRAIN_LAND);
+    if (x >= 0) {
+      return { x, y };
+    }
+  }
+  return null;
+}
+
+/** Клетка земли из записи; иначе запасная. */
+function landCell(raw: unknown, terrain: readonly string[], fallback: Position): Position {
+  const cell = cellSchema.safeParse(raw);
+  return cell.success && terrain[cell.data.y]?.[cell.data.x] === TERRAIN_LAND
+    ? cell.data
+    : fallback;
 }
 
 /** Объекты, которые игра понимает: известного вида, на карте, не больше одного в клетке. */
@@ -141,16 +171,32 @@ function finishState(loose: LooseState): GameState | null {
   if (terrain === null) {
     return null;
   }
-  const width = terrain[0]?.length ?? 0;
-  const height = terrain.length;
-  if (
-    loose.heroes.some((hero) => hero.x < 0 || hero.y < 0 || hero.x >= width || hero.y >= height)
-  ) {
+  const land = firstLand(terrain);
+  if (land === null) {
     return null;
   }
-  const heroes = loose.heroes.map((hero, index) => {
+  const width = terrain[0]?.length ?? 0;
+  const height = terrain.length;
+  const starts = loose.map.starts
+    .slice(0, MAX_PLAYERS)
+    .map((start) => landCell(start, terrain, land));
+  // Списка героев нет — по герою каждому игроку, о котором в записи хоть что-то есть.
+  const known = Math.max(1, Math.min(MAX_PLAYERS, Math.max(loose.players.length, starts.length)));
+  // Запись героя, которая вовсе не читается, убирается — как незнакомый объект.
+  const readable = loose.heroes.flatMap((item) => {
+    const hero = heroSchema.safeParse(item);
+    return hero.success ? [hero.data] : [];
+  });
+  const listed = readable.length > 0 ? readable : Array.from({ length: known }, () => NO_HERO);
+  const heroes = listed.map((hero, index) => {
     const owner = hero.owner ?? Math.min(index, MAX_PLAYERS - 1);
-    return { id: hero.id ?? heroIdOf(owner), owner, x: hero.x, y: hero.y, movement: hero.movement };
+    // Клетки нет или она вне карты — герой встаёт на стартовую клетку своего игрока.
+    const start = starts[owner] ?? land;
+    const { x, y } = hero;
+    if (x === undefined || y === undefined || terrain[y]?.[x] === undefined) {
+      return { id: hero.id ?? heroIdOf(owner), owner, ...start, movement: hero.movement };
+    }
+    return { id: hero.id ?? heroIdOf(owner), owner, x, y, movement: hero.movement };
   });
   const objects = readObjects(loose.objects, width, height);
   // Игроков столько, сколько нужно героям и шахтам, но не меньше одного и не больше предела.
@@ -170,7 +216,7 @@ function finishState(loose: LooseState): GameState | null {
   return {
     version: STATE_VERSION,
     rng: loose.rng,
-    map: { id: loose.map.id, name: loose.map.name, width, height, terrain },
+    map: { id: loose.map.id, name: loose.map.name, width, height, terrain, starts },
     players,
     heroes,
     objects,
@@ -181,7 +227,7 @@ function finishState(loose: LooseState): GameState | null {
 
 /**
  * Читает состояние из произвольных данных. `null` — в данных нет того, без чего партию
- * не продолжить (местности или клетки героя).
+ * не продолжить: местности, или на карте нет ни одной клетки земли.
  */
 export function readState(raw: unknown): GameState | null {
   const loose = looseStateSchema.safeParse(raw);
@@ -194,7 +240,7 @@ export const gameStateSchema = z.unknown().transform((raw, ctx): GameState => {
   if (state === null) {
     ctx.addIssue({
       code: "custom",
-      message: "Состояние не читается: нет местности или клетки героя.",
+      message: "Состояние не читается: нет местности или на карте нет земли.",
     });
     return z.NEVER;
   }

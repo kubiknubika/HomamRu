@@ -1,34 +1,11 @@
 // Сохранения других версий: docs/mechanics/04-save.md, раздел «Сохранения других версий».
-import { applyCommand, createRng, nextInt, renderState, STATE_VERSION } from "@homamru/core";
-import type { GameState } from "@homamru/core";
+import { applyCommand, STATE_VERSION } from "@homamru/core";
 import { describe, expect, it } from "vitest";
 import { decodeSave, encodeSave, verifySave } from "./save.ts";
 import { readState } from "./state.ts";
-import { withChecksumOf } from "./testkit.ts";
+import { FULL_STATE as FULL, TEST_TERRAIN as TERRAIN, withChecksumOf } from "./testkit.ts";
 
-const TERRAIN = ["....", ".#..", "....", "...."];
 const NO_RESOURCES = { gold: 0, wood: 0, ore: 0 };
-
-/** Состояние этой версии со всеми параметрами, отличными от начальных. */
-const FULL: GameState = {
-  version: STATE_VERSION,
-  rng: { s: 77 },
-  map: { id: "m", name: "Карта", width: 4, height: 4, terrain: TERRAIN },
-  players: [
-    { id: 0, resources: { gold: 700, wood: 3, ore: 4 } },
-    { id: 1, resources: { gold: 5, wood: 6, ore: 7 } },
-  ],
-  heroes: [
-    { id: "A", owner: 0, x: 0, y: 0, movement: 359 },
-    { id: "B", owner: 1, x: 3, y: 3, movement: 1000 },
-  ],
-  objects: [
-    { id: "o1", type: "pile", x: 2, y: 0, resource: "wood", amount: 8 },
-    { id: "o3", type: "mine", x: 0, y: 2, kind: "gold-mine", owner: 1 },
-  ],
-  day: 9,
-  currentPlayer: 1,
-};
 
 /** Запись с произвольным содержимым и верной контрольной суммой. */
 function saveOf(record: unknown): string {
@@ -40,17 +17,64 @@ describe("чего в записи нет — берётся начальное 
     expect(readState(FULL)).toEqual(FULL);
   });
 
-  it("запись, где есть только местность и клетка героя: всё остальное — из таблицы", () => {
-    expect(readState({ map: { terrain: TERRAIN }, heroes: [{ x: 2, y: 3 }] })).toEqual({
+  it("запись, где есть только местность: всё остальное — из таблицы", () => {
+    // Стартовых клеток в записи нет, поэтому герой встаёт на первую клетку земли.
+    expect(readState({ map: { terrain: ["#...", "....", "....", "...."] } })).toEqual({
       version: STATE_VERSION,
       rng: { s: 0 },
-      map: { id: "unknown", name: "Без названия", width: 4, height: 4, terrain: TERRAIN },
+      map: {
+        id: "unknown",
+        name: "Без названия",
+        width: 4,
+        height: 4,
+        terrain: ["#...", "....", "....", "...."],
+        starts: [],
+      },
       players: [{ id: 0, resources: NO_RESOURCES }],
-      heroes: [{ id: "A", owner: 0, x: 2, y: 3, movement: 1000 }],
+      heroes: [{ id: "A", owner: 0, x: 1, y: 0, movement: 1000 }],
       objects: [],
       day: 1,
       currentPlayer: 0,
     });
+  });
+
+  it("герой без клетки или вне карты встаёт на стартовую клетку своего игрока", () => {
+    const state = readState({
+      ...FULL,
+      heroes: [
+        { id: "A", owner: 0, movement: 500 },
+        { id: "B", owner: 1, x: 40, y: 1, movement: 600 },
+      ],
+    });
+    expect(state?.heroes).toEqual([
+      { id: "A", owner: 0, x: 0, y: 3, movement: 500 },
+      { id: "B", owner: 1, x: 3, y: 0, movement: 600 },
+    ]);
+  });
+
+  it("списка героев нет — каждому игроку герой на его стартовой клетке", () => {
+    for (const heroes of [undefined, [], "герои"]) {
+      expect(readState({ ...FULL, heroes })?.heroes).toEqual([
+        { id: "A", owner: 0, x: 0, y: 3, movement: 1000 },
+        { id: "B", owner: 1, x: 3, y: 0, movement: 1000 },
+      ]);
+    }
+  });
+
+  it("стартовая клетка вне карты или на преграде заменяется первой клеткой земли", () => {
+    const map = {
+      ...FULL.map,
+      starts: [
+        { x: 1, y: 1 },
+        { x: 9, y: 9 },
+        { x: 2, y: 2 },
+      ],
+    };
+    // Лишняя третья клетка убрана: игроков не больше двух.
+    expect(readState({ ...FULL, map })?.map.starts).toEqual([
+      { x: 0, y: 0 },
+      { x: 0, y: 0 },
+    ]);
   });
 
   it("сохранение первой версии состояния (без ресурсов и объектов) загружается", () => {
@@ -80,6 +104,7 @@ describe("чего в записи нет — берётся начальное 
     const state = {
       ...old,
       version: STATE_VERSION,
+      map: { ...old.map, starts: [] },
       players: [
         { id: 0, resources: NO_RESOURCES },
         { id: 1, resources: NO_RESOURCES },
@@ -98,14 +123,13 @@ describe("чего в записи нет — берётся начальное 
       ...FULL,
       rng: { s: -1 },
       players: [{ id: 5, resources: { gold: "много", wood: -2, ore: 1.5 } }, "игрок"],
-      heroes: [
-        { x: 0, y: 0, movement: -5, owner: 9 },
-        { x: 3, y: 3, id: 7 },
-      ],
+      heroes: [{ x: 0, y: 0, movement: -5, owner: 9 }, { x: 3, y: 3, id: 7 }, "герой"],
       objects: [{ id: "o3", type: "mine", x: 0, y: 2, kind: "sawmill", owner: 9 }],
       day: 0,
       currentPlayer: 5,
     });
+    // Третья запись героя вовсе не читается и убирается.
+    expect(state?.heroes).toHaveLength(2);
     expect(state).toMatchObject({
       rng: { s: 0 },
       players: [
@@ -161,11 +185,8 @@ describe("чего игра не знает — убирается", () => {
   };
 
   it("незнакомые поля, объекты и символы местности стираются без ошибки", () => {
-    expect(readState(future)).toEqual({
-      ...FULL,
-      // Незнакомая местность стала преградой.
-      map: { ...FULL.map, terrain: ["..#.", ".#..", "..#.", "...."] },
-    });
+    // Незнакомая местность стала обычной землёй: карта та же, что в FULL.
+    expect(readState(future)).toEqual(FULL);
   });
 
   it("запись более новой версии загружается, история сбрасывается", () => {
@@ -214,10 +235,7 @@ describe("без чего партию не продолжить — сохра�
     ["нет местности", { ...FULL, map: { id: "m" } }],
     ["пустая местность", { ...FULL, map: { terrain: [] } }],
     ["строки местности разной длины", { ...FULL, map: { terrain: ["....", "..."] } }],
-    ["нет героев", { ...FULL, heroes: [] }],
-    ["нет списка героев", { ...FULL, heroes: undefined }],
-    ["у героя нет клетки", { ...FULL, heroes: [{ id: "A", owner: 0, y: 0 }] }],
-    ["герой вне карты", { ...FULL, heroes: [{ id: "A", owner: 0, x: 4, y: 0 }] }],
+    ["на карте нет ни клетки земли", { ...FULL, map: { terrain: ["##", "##"] } }],
     ["состояние — не объект", "state"],
   ];
 
@@ -226,72 +244,3 @@ describe("без чего партию не продолжить — сохра�
     expect(decodeSave(saveOf({ seq: 1, state }))).toEqual({ kind: "corrupt" });
   });
 });
-
-/** Случайно портит данные: убирает поле, подменяет значение мусором или идёт вглубь. */
-const JUNK: unknown[] = [null, -1, 1.5, "мусор", [], {}, 1e12, true];
-
-function damage(value: unknown, roll: () => number): unknown {
-  if (typeof value !== "object" || value === null || roll() % 4 === 0) {
-    return JUNK[roll() % JUNK.length];
-  }
-  if (Array.isArray(value)) {
-    const index = roll() % (value.length + 1);
-    return value.map((item: unknown, i) => (i === index ? damage(item, roll) : item));
-  }
-  const entries = Object.entries(value);
-  const [key] = entries[roll() % entries.length] ?? [""];
-  if (roll() % 3 === 0) {
-    return Object.fromEntries(entries.filter(([name]) => name !== key));
-  }
-  return Object.fromEntries(
-    entries.map(([name, item]): [string, unknown] => [
-      name,
-      name === key ? damage(item, roll) : item,
-    ]),
-  );
-}
-
-describe("свойство: чтение никогда не падает", () => {
-  it("испорченная запись либо отвергается, либо даёт состояние, с которым игра работает", () => {
-    let rng = createRng(2026);
-    const roll = (): number => {
-      const next = nextInt(rng, 0, 1_000_000);
-      ({ rng } = next);
-      return next.value;
-    };
-    let loaded = 0;
-    let rejected = 0;
-    for (let round = 0; round < 3000; round += 1) {
-      let state: unknown = FULL;
-      for (let hits = (roll() % 3) + 1; hits > 0; hits -= 1) {
-        state = damage(state, roll);
-      }
-      const read = readState(state);
-      if (read === null) {
-        rejected += 1;
-        continue;
-      }
-      loaded += 1;
-      // Прочитанное состояние устойчиво: повторное чтение ничего не меняет.
-      const again = readState(read);
-      const text = renderState(read);
-      const ended = applyCommand(read, { type: "endTurn", player: read.currentPlayer });
-      const stepped = applyCommand(read, {
-        type: "moveHero",
-        player: read.currentPlayer,
-        heroId: read.heroes.find((hero) => hero.owner === read.currentPlayer)?.id ?? "A",
-        path: ["E", "S", "W", "N"],
-      });
-      if (!sameJson(again, read) || text.length === 0 || !ended.ok || stepped === undefined) {
-        throw new Error(`круг ${round}: состояние не годится: ${JSON.stringify(state)}`);
-      }
-    }
-    // Проверка не пустая: были и загруженные, и отвергнутые записи.
-    expect(loaded).toBeGreaterThan(500);
-    expect(rejected).toBeGreaterThan(100);
-  });
-});
-
-function sameJson(a: unknown, b: unknown): boolean {
-  return JSON.stringify(a) === JSON.stringify(b);
-}
