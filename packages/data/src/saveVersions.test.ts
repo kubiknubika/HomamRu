@@ -32,11 +32,17 @@ const NO_BATTLES = {
   tavern: TEST_DEFAULTS.tavern,
   battle: null,
   outcome: null,
+  winner: null,
 };
 
 /** Запись с произвольным содержимым и верной контрольной суммой. */
 function saveOf(record: unknown): string {
   return withChecksumOf(JSON.stringify(record));
+}
+
+function blankPlayer(id: number) {
+  const fate = { kind: "human", eliminated: false, townlessDays: null } as const;
+  return { id, ...fate, resources: NO_RESOURCES, tavern: [] };
 }
 
 describe("чего в записи нет — берётся начальное значение", () => {
@@ -57,7 +63,7 @@ describe("чего в записи нет — берётся начальное 
         terrain: ["#...", "....", "....", "...."],
         starts: [],
       },
-      players: [{ id: 0, resources: NO_RESOURCES, tavern: [] }],
+      players: [blankPlayer(0)],
       heroes: [{ id: "A", owner: 0, x: 1, y: 0, movement: 1000, ...FRESH }],
       objects: [],
       day: 1,
@@ -133,10 +139,7 @@ describe("чего в записи нет — берётся начальное 
       ...old,
       version: STATE_VERSION,
       map: { ...old.map, starts: [] },
-      players: [
-        { id: 0, resources: NO_RESOURCES, tavern: [] },
-        { id: 1, resources: NO_RESOURCES, tavern: [] },
-      ],
+      players: [blankPlayer(0), blankPlayer(1)],
       heroes: old.heroes.map((hero) => ({ ...hero, ...FRESH })),
       objects: [],
       ...NO_BATTLES,
@@ -152,7 +155,16 @@ describe("чего в записи нет — берётся начальное 
     const state = readState({
       ...FULL,
       rng: { s: -1 },
-      players: [{ id: 5, resources: { gold: "много", wood: -2, ore: 1.5 } }, "игрок"],
+      players: [
+        {
+          id: 5,
+          kind: "human",
+          eliminated: false,
+          townlessDays: null,
+          resources: { gold: "много", wood: -2, ore: 1.5 },
+        },
+        "игрок",
+      ],
       heroes: [{ x: 0, y: 0, movement: -5, owner: 9 }, { x: 3, y: 3, id: 7 }, "герой"],
       objects: [{ id: "o3", type: "mine", x: 0, y: 2, kind: "sawmill", owner: 9 }],
       day: 0,
@@ -162,10 +174,7 @@ describe("чего в записи нет — берётся начальное 
     expect(state?.heroes).toHaveLength(2);
     expect(state).toMatchObject({
       rng: { s: 0 },
-      players: [
-        { id: 0, resources: NO_RESOURCES, tavern: [] },
-        { id: 1, resources: NO_RESOURCES, tavern: [] },
-      ],
+      players: [blankPlayer(0), blankPlayer(1)],
       heroes: [
         { id: "A", owner: 0, x: 0, y: 0, movement: 1000 },
         { id: "B", owner: 1, x: 3, y: 3, movement: 1000 },
@@ -182,10 +191,7 @@ describe("чего в записи нет — берётся начальное 
       heroes: [{ x: 0, y: 0 }],
       objects: [{ id: "o1", type: "mine", x: 2, y: 2, kind: "ore-pit", owner: 1 }],
     });
-    expect(state?.players).toEqual([
-      { id: 0, resources: NO_RESOURCES, tavern: [] },
-      { id: 1, resources: NO_RESOURCES, tavern: [] },
-    ]);
+    expect(state?.players).toEqual([blankPlayer(0), blankPlayer(1)]);
   });
 });
 

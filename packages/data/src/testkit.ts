@@ -32,9 +32,19 @@ export const FULL_STATE: GameState = {
     ],
   },
   players: [
-    { id: 0, resources: { gold: 700, wood: 3, ore: 4 }, tavern: [] },
+    {
+      id: 0,
+      kind: "human",
+      eliminated: false,
+      townlessDays: null,
+      resources: { gold: 700, wood: 3, ore: 4 },
+      tavern: [],
+    },
     {
       id: 1,
+      kind: "human",
+      eliminated: false,
+      townlessDays: null,
       resources: { gold: 5, wood: 6, ore: 7 },
       tavern: [
         { kind: "milava", army: [{ creature: "militia", count: 13 }] },
@@ -108,6 +118,7 @@ export const FULL_STATE: GameState = {
   tavern: CONTENT.tavern,
   battle: null,
   outcome: null,
+  winner: null,
 };
 
 /** Собирает текст записи с верной контрольной суммой для произвольного JSON — тем же FNV-1a. */

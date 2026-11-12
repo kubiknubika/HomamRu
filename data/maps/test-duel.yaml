@@ -1,0 +1,26 @@
+# Проверочная карта на двоих (docs/mechanics/40-two-players.md, 41-victory.md).
+id: test-duel
+name: Проверочная карта на двоих
+terrain:
+  - "........"
+  - "........"
+  - "........"
+  - "........"
+  - "........"
+  - "........"
+  - "........"
+  - "........"
+players:
+  - hero: { x: 1, y: 1, army: [{ creature: militia, count: 100 }] }
+    resources: { gold: 5000 }
+  - hero: { x: 5, y: 1, army: [{ creature: militia, count: 10 }] }
+    kind: computer
+    resources: { gold: 5000 }
+objects:
+  - { type: town, x: 0, y: 3, owner: 0, buildings: [tavern, fort, militia-yard] }
+  - type: town
+    x: 6
+    y: 6
+    owner: 1
+    buildings: [tavern, fort, militia-yard]
+    garrison: [{ creature: militia, count: 5 }]

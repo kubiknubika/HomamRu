@@ -1,0 +1,29 @@
+name: Победа над героем противника и взятие его города — партия выиграна
+map: test-duel
+seed: 1
+steps:
+  # Сквозь чужого героя пройти нельзя.
+  - move: { hero: A, path: [E, E, E, E, E] }
+    expectError: STEP_BLOCKED
+  # Путь кончается на клетке героя B: A остаётся на соседней клетке, начинается бой.
+  - move: { hero: A, path: [E, E, E, E] }
+  - endTurn: {}
+    expectError: BATTLE_IN_PROGRESS
+  - fight: {}
+  # У противника остался город: партия идёт. В городе гарнизон — второй бой.
+  - move: { hero: A, path: [SE, S, S, S, SE] }
+  - fight: {}
+  - endTurn: {}
+    expectError: GAME_OVER
+expect:
+  day: 1
+  battle: false
+  outcome: victory
+  winner: 0
+  eliminated: [1]
+  heroes:
+    # За героя: 10 ополченцев × 12 + 500 = 620; за город: 5 × 12 + 500 = 560.
+    A: { x: 6, y: 6, experience: 1180 }
+    B: absent
+  objects:
+    o2: { townOwner: 0, garrison: [] }

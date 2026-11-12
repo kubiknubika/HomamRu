@@ -35,6 +35,10 @@ export const DEFAULTS = {
   currentPlayer: 0,
   battle: null,
   outcome: null,
+  winner: null,
+  playerKind: "human",
+  eliminated: false,
+  townlessDays: null,
 } as const;
 
 export const NO_RESOURCES = {
@@ -57,6 +61,10 @@ const playerSchema = z.object({
     .catch(NO_RESOURCES),
   // Таверна сверяется с героями и существами партии при чтении (stateTavern.ts).
   tavern: z.unknown().optional(),
+  kind: z.enum(["human", "computer"]).catch(DEFAULTS.playerKind),
+  eliminated: z.boolean().catch(DEFAULTS.eliminated),
+  // Не больше шести: на седьмом дне игрок уже выбыл (41-victory.md).
+  townlessDays: z.int().min(0).max(6).nullable().catch(DEFAULTS.townlessDays),
 });
 
 export const objectSchema = z.discriminatedUnion("type", [
@@ -146,7 +154,16 @@ export const looseStateSchema = z.object({
     terrain: z.array(z.string().min(1)).min(1),
     starts: z.array(z.unknown()).catch([]),
   }),
-  players: z.array(playerSchema.catch({ resources: NO_RESOURCES })).catch([]),
+  players: z
+    .array(
+      playerSchema.catch({
+        resources: NO_RESOURCES,
+        kind: DEFAULTS.playerKind,
+        eliminated: DEFAULTS.eliminated,
+        townlessDays: DEFAULTS.townlessDays,
+      }),
+    )
+    .catch([]),
   heroes: z.array(z.unknown()).catch([]),
   objects: z.array(z.unknown()).catch([]),
   day: z.int().min(1).catch(DEFAULTS.day),
@@ -156,7 +173,8 @@ export const looseStateSchema = z.object({
   heroKinds: z.unknown().optional(),
   tavern: z.unknown().optional(),
   battle: z.unknown().optional(),
-  outcome: z.literal("defeat").nullable().catch(DEFAULTS.outcome),
+  outcome: z.enum(["defeat", "victory"]).nullable().catch(DEFAULTS.outcome),
+  winner: playerNumberSchema.nullable().catch(DEFAULTS.winner),
 });
 
 export type LooseState = z.infer<typeof looseStateSchema>;
@@ -204,7 +222,10 @@ const battleStateSchema = z.strictObject({
 /** Идущий бой партии (docs/mechanics/23-map-battle.md). */
 export const mapBattleSchema = z.strictObject({
   heroId: z.string(),
-  guardId: z.string(),
+  guardId: z.string().nullable(),
+  // В записях до этапа 5 этих полей нет: бой шёл только с охранником.
+  defenderHeroId: z.string().nullable().default(null),
+  townId: z.string().nullable().default(null),
   state: battleStateSchema,
 });
 

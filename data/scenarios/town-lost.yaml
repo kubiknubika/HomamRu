@@ -1,0 +1,36 @@
+name: Город противника взят, герой его цел — через семь дней противник выбывает
+map: test-duel
+seed: 1
+steps:
+  - move: { hero: A, path: [SE, SE, SE, SE, SE] }
+  - fight: {}
+  # Прежний владелец городом больше не командует.
+  - endTurn: {}
+  - recruit: { town: o2, creature: militia, count: 1 }
+    expectError: NO_TOWN
+  - endTurn: {}
+  - endTurn: {}
+  - endTurn: {}
+  - endTurn: {}
+  - endTurn: {}
+  - endTurn: {}
+  - endTurn: {}
+  - endTurn: {}
+  - endTurn: {}
+  - endTurn: {}
+  - endTurn: {}
+  - endTurn: {}
+  # Седьмой ход без города: в конце его игрок 2 выбывает.
+  - endTurn: {}
+  - endTurn: {}
+    expectError: GAME_OVER
+expect:
+  day: 7
+  outcome: victory
+  winner: 0
+  eliminated: [1]
+  heroes:
+    A: { x: 6, y: 6, experience: 560 }
+    B: absent
+  objects:
+    o2: { townOwner: 0 }

@@ -99,6 +99,8 @@ const scenarioSchema = z.strictObject({
               buildings: z.array(z.string()).optional(),
               available: z.array(armyStackSchema).optional(),
               garrison: z.array(armyStackSchema).optional(),
+              /** Владелец города: номер игрока с нуля. */
+              townOwner: z.int().optional(),
             }),
           ]),
         )
@@ -106,7 +108,11 @@ const scenarioSchema = z.strictObject({
       /** Идёт ли бой в конце сценария. */
       battle: z.boolean().optional(),
       /** Итог партии: `none` — партия идёт. */
-      outcome: z.enum(["none", "defeat"]).optional(),
+      outcome: z.enum(["none", "defeat", "victory"]).optional(),
+      /** Победитель: номер игрока с нуля. */
+      winner: z.int().optional(),
+      /** Выбывшие игроки: номера с нуля. */
+      eliminated: z.array(z.int()).optional(),
     })
     .optional(),
 });

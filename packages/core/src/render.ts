@@ -12,6 +12,8 @@ import { calendarOf } from "./time.ts";
 import { RESOURCES } from "./types.ts";
 import type {
   ArmyStack,
+  MapBattle,
+  PlayerState,
   GameEvent,
   GameState,
   HeroState,
@@ -87,6 +89,34 @@ function formatObject(state: GameState, object: ObjectState): string {
   return `${place}: ${MINE_NAMES[object.kind]}, ${owner}, в день ${RESOURCE_NAMES[resource]} +${amount}`;
 }
 
+function formatDefender(battle: MapBattle): string {
+  if (battle.guardId !== null) {
+    return `охранника ${battle.guardId}`;
+  }
+  const town = battle.townId === null ? "" : ` в городе ${battle.townId}`;
+  return battle.defenderHeroId === null
+    ? `гарнизона города ${battle.townId ?? ""}`
+    : `героя ${battle.defenderHeroId}${town}`;
+}
+
+function formatPlayerFate(player: PlayerState): string[] {
+  if (player.eliminated) {
+    return [`Игрок ${player.id + 1} выбыл.`];
+  }
+  return player.townlessDays === null
+    ? []
+    : [`Игрок ${player.id + 1} без города: дней прошло — ${player.townlessDays}.`];
+}
+
+function formatOutcome(state: GameState): string[] {
+  if (state.outcome === null) {
+    return [];
+  }
+  return state.winner === null
+    ? ["Партия окончена: поражение."]
+    : [`Партия окончена: победил игрок ${state.winner + 1}.`];
+}
+
 function formatDate(day: number): string {
   const { month, week, weekday } = calendarOf(day);
   return `месяц ${month}, неделя ${week}, день ${weekday}`;
@@ -138,12 +168,13 @@ export function renderState(state: GameState, path: readonly Position[] = []): s
     ...state.players.map(
       (player) => `Игрок ${player.id + 1}: ${formatResources(player.resources)}.`,
     ),
-    ...(state.outcome === null ? [] : ["Партия окончена: поражение."]),
+    ...state.players.flatMap((player) => formatPlayerFate(player)),
+    ...formatOutcome(state),
     ...(state.battle === null
       ? []
       : [
           "",
-          `Идёт бой: герой ${state.battle.heroId} против охранника ${state.battle.guardId}.`,
+          `Идёт бой: герой ${state.battle.heroId} против ${formatDefender(state.battle)}.`,
           renderBattle(state.battle.state),
         ]),
   ];

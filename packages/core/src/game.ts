@@ -44,6 +44,9 @@ export function createGame(
     },
     players: map.players.map((player, id) => ({
       id,
+      kind: player.kind ?? "human",
+      eliminated: false,
+      townlessDays: null,
       resources: addResources(NO_RESOURCES, player.resources ?? {}),
       tavern: [],
     })),
@@ -77,6 +80,7 @@ export function createGame(
     tavern: { price: content.tavern.price, army: content.tavern.army.map((rule) => ({ ...rule })) },
     battle: null,
     outcome: null,
+    winner: null,
   };
   // В жилищах, построенных с начала, уже ждёт недельный прирост.
   const stocked = state.objects.map((object) =>

@@ -132,7 +132,14 @@ export function fromPicture(rows: readonly string[]): Picture {
       terrain: rows.map((row) => row.replaceAll(/[STB]/g, ".")),
       starts: positions,
     },
-    players: positions.map((_, id) => ({ id, resources: NO_RESOURCES, tavern: [] })),
+    players: positions.map((_, id) => ({
+      id,
+      kind: "human" as const,
+      eliminated: false,
+      townlessDays: null,
+      resources: NO_RESOURCES,
+      tavern: [],
+    })),
     heroes: positions.map((position, owner) => ({
       id: heroIdOf(owner),
       owner,
@@ -156,6 +163,7 @@ export function fromPicture(rows: readonly string[]): Picture {
     tavern: TAVERN,
     battle: null,
     outcome: null,
+    winner: null,
   };
   return { state, target: findSymbol(rows, "T") ?? start };
 }

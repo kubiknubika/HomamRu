@@ -41,6 +41,7 @@ const END_ONLY = 2;
 
 function blockedCells(state: GameState, heroId: string): Uint8Array {
   const { map } = state;
+  const owner = state.heroes.find((hero) => hero.id === heroId)?.owner;
   const blocked = new Uint8Array(map.width * map.height);
   for (let y = 0; y < map.height; y += 1) {
     for (let x = 0; x < map.width; x += 1) {
@@ -59,7 +60,8 @@ function blockedCells(state: GameState, heroId: string): Uint8Array {
   }
   for (const other of state.heroes) {
     if (other.id !== heroId) {
-      blocked[other.y * map.width + other.x] = BLOCKED;
+      // На чужого героя можно напасть: его клетка — конец пути (40-two-players.md).
+      blocked[other.y * map.width + other.x] = other.owner === owner ? BLOCKED : END_ONLY;
     }
   }
   return blocked;

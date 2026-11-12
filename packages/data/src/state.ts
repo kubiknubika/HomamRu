@@ -4,6 +4,7 @@
  * Правила и таблица начальных значений: docs/mechanics/04-save.md, «Сохранения других версий».
  * Описание полей: docs/mechanics/00-state-and-commands.md.
  */
+import { defenderArmy, readFate, readOutcome } from "./statePlayers.ts";
 import {
   heroIdOf,
   levelOf,
@@ -105,24 +106,16 @@ function readObjects(
   buildings: readonly BuildingDefinition[],
 ): ObjectState[] {
   const taken = new Set<string>();
-  const townOwners = new Set<number>();
   const objects: ObjectState[] = [];
   for (const object of readable(items, objectSchema)) {
     const key = `${object.x},${object.y}`;
     const unknownGuard = object.type === "guard" && !known.has(object.creature);
-    // У игрока не больше одного города: второй убирается.
-    const extraTown = object.type === "town" && townOwners.has(object.owner);
-    if (
-      terrain[object.y]?.[object.x] === undefined ||
-      taken.has(key) ||
-      unknownGuard ||
-      extraTown
-    ) {
+    // Городов у игрока может быть несколько: второй он захватывает (40-two-players.md).
+    if (terrain[object.y]?.[object.x] === undefined || taken.has(key) || unknownGuard) {
       continue;
     }
     taken.add(key);
     if (object.type === "town") {
-      townOwners.add(object.owner);
       objects.push(readTown(object, buildings, known));
       continue;
     }
@@ -184,13 +177,16 @@ function readBattle(
   if (!battle.success) {
     return DEFAULTS.battle;
   }
-  const { heroId, guardId, state } = battle.data;
+  const { heroId, state } = battle.data;
   const hero = heroes.find((candidate) => candidate.id === heroId);
-  const guard = objects.find((object) => object.id === guardId);
-  if (hero === undefined || guard?.type !== "guard") {
+  const defender = defenderArmy(battle.data, heroes, objects);
+  if (hero === undefined || defender === null) {
     return DEFAULTS.battle;
   }
-  const expected = [...hero.army.map((stack) => ({ side: 0, ...stack })), { side: 1, ...guard }];
+  const expected = [
+    ...hero.army.map((stack) => ({ side: 0, ...stack })),
+    ...defender.map((stack) => ({ side: 1, ...stack })),
+  ];
   const fits =
     state.stacks.length === expected.length &&
     state.stacks.every((stack, index) => {
@@ -251,6 +247,9 @@ function finishState(loose: LooseState, defaults: SaveDefaults): GameState | nul
     Math.min(loose.players.length, MAX_PLAYERS),
     ...owners.map((owner) => owner + 1),
   );
+  const fates = Array.from({ length: playerCount }, (_, id) =>
+    readFate(loose.players[id], id, heroes, objects),
+  );
   return {
     version: STATE_VERSION,
     rng: loose.rng,
@@ -264,6 +263,9 @@ function finishState(loose: LooseState, defaults: SaveDefaults): GameState | nul
     },
     players: Array.from({ length: playerCount }, (_, id) => ({
       id,
+      kind: loose.players[id]?.kind ?? DEFAULTS.playerKind,
+      eliminated: fates[id]?.eliminated ?? DEFAULTS.eliminated,
+      townlessDays: fates[id]?.townlessDays ?? DEFAULTS.townlessDays,
       resources: loose.players[id]?.resources ?? NO_RESOURCES,
       tavern: readTavern(
         loose.players[id]?.tavern,
@@ -281,7 +283,7 @@ function finishState(loose: LooseState, defaults: SaveDefaults): GameState | nul
     heroKinds: kinds,
     tavern: rules,
     battle: readBattle(loose.battle, heroes, objects, creatures),
-    outcome: loose.outcome,
+    ...readOutcome(loose, fates),
   };
 }
 
