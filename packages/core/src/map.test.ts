@@ -107,14 +107,18 @@ describe("создание партии", () => {
     expect(createGame(mapOf({ players }), 42)).toEqual({
       ok: true,
       state: {
-        version: 1,
+        version: 2,
         rng: { s: 42 },
         map: { id: "test", name: "Проверочная", width: 8, height: 8, terrain: rows(8, 8) },
-        players: [{ id: 0 }, { id: 1 }],
+        players: [
+          { id: 0, resources: { gold: 0, wood: 0, ore: 0 } },
+          { id: 1, resources: { gold: 0, wood: 0, ore: 0 } },
+        ],
         heroes: [
           { id: "A", owner: 0, x: 1, y: 1, movement: 1000 },
           { id: "B", owner: 1, x: 6, y: 6, movement: 1000 },
         ],
+        objects: [],
         day: 1,
         currentPlayer: 0,
       },

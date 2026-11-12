@@ -10,7 +10,8 @@ export { formatEvent, renderState } from "./render.ts";
 export { createRng, nextFloat, nextInt, nextUint32 } from "./rng.ts";
 export type { RngResult, RngState } from "./rng.ts";
 export { calendarOf } from "./time.ts";
-export { DIRECTIONS, REJECT_CODES, STATE_VERSION } from "./types.ts";
+export { incomeOf, objectAt } from "./objects.ts";
+export { DIRECTIONS, MINE_KINDS, REJECT_CODES, RESOURCES, STATE_VERSION } from "./types.ts";
 export type {
   Command,
   CommandRejected,
@@ -20,8 +21,12 @@ export type {
   GameState,
   HeroState,
   MapDefinition,
+  MapObjectDefinition,
+  ObjectState,
   Position,
   RejectCode,
+  Resource,
+  Resources,
 } from "./types.ts";
 export { applyBattleCommand, replayBattle } from "./battle/commands.ts";
 export type { BattleReplayResult } from "./battle/commands.ts";

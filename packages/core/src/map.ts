@@ -128,6 +128,48 @@ export function validateMap(map: MapDefinition): MapError[] {
     }
     taken.add(key);
   });
+  errors.push(...objectErrors(map, taken));
+  return errors;
+}
+
+/** Проверяет объекты карты: место и числа (20-map-objects.md). `taken` — клетки героев. */
+function objectErrors(map: MapDefinition, taken: Set<string>): MapError[] {
+  const errors: MapError[] = [];
+  (map.objects ?? []).forEach((object, index) => {
+    const { x, y } = object;
+    const field = `objects.${index}`;
+    const symbol = map.terrain[y]?.[x];
+    if (!Number.isInteger(x) || !Number.isInteger(y) || symbol === undefined) {
+      errors.push({ field, message: `Объект стоит вне карты: клетка (${x}, ${y}).` });
+      return;
+    }
+    if (symbol !== TERRAIN_LAND) {
+      errors.push({ field, message: `Объект стоит не на земле: клетка (${x}, ${y}).` });
+    }
+    const key = `${x},${y}`;
+    if (taken.has(key)) {
+      errors.push({ field, message: `Клетка (${x}, ${y}) уже занята героем или другим объектом.` });
+    }
+    taken.add(key);
+    if (object.type === "pile" && object.amount !== undefined) {
+      if (!Number.isInteger(object.amount) || object.amount < 1) {
+        errors.push({
+          field,
+          message: `Количество в кучке ${object.amount}; должно быть целым, не меньше 1.`,
+        });
+      }
+    }
+  });
+  map.players.forEach((player, index) => {
+    for (const [resource, amount] of Object.entries(player.resources ?? {})) {
+      if (amount !== undefined && (!Number.isInteger(amount) || amount < 0)) {
+        errors.push({
+          field: `players.${index}.resources.${resource}`,
+          message: `Запас ${amount}; должен быть целым, не меньше 0.`,
+        });
+      }
+    }
+  });
   return errors;
 }
 

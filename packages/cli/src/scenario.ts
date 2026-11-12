@@ -54,6 +54,27 @@ function checkExpectations(scenario: Scenario, state: GameState): string[] {
       );
     }
   }
+  for (const [index, want] of (expected?.resources ?? []).entries()) {
+    const have = state.players[index]?.resources;
+    for (const [resource, amount] of Object.entries(want)) {
+      const got = have?.[resource as keyof typeof want];
+      if (got !== amount) {
+        failures.push(`Игрок ${index + 1}: ожидалось ${resource} ${amount}, получено ${got}.`);
+      }
+    }
+  }
+  for (const [objectId, want] of Object.entries(expected?.objects ?? {})) {
+    const object = state.objects.find((candidate) => candidate.id === objectId);
+    if (want === "absent") {
+      if (object !== undefined) {
+        failures.push(`Объект ${objectId}: ожидалось, что его нет, но он есть.`);
+      }
+    } else if (object?.type !== "mine") {
+      failures.push(`Объект ${objectId}: ожидалась шахта, но её нет.`);
+    } else if (object.owner !== want.owner) {
+      failures.push(`Шахта ${objectId}: ожидался владелец ${want.owner}, получен ${object.owner}.`);
+    }
+  }
   return failures;
 }
 

@@ -1,0 +1,21 @@
+# Проверочная карта с объектами этапа 3 (docs/mechanics/20-map-objects.md).
+id: test-objects
+name: Проверочная карта с объектами
+terrain:
+  - "........"
+  - "..##...."
+  - "..#....."
+  - "........"
+  - "....##.."
+  - "........"
+  - "........"
+  - "........"
+players:
+  - hero: { x: 1, y: 1 }
+    resources: { gold: 100 }
+objects:
+  - { type: pile, x: 4, y: 1, resource: gold, amount: 700 }
+  - { type: pile, x: 1, y: 3, resource: wood }
+  - { type: mine, x: 1, y: 5, kind: sawmill }
+  - { type: mine, x: 6, y: 6, kind: gold-mine }
+  - { type: pile, x: 3, y: 3, resource: ore, amount: 6 }

@@ -18,6 +18,9 @@ describe("текстовый вывод", () => {
         " 1 .A#.....",
         " 2 ..#.....",
         " 3 ......B.",
+        "",
+        "Игрок 1: золото 0, дерево 0, руда 0.",
+        "Игрок 2: золото 0, дерево 0, руда 0.",
       ].join("\n"),
     );
   });
@@ -30,7 +33,7 @@ describe("текстовый вывод", () => {
       { x: 2, y: 1 },
       { x: 2, y: 2 },
     ]);
-    expect(renderState(state, path).split("\n").slice(-3)).toEqual([
+    expect(renderState(state, path).split("\n").slice(-5, -2)).toEqual([
       " 0 A*..",
       " 1 ..*.",
       " 2 ..*.",
@@ -40,7 +43,7 @@ describe("текстовый вывод", () => {
   it("на широкой карте пишет в шапке последнюю цифру столбца", () => {
     const lines = renderState(openField(12)).split("\n");
     expect(lines[3]).toBe("   012345678901");
-    expect(lines.at(-1)).toBe("11 ............");
+    expect(lines.at(-3)).toBe("11 ............");
   });
 
   it("не меняет состояние", () => {

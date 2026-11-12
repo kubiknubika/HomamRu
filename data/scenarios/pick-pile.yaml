@@ -1,0 +1,18 @@
+name: Герой подбирает кучку с соседней клетки и остаётся на месте
+map: test-objects
+seed: 1
+steps:
+  # Сквозь кучку пройти нельзя.
+  - move: { hero: A, path: [S, S, S] }
+    expectError: STEP_BLOCKED
+  # Последний шаг ведёт на кучку: очки потрачены, герой стоит на (1, 2).
+  - move: { hero: A, path: [S, S] }
+  - move: { hero: A, path: [E, E, E, E] }
+    expectError: STEP_BLOCKED
+expect:
+  heroes:
+    A: { x: 1, y: 2, movement: 800 }
+  objects:
+    o2: absent
+  resources:
+    - { gold: 100, ore: 0 }
