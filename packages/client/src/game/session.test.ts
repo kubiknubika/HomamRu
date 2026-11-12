@@ -67,6 +67,7 @@ describe("управление героем", () => {
     expect(session.getSnapshot().selection).toEqual({
       target: { x: 2, y: 0 },
       path: { found: false },
+      guard: null,
     });
     session.tapCell({ x: 2, y: 0 });
     expect(heroOf(session.getSnapshot())).toMatchObject({ x: 0, y: 0, movement: 1000 });
