@@ -4,6 +4,8 @@ import { createDamageText } from "./battleStubs.ts";
 import type { StackStub } from "./battleStubs.ts";
 
 const STRIKE_MS = 420;
+/** Надпись держится дольше удара: её нужно успеть прочитать. */
+const LABEL_MS = 900;
 const EFFECT_DEPTH = 3;
 
 /** Обводит контур клетки по её углам. */
@@ -20,6 +22,30 @@ export function tracePath(
     }
   }
   graphics.closePath();
+}
+
+/** Надпись всплывает над отрядом и гаснет: боевой дух, оцепенение. */
+export function showLabel(
+  scene: Phaser.Scene,
+  stub: StackStub,
+  size: number,
+  label: string,
+  onComplete: () => void,
+): void {
+  const { x, y } = stub.container;
+  const text = createDamageText(scene, label, size * 0.8);
+  text.setPosition(x, y - size * 0.5).setDepth(EFFECT_DEPTH);
+  scene.tweens.add({
+    targets: text,
+    y: y - size * 1.2,
+    alpha: 0,
+    duration: LABEL_MS,
+    ease: "Cubic.easeIn",
+    onComplete: () => {
+      text.destroy();
+      onComplete();
+    },
+  });
 }
 
 /** Цель мигает, над ней всплывает число урона; число существ обновляется сразу. */

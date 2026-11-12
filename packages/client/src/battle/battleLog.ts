@@ -45,17 +45,19 @@ export function describeEvents(events: readonly BattleEvent[], state: BattleStat
       : `${stack.creature.name} (${stack.side === 0 ? "ваш" : "враг"})`;
   };
   const parts: string[] = [];
+  // Боевой дух — в начале строки: он объясняет, почему отряд ходит снова или пропускает ход.
+  const morale: string[] = [];
   for (const event of events) {
     const text = describeEvent(event, nameOf);
     if (text !== null) {
-      parts.push(text);
+      (event.type === "moraleTurn" || event.type === "stackFroze" ? morale : parts).push(text);
     }
   }
   const moved = events.find((event) => event.type === "stackMoved");
   if (moved !== undefined && !events.some((event) => event.type === "strike")) {
     parts.unshift(`${nameOf(moved.stackId)} перемещается`);
   }
-  return parts.join("; ");
+  return [...morale, ...parts].join("; ");
 }
 
 /**

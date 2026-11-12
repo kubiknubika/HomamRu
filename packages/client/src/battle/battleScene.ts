@@ -6,7 +6,7 @@ import { BATTLE_HEIGHT, BATTLE_WIDTH } from "@homamru/core";
 import type { BattleEvent, BattleState, Cell } from "@homamru/core";
 import * as Phaser from "phaser";
 import type { FrameMeter } from "../game/frameMeter.ts";
-import { showStrike, tracePath } from "./battleEffects.ts";
+import { showLabel, showStrike, tracePath } from "./battleEffects.ts";
 import { highlightsOf } from "./battleHighlights.ts";
 import { cellAt, cellCenter, cellCorners, layoutOf } from "./battleGeometry.ts";
 import type { BattleLayout } from "./battleGeometry.ts";
@@ -240,6 +240,14 @@ export class BattleScene extends Phaser.Scene {
         const last = this.route.at(-1);
         const known = last !== undefined && last.col === event.to.col && last.row === event.to.row;
         this.walk(stub, known ? this.route : [event.to], next);
+        return;
+      }
+    }
+    if (event.type === "moraleTurn" || event.type === "stackFroze") {
+      const stub = this.stubs.get(event.stackId);
+      if (stub !== undefined) {
+        const label = event.type === "moraleTurn" ? "Боевой дух: ещё ход!" : "Оцепенение";
+        showLabel(this, stub, this.stackSize(), label, next);
         return;
       }
     }

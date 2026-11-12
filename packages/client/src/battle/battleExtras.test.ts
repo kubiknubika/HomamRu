@@ -1,7 +1,7 @@
 import { applyBattleCommand, findStack } from "@homamru/core";
 import { describe, expect, it } from "vitest";
 import { highlightsOf } from "./battleHighlights.ts";
-import { describeStack, lostCount } from "./battleLog.ts";
+import { describeEvents, describeStack, lostCount } from "./battleLog.ts";
 import { routeOf } from "./battleRoute.ts";
 import { attackableTargets, HISTORY_LENGTH, playerStack } from "./battleSession.ts";
 import { battle, place, ready } from "./testkit.ts";
@@ -127,6 +127,18 @@ describe("журнал, потери, характеристики", () => {
     expect(HISTORY_LENGTH).toBe(20);
     expect(history).toHaveLength(20);
     expect(history.at(-1)).toBe(log);
+  });
+
+  it("боевой дух стоит в начале строки журнала", () => {
+    const state = battle(["falcon:5"], ["militia:5"]);
+    const line = describeEvents(
+      [
+        { type: "stackMoved", stackId: "a1", from: { col: 0, row: 5 }, to: { col: 3, row: 5 } },
+        { type: "moraleTurn", stackId: "a1" },
+      ],
+      state,
+    );
+    expect(line).toBe("Сокол (ваш): высокий боевой дух, ещё один ход; Сокол (ваш) перемещается");
   });
 
   it("бежавший теряет всю армию; победитель — только погибших", () => {
