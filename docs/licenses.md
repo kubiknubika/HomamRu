@@ -38,6 +38,7 @@
 |---|---|---|
 | phaser | MIT | клиент |
 | react, react-dom | MIT | клиент |
+| @capacitor/core, @capacitor/cli, @capacitor/android | MIT | упаковка под Android |
 | zod | MIT | данные |
 | yaml | ISC | данные |
 | vite, @vitejs/plugin-react | MIT | сборка |

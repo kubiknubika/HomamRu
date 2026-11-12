@@ -6,6 +6,7 @@ import { cellsAlong } from "@homamru/core";
 import type { GameEvent, GameState } from "@homamru/core";
 import * as Phaser from "phaser";
 import { installCameraControl } from "./cameraControl.ts";
+import type { FrameMeter } from "./frameMeter.ts";
 import { cellAt, cellCenter, TILE } from "./geometry.ts";
 import { activeHero } from "./session.ts";
 import type { Selection, Session, SessionSnapshot } from "./session.ts";
@@ -28,14 +29,20 @@ const HERO_DEPTH = 2;
 
 export class MapScene extends Phaser.Scene {
   private readonly session: Session;
+  private readonly frameMeter: FrameMeter;
   private readonly heroes = new Map<string, Phaser.GameObjects.Container>();
   private pathGraphics: Phaser.GameObjects.Graphics | undefined;
   /** Герой идёт по клеткам: пока идёт, касания карты не принимаются. */
   private walking = false;
 
-  constructor(session: Session) {
+  constructor(session: Session, frameMeter: FrameMeter) {
     super("map");
     this.session = session;
+    this.frameMeter = frameMeter;
+  }
+
+  override update(_time: number, delta: number): void {
+    this.frameMeter.add(delta);
   }
 
   create(): void {

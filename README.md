@@ -25,6 +25,8 @@ pnpm run check   # полная проверка
 pnpm run play    # проиграть сценарии в консоли
 ```
 
+Сборка для Android (отладочная) собирается автоматически и лежит здесь: https://github.com/kubiknubika/HomamRu/releases/tag/android-latest
+
 ## Лицензия
 
 Проект открытый.
