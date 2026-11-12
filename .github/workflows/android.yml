@@ -50,7 +50,7 @@ jobs:
       - name: Обновление выпуска android-latest
         env:
           GH_TOKEN: ${{ github.token }}
-          NOTES: "Отладочная сборка для проверки на телефоне. Сборка ${{ env.VITE_BUILD_ID }}, ветка ${{ github.ref_name }}. Перед установкой удалите прежнюю версию: каждая сборка подписана новым ключом."
+          NOTES: "Отладочная сборка для проверки на телефоне. Сборка ${{ env.VITE_BUILD_ID }}, ветка ${{ github.ref_name }}. Ставится поверх прежней версии."
         run: |
           if ! gh release view android-latest >/dev/null 2>&1; then
             gh release create android-latest --prerelease --title "Android: последняя сборка" --notes "$NOTES"

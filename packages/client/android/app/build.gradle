@@ -16,6 +16,18 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    // Открытый ключ для отладочных сборок (решение владельца 2026-11-11).
+    // Он одинаков во всех сборках, поэтому новая версия ставится поверх прежней и сохранение остаётся.
+    // Для выпуска в магазин этот ключ не годится: там будет отдельный секретный ключ.
+    signingConfigs {
+        debug {
+            storeFile file('debug.p12')
+            storeType 'pkcs12'
+            storePassword 'android'
+            keyAlias 'homamru-debug'
+            keyPassword 'android'
+        }
+    }
     buildTypes {
         release {
             minifyEnabled false
