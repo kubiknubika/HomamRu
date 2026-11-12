@@ -1,11 +1,12 @@
 /**
- * Карты, которые можно открыть на экране. Пока все — проверочные.
- * Первая — с охранниками: на ней виден весь этап 3. Настоящая карта будет на шаге 3.4.
+ * Карты, которые можно открыть на экране.
+ * Первая — карта первой версии (docs/mechanics/25-first-map.md); остальные — проверочные.
  */
 import { createGame } from "@homamru/core";
 import type { GameState } from "@homamru/core";
 import { parseMapFile } from "@homamru/data";
 import { loadCreatures } from "./content.ts";
+import firstMapText from "../../../../data/maps/four-corners.yaml?raw";
 import guardsMapText from "../../../../data/maps/test-guards.yaml?raw";
 import largeMapText from "../../../../data/maps/test-large.yaml?raw";
 import objectsMapText from "../../../../data/maps/test-objects.yaml?raw";
@@ -14,6 +15,7 @@ import smallMapText from "../../../../data/maps/test-small.yaml?raw";
 const SEED = 1;
 
 const MAP_FILES = [
+  { file: "data/maps/four-corners.yaml", text: firstMapText, label: "Четыре края" },
   { file: "data/maps/test-guards.yaml", text: guardsMapText, label: "с охраной" },
   { file: "data/maps/test-objects.yaml", text: objectsMapText, label: "с объектами" },
   { file: "data/maps/test-small.yaml", text: smallMapText, label: "маленькая пустая" },
