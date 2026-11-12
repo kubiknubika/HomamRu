@@ -2,7 +2,7 @@
  * Надписи экрана карты: подписи объектов, предупреждение о бое, короткие сообщения.
  * Спецификация: docs/mechanics/24-map-screen.md. Правил игры здесь нет — только слова.
  */
-import { MINE_INCOME, quantityRange, quantityWord, RESOURCES } from "@homamru/core";
+import { MINE_INCOME, quantityRange, quantityWord, RESOURCES, townIncome } from "@homamru/core";
 import type { GameEvent, GameState, GuardState, ObjectState, Resources } from "@homamru/core";
 
 export const RESOURCE_NAMES = { gold: "золото", wood: "дерево", ore: "руда" } as const;
@@ -43,8 +43,8 @@ export function describeObject(state: GameState, object: ObjectState): string {
     return `Охранник: ${describeGuard(state, object)}`;
   }
   if (object.type === "town") {
-    // Экран города — шаг 4.3; пока только подпись.
-    return `Город, ${object.owner === state.currentPlayer ? "ваш" : `игрока ${object.owner + 1}`}`;
+    const owner = object.owner === state.currentPlayer ? "ваш" : `игрока ${object.owner + 1}`;
+    return `Город, ${owner}. В день: золото +${townIncome(state, object)}`;
   }
   const { resource, amount } = MINE_INCOME[object.kind];
   const owner = ownerText(state, object.owner);
@@ -61,6 +61,37 @@ function incomeText(income: Resources): string {
   return RESOURCES.filter((resource) => income[resource] > 0)
     .map((resource) => `${RESOURCE_NAMES[resource]} +${income[resource]}`)
     .join(", ");
+}
+
+function lower(text: string): string {
+  return text.toLowerCase();
+}
+
+/** Имя героя из списка героев; незнакомое — как записано. */
+export function heroName(state: GameState, kind: string): string {
+  return state.heroKinds.find((hero) => hero.id === kind)?.name ?? kind;
+}
+
+/** Сообщения города: docs/mechanics/33-town-screen.md, «Сообщения». */
+function townMessage(event: GameEvent, state: GameState): string | null {
+  if (event.type === "buildingBuilt") {
+    const name = state.buildings.find((building) => building.id === event.building)?.name;
+    return `Построено: ${lower(name ?? event.building)}`;
+  }
+  if (event.type === "creaturesRecruited") {
+    return `Нанято: ${lower(creatureName(state, event.creature))} ${event.count}`;
+  }
+  if (event.type === "creaturesGrew") {
+    const town = state.objects.find((object) => object.id === event.townId);
+    const own = town?.type === "town" && town.owner === state.currentPlayer;
+    return own && event.added > 0
+      ? `Прирост: ${lower(creatureName(state, event.creature))} +${event.added}`
+      : null;
+  }
+  if (event.type === "heroHired") {
+    return `Нанят герой: ${heroName(state, event.hero)}`;
+  }
+  return null;
 }
 
 /**
@@ -83,6 +114,11 @@ export function messagesOf(events: readonly GameEvent[], state: GameState): stri
       }
     } else if (event.type === "levelGained") {
       messages.push(`Новый уровень: ${STAT_NAMES[event.stat]} +1`);
+    } else {
+      const line = townMessage(event, state);
+      if (line !== null) {
+        messages.push(line);
+      }
     }
   }
   return messages;

@@ -60,10 +60,6 @@ export class MapScene extends Phaser.Scene {
     const { state } = this.session.getSnapshot();
     this.createTerrain(state);
     this.pathGraphics = this.add.graphics().setDepth(PATH_DEPTH);
-    for (const hero of state.heroes) {
-      const stub = createHeroStub(this, hero.id, hero.owner).setDepth(HERO_DEPTH);
-      this.heroes.set(hero.id, stub);
-    }
     this.settle();
 
     installCameraControl(this, {
@@ -135,6 +131,8 @@ export class MapScene extends Phaser.Scene {
       onComplete: () => {
         this.walking = false;
         this.settle();
+        // Герой встал на свой город — открывается экран города.
+        this.session.heroArrived();
       },
     });
   }
@@ -197,10 +195,19 @@ export class MapScene extends Phaser.Scene {
     graphics.strokeCircle(center.x, center.y, TILE * 0.47);
   }
 
+  /** Погибший герой исчезает с карты, нанятый появляется; остальные встают на свои клетки. */
   private placeHeroes(state: GameState): void {
+    for (const [id, stub] of this.heroes) {
+      if (!state.heroes.some((hero) => hero.id === id)) {
+        stub.destroy();
+        this.heroes.delete(id);
+      }
+    }
     for (const hero of state.heroes) {
       const center = cellCenter(hero);
-      this.heroes.get(hero.id)?.setPosition(center.x, center.y);
+      const stub =
+        this.heroes.get(hero.id) ?? createHeroStub(this, hero.id, hero.owner).setDepth(HERO_DEPTH);
+      this.heroes.set(hero.id, stub.setPosition(center.x, center.y));
     }
   }
 

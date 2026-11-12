@@ -58,6 +58,7 @@ export type {
   ObjectState,
   Position,
   RejectCode,
+  ResourceAmounts,
   Resource,
   Resources,
   TownCommand,

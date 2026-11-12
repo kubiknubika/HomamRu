@@ -1,6 +1,6 @@
 import { experienceForLevel, MAX_LEVEL } from "@homamru/core";
 import type { GameState, HeroState } from "@homamru/core";
-import { creatureName } from "../game/captions.ts";
+import { creatureName, heroName } from "../game/captions.ts";
 import { Dialog, DialogButton } from "./Dialog.tsx";
 
 interface HeroWindowProps {
@@ -14,7 +14,7 @@ export function HeroWindow({ state, hero, onClose }: HeroWindowProps) {
   const next = hero.level >= MAX_LEVEL ? undefined : experienceForLevel(hero.level + 1);
   const left = next === undefined ? null : next - hero.experience;
   return (
-    <Dialog title="Герой">
+    <Dialog title={`Герой: ${heroName(state, hero.kind)}`}>
       <div className="dialog-text">
         <div>Уровень: {hero.level}</div>
         <div>Опыт: {hero.experience}</div>
