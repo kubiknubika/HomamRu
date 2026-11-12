@@ -115,7 +115,7 @@ export type GameEvent =
       readonly fought: boolean;
     }
   | {
-      /** У игрока нет города: сколько дней ему осталось. */
+      /** У игрока нет города: сколько своих ходов ему осталось закончить. */
       readonly type: "townlessCountdown";
       readonly player: number;
       readonly daysLeft: number;

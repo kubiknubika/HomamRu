@@ -131,10 +131,10 @@ describe("нападение на город", () => {
     const { state: after, events } = playBattleOut(fighting);
     expect(after.heroes[0]).toMatchObject({ x: 4, y: 4 });
     expect(after.objects[1]).toMatchObject({ owner: 0, garrison: [] });
-    // За гарнизон без героя 500 не даётся: 5 × 12 + 4 × 8.
+    // За убитых и 500 за взятый с боем город.
     const slinger = CONTENT.creatures.find((creature) => creature.id === "slinger")?.health ?? 0;
     expect(events).toContainEqual(
-      expect.objectContaining({ type: "experienceGained", amount: 60 + 4 * slinger }),
+      expect.objectContaining({ type: "experienceGained", amount: 60 + 4 * slinger + 500 }),
     );
     expect(events).toContainEqual(
       expect.objectContaining({ type: "townCaptured", townId: "o2", fought: true }),

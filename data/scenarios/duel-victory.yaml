@@ -22,8 +22,8 @@ expect:
   winner: 0
   eliminated: [1]
   heroes:
-    # За героя: 10 ополченцев × 12 + 500 = 620; за гарнизон: 5 × 12 = 60, без 500.
-    A: { x: 6, y: 6, experience: 680 }
+    # За героя: 10 ополченцев × 12 + 500 = 620; за город: 5 × 12 + 500 = 560.
+    A: { x: 6, y: 6, experience: 1180 }
     B: absent
   objects:
     o2: { townOwner: 0, garrison: [] }

@@ -9,8 +9,9 @@ import { gainExperience } from "./hero.ts";
 import { captureTown, settlePlayers } from "./players.ts";
 import type { ArmyStack, GameState, HeroState, MapBattle, TownState } from "./types.ts";
 
-/** Опыт за побеждённого героя. Число — из Heroes 3 (сверено по VCMI). */
+/** Опыт за побеждённого героя и за взятый с боем город. Числа — из Heroes 3 (сверено по VCMI). */
 const HERO_DEFEATED_EXPERIENCE = 500;
+const TOWN_TAKEN_EXPERIENCE = 500;
 
 type Side = 0 | 1;
 
@@ -115,6 +116,7 @@ function finishWon(
     experience += fled ? 0 : HERO_DEFEATED_EXPERIENCE;
   }
   if (town !== undefined) {
+    experience += TOWN_TAKEN_EXPERIENCE;
     // Победитель входит в город.
     hero = { ...hero, x: town.x, y: town.y };
   }

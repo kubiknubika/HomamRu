@@ -64,22 +64,34 @@ describe("захваченный город", () => {
 });
 
 describe("семь дней без города", () => {
-  it("счётчик растёт в начале дня; на седьмом дне игрок выбывает, противник победил", () => {
-    // Город захвачен в день 1; в начале дня 8 счётчик достигает 7.
+  it("счётчик растёт в конце хода игрока; на седьмом ходу он выбывает, противник победил", () => {
+    // Город захвачен в день 1; седьмой ход без города игрок 2 кончает в день 7.
     const sixth = passDays(captured(), 6);
     expect(sixth).toMatchObject({ day: 7, outcome: null });
     expect(sixth.players[1]).toMatchObject({ townlessDays: 6, eliminated: false });
     const result = applyCommand(run(sixth, end(0)), end(1));
     const after = result.ok ? result.state : sixth;
-    expect(after).toMatchObject({ day: 8, outcome: "victory", winner: 0 });
+    expect(after).toMatchObject({ day: 7, outcome: "victory", winner: 0 });
     expect(after.heroes.map((hero) => hero.id)).toEqual(["A"]);
     expect(result.ok ? result.events.map(formatEvent) : []).toEqual([
       "Игрок 2 закончил ход",
-      "Начался день 8 (месяц 1, неделя 2, день 1)",
       "Игрок 2 без города: осталось дней — 0",
       "Игрок 2 выбыл: вышли семь дней без города",
       "Партия окончена: победил игрок 1",
     ]);
+  });
+
+  it("потерявший город после своего хода успевает закончить семь ходов", () => {
+    // Игрок 2 берёт пустой город игрока 1 в день 1, когда тот уже сходил.
+    const state = put(run(duel([HOME, enemyTown()]), end(0)), "B", 1, 3);
+    const lost = run(state, move(1, "SW"));
+    expect(lost.objects[0]).toMatchObject({ owner: 1 });
+    expect(lost.players[0]).toMatchObject({ townlessDays: 0 });
+    const seventh = passDays(lost, 6);
+    expect(seventh).toMatchObject({ day: 7, currentPlayer: 1, outcome: null });
+    expect(seventh.players[0]).toMatchObject({ townlessDays: 6 });
+    // Седьмой свой ход без города игрок 1 кончает в день 8.
+    expect(run(seventh, end(1), end(0))).toMatchObject({ day: 8, outcome: "victory", winner: 1 });
   });
 
   it("игрок отбил город — счётчик сброшен, партия идёт", () => {

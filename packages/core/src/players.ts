@@ -5,7 +5,7 @@
 import { refreshTavern } from "./tavern.ts";
 import type { GameEvent, GameState, PlayerState, TownState } from "./types.ts";
 
-/** Сколько дней игрок живёт без города. Число — из Heroes 3. */
+/** Сколько своих ходов игрок может закончить без города. Число — из Heroes 3. */
 const TOWNLESS_DAYS = 7;
 
 function hasTown(state: GameState, player: number): boolean {
@@ -48,7 +48,7 @@ function eliminate(
 
 /**
  * Проверяет, кто выбыл и не кончилась ли партия. Зовётся после всего, что отнимает
- * героя или город: конца боя, захвата города, седьмого дня без города.
+ * героя или город: конца боя, захвата города, конца хода игрока без города.
  */
 export function settlePlayers(initial: GameState, events: GameEvent[]): GameState {
   let state = initial;
@@ -78,15 +78,11 @@ export function settlePlayers(initial: GameState, events: GameEvent[]): GameStat
   return { ...state, outcome, winner };
 }
 
-/** Начало дня: у всех, кто без города, счётчик растёт; на седьмом дне игрок выбывает. */
-export function countTownlessDays(initial: GameState, events: GameEvent[]): GameState {
-  return initial.players.reduce(
-    (state, player) => countTownlessDay(state, player.id, events),
-    initial,
-  );
-}
-
-function countTownlessDay(state: GameState, player: number, events: GameEvent[]): GameState {
+/**
+ * Конец хода игрока без города: счётчик растёт; на седьмом таком ходу игрок выбывает.
+ * Так в Heroes 3: счёт идёт в конце хода самого игрока.
+ */
+export function countTownlessDay(state: GameState, player: number, events: GameEvent[]): GameState {
   const current = state.players[player];
   const days = current?.townlessDays ?? null;
   if (days === null || current?.eliminated === true) {

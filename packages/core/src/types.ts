@@ -138,7 +138,7 @@ export interface PlayerState {
   readonly kind: PlayerKind;
   /** Игрок выбыл: в очереди ходов его пропускают (41-victory.md). */
   readonly eliminated: boolean;
-  /** Сколько дней игрок прожил без города; `null` — города он не терял. */
+  /** Сколько своих ходов игрок закончил без города; `null` — города он не терял. */
   readonly townlessDays: number | null;
   readonly resources: Resources;
   /** Герои, которые ждут в таверне игрока; у игрока без города — пусто (32-hero-hire.md). */
