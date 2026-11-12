@@ -20,8 +20,8 @@ CREATURES = {
 # ---------- поле ----------
 
 def to_cube(col, row):
-    """Клетка поля -> кубические координаты. Нечётные ряды сдвинуты вправо."""
-    x = col - (row - (row & 1)) // 2
+    """Клетка поля -> кубические координаты. Чётные ряды сдвинуты вправо."""
+    x = col - (row + (row & 1)) // 2
     z = row
     return x, -x - z, z
 
@@ -33,7 +33,7 @@ def distance(a, b):
 
 
 def neighbours(col, row):
-    shift = row & 1
+    shift = 1 - (row & 1)  # в чётном ряду верхние и нижние соседи правее
     cells = [
         (col - 1, row), (col + 1, row),
         (col - 1 + shift, row - 1), (col + shift, row - 1),
