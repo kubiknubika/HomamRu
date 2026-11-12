@@ -10,7 +10,7 @@ export { formatEvent, renderState } from "./render.ts";
 export { createRng, nextFloat, nextInt, nextUint32 } from "./rng.ts";
 export type { RngResult, RngState } from "./rng.ts";
 export { calendarOf } from "./time.ts";
-export { DIRECTIONS, REJECT_CODES } from "./types.ts";
+export { DIRECTIONS, REJECT_CODES, STATE_VERSION } from "./types.ts";
 export type {
   Command,
   CommandRejected,
