@@ -171,7 +171,7 @@ body {
 /* Узкий экран (книжная ориентация): отладочный угол уходит под панель с датой. */
 @media (max-width: 560px) {
   .hud-debug {
-    top: calc(max(12px, env(safe-area-inset-top)) + 68px);
+    top: calc(max(12px, env(safe-area-inset-top)) + 92px);
   }
 }
 

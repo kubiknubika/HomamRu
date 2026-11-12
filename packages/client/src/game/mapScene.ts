@@ -88,7 +88,9 @@ export class MapScene extends Phaser.Scene {
     const unsubscribe = this.session.subscribe((_snapshot, events) => {
       this.onChange(events);
     });
+    // Phaser, который уничтожают целиком, о закрытии сцены не сообщает — только об уничтожении.
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, unsubscribe);
+    this.events.once(Phaser.Scenes.Events.DESTROY, unsubscribe);
   }
 
   private createTerrain(state: GameState): void {

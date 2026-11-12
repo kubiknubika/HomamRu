@@ -1,8 +1,8 @@
 import { calendarOf, DAILY_MOVEMENT, RESOURCES } from "@homamru/core";
 import { useEffect, useState, useSyncExternalStore } from "react";
-import { describeObject, fightWarning, messagesOf, RESOURCE_NAMES } from "../game/captions.ts";
+import { describeObject, fightWarning, RESOURCE_NAMES } from "../game/captions.ts";
 import { activeHero } from "../game/session.ts";
-import type { Session } from "../game/session.ts";
+import type { Notice, Session } from "../game/session.ts";
 import { HeroWindow } from "./HeroWindow.tsx";
 
 interface HudProps {
@@ -12,36 +12,23 @@ interface HudProps {
 /** Сколько секунд сообщение остаётся на экране. */
 const MESSAGE_MS = 4000;
 
-/** Сообщения о случившемся: строка на несколько секунд. */
-function Messages({ session }: HudProps) {
-  const [lines, setLines] = useState<readonly string[]>([]);
-  useEffect(
-    () =>
-      session.subscribe((snapshot, events) => {
-        const fresh = messagesOf(events, snapshot.state);
-        if (fresh.length > 0) {
-          setLines(fresh);
-        }
-      }),
-    [session],
-  );
+/** Сообщение о случившемся: строки на несколько секунд. */
+function Messages({ notice }: { readonly notice: Notice }) {
+  const [hiddenId, setHiddenId] = useState(0);
   useEffect(() => {
-    if (lines.length === 0) {
-      return undefined;
-    }
     const timer = setTimeout(() => {
-      setLines([]);
+      setHiddenId(notice.id);
     }, MESSAGE_MS);
     return () => {
       clearTimeout(timer);
     };
-  }, [lines]);
-  if (lines.length === 0) {
+  }, [notice.id]);
+  if (hiddenId === notice.id) {
     return null;
   }
   return (
     <div className="hud hud-message">
-      {lines.map((line, index) => (
+      {notice.lines.map((line, index) => (
         // Строки одного сообщения не переставляются.
         // oxlint-disable-next-line react/no-array-index-key
         <div key={index}>{line}</div>
@@ -52,7 +39,7 @@ function Messages({ session }: HudProps) {
 
 /** Интерфейс поверх карты: ресурсы, дата, запас хода, подписи, кнопки героя и конца дня. */
 export function Hud({ session }: HudProps) {
-  const { state, selection, inspected } = useSyncExternalStore(
+  const { state, selection, inspected, notice } = useSyncExternalStore(
     session.subscribe,
     session.getSnapshot,
   );
@@ -91,7 +78,7 @@ export function Hud({ session }: HudProps) {
       </div>
       <div className="hud-notes">
         {caption !== null && <div className="hud hud-caption">{caption}</div>}
-        <Messages session={session} />
+        {notice !== null && <Messages notice={notice} />}
       </div>
       <div className="hud-actions">
         {hero !== undefined && (

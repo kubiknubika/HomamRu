@@ -73,10 +73,13 @@ export class BattleScene extends Phaser.Scene {
     const unsubscribe = this.session.subscribe((snapshot, events, route) => {
       this.onChange(snapshot, events, route);
     });
-    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+    const release = (): void => {
       unsubscribe();
       this.scale.off(Phaser.Scale.Events.RESIZE, this.rebuild, this);
-    });
+    };
+    // Phaser, который уничтожают целиком, о закрытии сцены не сообщает — только об уничтожении.
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, release);
+    this.events.once(Phaser.Scenes.Events.DESTROY, release);
     // Поле показано: бой может начинаться.
     this.time.delayedCall(PAUSE_MS, () => {
       this.session.animationDone();

@@ -196,6 +196,8 @@ describe("бой внутри партии на экране", () => {
     session.leaveBattle();
     expect(session.getSnapshot().battle).toBeNull();
     expect(seen).toEqual(["Лесопилка занята"]);
+    // Сообщение лежит в снимке: интерфейс карты появится позже и всё равно его покажет.
+    expect(session.getSnapshot().notice).toEqual({ id: 1, lines: ["Лесопилка занята"] });
     // Карта снова принимает касания.
     session.tapCell({ x: 5, y: 3 });
     expect(session.getSnapshot().selection).toMatchObject({ path: { found: true } });

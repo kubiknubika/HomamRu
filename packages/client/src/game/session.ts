@@ -18,7 +18,7 @@ import type {
 } from "@homamru/core";
 import { createBattleSession } from "../battle/battleSession.ts";
 import type { BattleSession } from "../battle/battleSession.ts";
-import { summaryOf } from "./captions.ts";
+import { messagesOf, summaryOf } from "./captions.ts";
 import type { BattleSummary } from "./captions.ts";
 
 /** Клетка, которую выбрал игрок, и путь до неё. */
@@ -38,6 +38,17 @@ export interface SessionSnapshot {
   readonly battle: BattleSession | null;
   /** Итог последнего боя: опыт и уровни. Пусто, пока бой идёт. */
   readonly summary: BattleSummary | null;
+  /**
+   * Последнее сообщение игроку о случившемся на карте. Хранится здесь, а не в интерфейсе:
+   * после боя интерфейс карты появляется позже, чем приходят события.
+   */
+  readonly notice: Notice | null;
+}
+
+export interface Notice {
+  /** Номер сообщения: по нему интерфейс отличает новое сообщение от прежнего. */
+  readonly id: number;
+  readonly lines: readonly string[];
 }
 
 /** Слушатель получает новый снимок и события команды, если она была. */
@@ -103,6 +114,7 @@ export function createSession(initial: GameState, onAccepted?: OnAccepted): Sess
     inspected: null,
     battle: null,
     summary: null,
+    notice: null,
   };
   /** События команды, закончившей бой: карта узнаёт о них, когда игрок вернулся на неё. */
   let afterBattle: readonly GameEvent[] = [];
@@ -110,6 +122,10 @@ export function createSession(initial: GameState, onAccepted?: OnAccepted): Sess
 
   function publish(changes: Partial<SessionSnapshot>, events: readonly GameEvent[] = []): void {
     snapshot = { ...snapshot, ...changes };
+    const lines = messagesOf(events, snapshot.state);
+    if (lines.length > 0) {
+      snapshot = { ...snapshot, notice: { id: (snapshot.notice?.id ?? 0) + 1, lines } };
+    }
     for (const listener of listeners) {
       listener(snapshot, events);
     }
