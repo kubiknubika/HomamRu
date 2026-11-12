@@ -8,6 +8,8 @@ import { createRng } from "./rng.ts";
 import { STATE_VERSION } from "./types.ts";
 import type { GameState, MapObjectDefinition, Position } from "./types.ts";
 
+export { CREATURES } from "./battle/testkit.ts";
+
 export interface Picture {
   readonly state: GameState;
   /** Клетка, помеченная `T`; если её нет — клетка героя. */
@@ -23,8 +25,6 @@ function findSymbol(rows: readonly string[], symbol: string): Position | undefin
   }
   return undefined;
 }
-
-export { CREATURES } from "./battle/testkit.ts";
 
 /** Открытое поле 8×8 с героем в левом верхнем углу — рисунок для `gameWith`. */
 export const OPEN_FIELD = ["S.......", ...Array.from({ length: 7 }, () => "........")];

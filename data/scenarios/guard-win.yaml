@@ -1,0 +1,26 @@
+name: Герой входит в зону охранника, побеждает и получает опыт и лесопилку
+map: test-guards
+seed: 1
+steps:
+  # Лесопилка (3, 1) стоит в зоне охранника o1: герой встаёт на неё, но не занимает — начинается бой.
+  - move: { hero: A, path: [E, E, SE] }
+  # Пока идёт бой, команды карты отклоняются.
+  - endTurn: {}
+    expectError: BATTLE_IN_PROGRESS
+  - move: { hero: A, path: [W] }
+    expectError: BATTLE_IN_PROGRESS
+  - fight: {}
+  # После победы лесопилка под героем занята; партия продолжается.
+  - endTurn: {}
+expect:
+  day: 2
+  battle: false
+  outcome: none
+  heroes:
+    # 15 ополченцев × 12 здоровья = 180 опыта (таблица в 22-hero.md).
+    A: { x: 3, y: 1, experience: 180, level: 1, skills: 2 }
+  objects:
+    o1: absent
+    o2: { owner: 0 }
+  resources:
+    - { wood: 2 }

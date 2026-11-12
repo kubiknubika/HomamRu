@@ -6,6 +6,8 @@ import { describe, expect, it } from "vitest";
 import { createSaver } from "./saver.ts";
 import type { SaveStorage } from "./saveStorage.ts";
 
+const DEFAULTS = { creatures: CREATURES, heroArmy: TEST_ARMY };
+
 function bodyOnDay(day: number): SaveBody {
   const created = createGame(
     {
@@ -64,7 +66,7 @@ describe("запись сохранения", () => {
       await saver.idle();
     }
     expect(storage.writes).toEqual([0, 1, 0]);
-    expect(chooseSave(storage.copies)).toMatchObject({
+    expect(chooseSave(storage.copies, DEFAULTS)).toMatchObject({
       kind: "ok",
       slot: 0,
       record: { seq: 2, state: { day: 3 } },
@@ -77,7 +79,7 @@ describe("запись сохранения", () => {
     saver.save(bodyOnDay(5));
     await saver.idle();
     expect(storage.writes).toEqual([1]);
-    expect(chooseSave(storage.copies)).toMatchObject({ kind: "ok", record: { seq: 42 } });
+    expect(chooseSave(storage.copies, DEFAULTS)).toMatchObject({ kind: "ok", record: { seq: 42 } });
   });
 
   it("пока идёт запись, из очереди на диск попадает только последняя", async () => {
@@ -88,7 +90,10 @@ describe("запись сохранения", () => {
     saver.save(bodyOnDay(3));
     await saver.idle();
     expect(storage.writes).toHaveLength(2);
-    expect(chooseSave(storage.copies)).toMatchObject({ kind: "ok", record: { state: { day: 3 } } });
+    expect(chooseSave(storage.copies, DEFAULTS)).toMatchObject({
+      kind: "ok",
+      record: { state: { day: 3 } },
+    });
   });
 
   it("оборванная запись не портит предыдущую копию; предупреждение одно", async () => {
@@ -107,7 +112,7 @@ describe("запись сохранения", () => {
     expect(warnings).toBe(1);
     // Обе неудачные записи шли во вторую копию; первая цела.
     expect(storage.writes).toEqual([0, 1, 1]);
-    expect(chooseSave(storage.copies)).toMatchObject({
+    expect(chooseSave(storage.copies, DEFAULTS)).toMatchObject({
       kind: "ok",
       slot: 0,
       record: { state: { day: 1 } },
@@ -115,7 +120,7 @@ describe("запись сохранения", () => {
     storage.failing = false;
     saver.save(bodyOnDay(4));
     await saver.idle();
-    expect(chooseSave(storage.copies)).toMatchObject({
+    expect(chooseSave(storage.copies, DEFAULTS)).toMatchObject({
       kind: "ok",
       slot: 1,
       record: { state: { day: 4 } },

@@ -7,6 +7,7 @@ import { createBattleSession } from "../battle/battleSession.ts";
 import type { BattleSession } from "../battle/battleSession.ts";
 import { startTrialBattle } from "../battle/trialBattle.ts";
 import { createBattleGame, createGame } from "../game/createGame.ts";
+import { loadDefaults } from "../game/content.ts";
 import { createFrameMeter } from "../game/frameMeter.ts";
 import { MAP_COUNT, mapIndexOf, mapLabel, startGame } from "../game/maps.ts";
 import { createSession } from "../game/session.ts";
@@ -72,7 +73,7 @@ export function App({ gameParent, storage }: AppProps) {
       if (cancelled) {
         return;
       }
-      const loaded = chooseSave(copies);
+      const loaded = chooseSave(copies, loadDefaults());
       const start =
         loaded.kind === "ok"
           ? { seq: loaded.record.seq, slot: loaded.slot }

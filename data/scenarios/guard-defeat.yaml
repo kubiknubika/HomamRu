@@ -1,0 +1,22 @@
+name: Герой нападает на сильного охранника, разбит — партия окончена
+map: test-guards
+seed: 1
+steps:
+  # До (4, 5) — три шага по диагонали и три прямо: 723 очка. Зона охранника o3 начинается с (5, 5).
+  - move: { hero: A, path: [SE, SE, S, S, SE, E] }
+  # Путь ведёт на клетку охранника, но уже первый шаг входит в его зону: герой встаёт на (5, 5), бой.
+  - move: { hero: A, path: [E, SE] }
+  - fight: {}
+  - endTurn: {}
+    expectError: GAME_OVER
+  - wait: {}
+    expectError: GAME_OVER
+expect:
+  battle: false
+  outcome: defeat
+  heroes:
+    A: absent
+  objects:
+    o4: { owner: null }
+  resources:
+    - { gold: 0 }

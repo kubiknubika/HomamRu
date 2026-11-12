@@ -1,10 +1,11 @@
 /** Проигрывает дамп ошибки: повторяет партию и сверяет с состоянием из дампа. */
 import { calendarOf, renderState, replay } from "@homamru/core";
 import { parseDump, sameData } from "@homamru/data";
+import type { SaveDefaults } from "@homamru/data";
 import type { ScenarioRun } from "./scenario.ts";
 
-export function runDump(text: string): ScenarioRun {
-  const parsed = parseDump(text);
+export function runDump(text: string, defaults: SaveDefaults): ScenarioRun {
+  const parsed = parseDump(text, defaults);
   if (!parsed.ok) {
     return { ok: false, lines: [], failures: [parsed.message] };
   }

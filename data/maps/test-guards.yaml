@@ -1,0 +1,28 @@
+# Проверочная карта с охранниками этапа 3 (docs/mechanics/21-guards.md).
+# Слабый охранник стережёт лесопилку, сильный — золотую шахту.
+id: test-guards
+name: Проверочная карта с охранниками
+terrain:
+  - "........"
+  - "........"
+  - "........"
+  - "...##..."
+  - "........"
+  - "........"
+  - "........"
+  - "........"
+players:
+  - hero:
+      x: 0
+      y: 0
+      attack: 1
+      defense: 1
+      army:
+        - { creature: militia, count: 20 }
+        - { creature: slinger, count: 10 }
+        - { creature: falcon, count: 5 }
+objects:
+  - { type: guard, x: 4, y: 0, creature: militia, count: 15 }
+  - { type: mine, x: 3, y: 1, kind: sawmill }
+  - { type: guard, x: 6, y: 6, creature: falcon, count: 200 }
+  - { type: mine, x: 7, y: 7, kind: gold-mine }

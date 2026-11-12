@@ -1,0 +1,19 @@
+name: Герой бежит из боя с охранником — партия окончена, охранник цел
+map: test-guards
+seed: 3
+steps:
+  - wait: {}
+    expectError: NO_BATTLE
+  - move: { hero: A, path: [E, E, E] }
+  # Первыми ходят соколы героя; стрелять они не умеют — отказ боя, бой продолжается.
+  - shoot: b1
+    expectError: NOT_A_SHOOTER
+  - defend: {}
+  - flee: {}
+expect:
+  battle: false
+  outcome: defeat
+  heroes:
+    A: absent
+  objects:
+    o1: { count: 15 }

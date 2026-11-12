@@ -53,7 +53,8 @@ function grown(guard: GuardState): GuardState {
   }
   const power = Math.floor((guard.power * (100 + GROWTH_PERCENT)) / 100);
   const count = Math.min(Math.floor(power / POWER_PER_CREATURE), GUARD_MAX_COUNT);
-  return { ...guard, power, count };
+  // У отряда, дошедшего до предела, сила тоже останавливается: целая часть силы — всегда число.
+  return { ...guard, power: Math.min(power, GUARD_MAX_COUNT * POWER_PER_CREATURE), count };
 }
 
 /** Первый день недели: растут все охранники. Событие — только если число изменилось. */
