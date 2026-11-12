@@ -533,8 +533,23 @@ body {
   font-weight: 600;
 }
 
+/* Ресурсы — отдельной строкой под названием: на узком экране числа не рвутся. */
 .town-top .hud-resources {
-  flex: 1;
+  order: 3;
+  flex-basis: 100%;
+  white-space: nowrap;
+}
+
+.town-close {
+  margin-left: auto;
+}
+
+/* Широкий экран: название, ресурсы и «Закрыть» в одну строку — высота нужна разделам. */
+@media (min-width: 600px) {
+  .town-top .hud-resources {
+    order: 0;
+    flex: 1;
+  }
 }
 
 /* Место под сообщение занято всегда: список под ним не прыгает. */
