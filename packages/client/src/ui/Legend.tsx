@@ -1,3 +1,4 @@
+import { QUANTITY_SCALE } from "@homamru/core";
 import type { GameState } from "@homamru/core";
 import { Dialog, DialogButton } from "./Dialog.tsx";
 
@@ -48,6 +49,14 @@ export function Legend({ state, onClose }: LegendProps) {
         ))}
       </div>
       <div className="dialog-text">Буквы охранников: {letters}.</div>
+      <div className="dialog-text">
+        <b>Сколько охранников — от меньшего к большему</b>
+        {QUANTITY_SCALE.map((step) => (
+          <div key={step.word}>
+            {step.word}: {step.range}
+          </div>
+        ))}
+      </div>
       <div className="dialog-text">
         Первое касание показывает путь, второе — отправляет героя. Удержание пальца на объекте —
         подпись.

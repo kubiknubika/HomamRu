@@ -2,7 +2,7 @@
 import { describe, expect, it } from "vitest";
 import { CREATURES } from "./battle/testkit.ts";
 import { applyCommand } from "./commands.ts";
-import { quantityWord } from "./guards.ts";
+import { QUANTITY_SCALE, quantityRange, quantityWord } from "./guards.ts";
 import { cellsAlong, validateMap } from "./map.ts";
 import { findPath } from "./pathfinding.ts";
 import { formatEvent, renderState } from "./render.ts";
@@ -275,5 +275,34 @@ describe("охранник в файле карты и в выводе", () => {
     const lines = renderState(gameWith(FIELD, [guard(4, 0, 15)])).split("\n");
     expect(lines[5]).toBe(" 0 A...G...");
     expect(lines).toContain("o1 (4, 0): охранник, Ополченец, группа (15)");
+  });
+});
+
+describe("границы слов о численности — 21-guards.md", () => {
+  it("шкала идёт от меньшего к большему и повторяет таблицу спецификации", () => {
+    expect(QUANTITY_SCALE.map((step) => `${step.word} ${step.range}`)).toEqual([
+      "горстка 1–4",
+      "несколько 5–9",
+      "группа 10–19",
+      "много 20–49",
+      "орда 50–99",
+      "толпа 100–249",
+      "полчище 250–499",
+      "тьма 500–999",
+      "легион 1000+",
+    ]);
+  });
+
+  it("границы для числа — те же, что у его слова", () => {
+    expect([1, 4, 5, 19, 20, 999, 1000, 4000].map(quantityRange)).toEqual([
+      "1–4",
+      "1–4",
+      "5–9",
+      "10–19",
+      "20–49",
+      "500–999",
+      "1000+",
+      "1000+",
+    ]);
   });
 });
