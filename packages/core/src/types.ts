@@ -237,14 +237,14 @@ export interface EndTurnCommand {
   readonly player: number;
 }
 
-export interface BuildCommand {
+interface BuildCommand {
   readonly type: "build";
   readonly player: number;
   readonly townId: string;
   readonly building: string;
 }
 
-export interface RecruitCommand {
+interface RecruitCommand {
   readonly type: "recruit";
   readonly player: number;
   readonly townId: string;
@@ -252,7 +252,7 @@ export interface RecruitCommand {
   readonly count: number;
 }
 
-export interface TransferCommand {
+interface TransferCommand {
   readonly type: "transfer";
   readonly player: number;
   readonly townId: string;

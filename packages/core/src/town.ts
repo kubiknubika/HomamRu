@@ -112,7 +112,7 @@ export function buildObstacle(
 }
 
 /** Существа построенных жилищ города, по порядку постройки. */
-export function dwellers(state: GameState, town: TownState): CreatureDefinition[] {
+function dwellers(state: GameState, town: TownState): CreatureDefinition[] {
   const result: CreatureDefinition[] = [];
   for (const id of town.buildings) {
     const dwelling = state.buildings.find((building) => building.id === id)?.dwelling;

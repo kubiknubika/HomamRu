@@ -60,7 +60,7 @@ export const FALCON: CreatureDefinition = {
   growth: 7,
 };
 
-export const ARMSMAN: CreatureDefinition = {
+const ARMSMAN: CreatureDefinition = {
   id: "armsman",
   name: "Латник",
   attack: 9,

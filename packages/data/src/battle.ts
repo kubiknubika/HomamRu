@@ -26,7 +26,7 @@ const creatureFields = {
 };
 
 /** Файл существа. Описание полей: docs/mechanics/14-creatures.md, 31-recruitment.md. */
-export const creatureSchema = z
+const creatureSchema = z
   .strictObject({ ...creatureFields, price: z.int().min(1), growth: z.int().min(1) })
   .refine(
     (creature) => creature.damageMin <= creature.damageMax,

@@ -15,6 +15,19 @@ function buildingErrors(text: string): string[] {
   return parsed.ok ? [] : parsed.errors.map((error) => `${error.field}: ${error.message}`);
 }
 
+const map = (town: string) =>
+  [
+    "id: test",
+    "name: Проверка",
+    `terrain: [${Array.from({ length: 8 }, () => '"........"').join(", ")}]`,
+    "players:",
+    "  - hero: { x: 1, y: 1, army: [{ creature: militia, count: 10 }] }",
+    "objects:",
+    `  - ${town}`,
+  ].join("\n");
+
+const townOf = (raw: unknown) => readTestState(raw)?.objects.find((o) => o.type === "town");
+
 describe("файл зданий", () => {
   it("читается; требований нет — пустой список", () => {
     const text = `${TAVERN}\n- { id: yard, name: Двор, cost: { ore: 1 }, requires: [tavern], dwelling: militia }`;
@@ -55,17 +68,6 @@ describe("файл зданий", () => {
 });
 
 describe("город в файле карты", () => {
-  const map = (town: string) =>
-    [
-      "id: test",
-      "name: Проверка",
-      `terrain: [${Array.from({ length: 8 }, () => '"........"').join(", ")}]`,
-      "players:",
-      "  - hero: { x: 1, y: 1, army: [{ creature: militia, count: 10 }] }",
-      "objects:",
-      `  - ${town}`,
-    ].join("\n");
-
   it("читается с постройками и гарнизоном", () => {
     const town =
       "{ type: town, x: 3, y: 3, owner: 0, buildings: [tavern], garrison: [{ creature: falcon, count: 2 }] }";
@@ -94,8 +96,6 @@ describe("город в файле карты", () => {
 
 describe("город в сохранении", () => {
   const TOWN = FULL_STATE.objects[3];
-  const townOf = (raw: unknown) => readTestState(raw)?.objects.find((o) => o.type === "town");
-
   it("запись с городом и командами города загружается без изменений", () => {
     const commands = [
       { type: "build", player: 1, townId: "o5", building: "citadel" },
