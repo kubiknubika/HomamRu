@@ -2,6 +2,7 @@
 // проверяются на случайных партиях. Случайность — от генератора ядра с сидом,
 // поэтому тест при каждом запуске одинаков.
 import { CREATURES } from "./battle/testkit.ts";
+import { BUILDINGS } from "./testkit.ts";
 import { TEST_ARMY } from "./testkit.ts";
 import { describe, expect, it } from "vitest";
 import { applyCommand } from "./commands.ts";
@@ -44,6 +45,7 @@ function randomGame(seed: number): GameState {
     { id: "r", name: "r", terrain: rows, players: corners, objects },
     seed,
     CREATURES,
+    BUILDINGS,
   );
   if (!created.ok) {
     throw new Error("случайная карта отвергнута");

@@ -10,7 +10,13 @@ import {
   playBattleOut,
   renderState,
 } from "@homamru/core";
-import type { Command, CreatureDefinition, GameState, MapDefinition } from "@homamru/core";
+import type {
+  BuildingDefinition,
+  Command,
+  CreatureDefinition,
+  GameState,
+  MapDefinition,
+} from "@homamru/core";
 import type { BattleScenarioStep, Scenario, ScenarioStep } from "@homamru/data";
 import { battleStepCommand, describeBattleCommand } from "./battleScenario.ts";
 import { checkExpectations } from "./scenarioExpect.ts";
@@ -35,6 +41,19 @@ function toCommand(step: Exclude<ScenarioStep, { fight: object }>, state: GameSt
   if ("endTurn" in step) {
     return { type: "endTurn", player: state.currentPlayer };
   }
+  const player = state.currentPlayer;
+  if ("build" in step) {
+    const { town, building } = step.build;
+    return { type: "build", player, townId: town, building };
+  }
+  if ("recruit" in step) {
+    const { town, creature, count } = step.recruit;
+    return { type: "recruit", player, townId: town, creature, count };
+  }
+  if ("transfer" in step) {
+    const { town, from, creature, count } = step.transfer;
+    return { type: "transfer", player, townId: town, from, creature, count };
+  }
   const battle = state.battle?.state;
   const side = battle === undefined ? 0 : (activeStackOf(battle)?.side ?? 0);
   return battleStepCommand(step as BattleScenarioStep, side);
@@ -44,7 +63,20 @@ function describe(command: Command): string {
   if (command.type === "moveHero") {
     return `переместить героя ${command.heroId}: ${command.path.join(", ")}`;
   }
-  return command.type === "endTurn" ? "закончить ход" : `в бою — ${describeBattleCommand(command)}`;
+  switch (command.type) {
+    case "endTurn":
+      return "закончить ход";
+    case "build":
+      return `построить в городе ${command.townId}: ${command.building}`;
+    case "recruit":
+      return `нанять в городе ${command.townId}: ${command.creature} ${command.count}`;
+    case "transfer":
+      return `передать в городе ${command.townId} ${
+        command.from === "hero" ? "в гарнизон" : "герою"
+      }: ${command.creature} ${command.count}`;
+    default:
+      return `в бою — ${describeBattleCommand(command)}`;
+  }
 }
 
 /** Шаг «бой до конца»: бой доигрывает простой компьютер за обе стороны. */
@@ -67,8 +99,9 @@ export function runScenario(
   scenario: Scenario,
   map: MapDefinition,
   creatures: readonly CreatureDefinition[],
+  buildings: readonly BuildingDefinition[],
 ): ScenarioRun {
-  const created = createGame(map, scenario.seed, creatures);
+  const created = createGame(map, scenario.seed, creatures, buildings);
   if (!created.ok) {
     const failures = created.errors.map((error) => `Карта: ${error.field}: ${error.message}`);
     return { ok: false, lines: [], failures };

@@ -72,7 +72,7 @@ objects:
 
 Проверки идут в этом порядке, после общих проверок команды.
 
-Событие: `buildingBuilt { townId, building, cost }`.
+Событие: `buildingBuilt { townId, building, spent }`.
 
 ## Доход
 

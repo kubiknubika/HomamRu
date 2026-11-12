@@ -12,6 +12,14 @@ export type { RngResult, RngState } from "./rng.ts";
 export { calendarOf } from "./time.ts";
 export { incomeOf, MINE_INCOME, objectAt } from "./objects.ts";
 export {
+  buildObstacle,
+  missingResources,
+  TOWN_BASE_INCOME,
+  townIncome,
+  townOf,
+  weeklyGrowth,
+} from "./town.ts";
+export {
   GUARD_MAX_COUNT,
   guardWatching,
   POWER_PER_CREATURE,
@@ -33,6 +41,7 @@ export type {
   GameEvent,
   GameState,
   ArmyStack,
+  BuildingDefinition,
   GuardState,
   HeroState,
   MapBattle,
@@ -43,6 +52,8 @@ export type {
   RejectCode,
   Resource,
   Resources,
+  TownCommand,
+  TownState,
 } from "./types.ts";
 export { applyBattleCommand, replayBattle } from "./battle/commands.ts";
 export type { BattleReplayResult } from "./battle/commands.ts";

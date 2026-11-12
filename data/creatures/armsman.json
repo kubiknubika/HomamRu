@@ -1,0 +1,14 @@
+{
+  "id": "armsman",
+  "name": "Латник",
+  "attack": 9,
+  "defense": 11,
+  "damageMin": 5,
+  "damageMax": 8,
+  "health": 32,
+  "speed": 5,
+  "flying": false,
+  "shots": 0,
+  "price": 300,
+  "growth": 4
+}

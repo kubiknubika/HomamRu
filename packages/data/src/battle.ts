@@ -1,5 +1,5 @@
 import { BATTLE_REJECT_CODES } from "@homamru/core";
-import type { BattleDefinition, CreatureDefinition } from "@homamru/core";
+import type { BattleDefinition, BuildingDefinition, CreatureDefinition } from "@homamru/core";
 import { z } from "zod";
 import { parseContentFile } from "./parse.ts";
 import type { ContentResult } from "./parse.ts";
@@ -7,24 +7,105 @@ import type { ContentResult } from "./parse.ts";
 const ID_PATTERN = /^[a-z0-9-]+$/;
 const ID_MESSAGE = "Допустимы строчные латинские буквы, цифры и дефис.";
 
-/** Файл существа. Описание полей: docs/mechanics/14-creatures.md. */
+const DAMAGE_ORDER = {
+  path: ["damageMin"],
+  message: "Урон «от» не может быть больше урона «до».",
+};
+
+const creatureFields = {
+  id: z.string().regex(ID_PATTERN, ID_MESSAGE),
+  name: z.string().min(1),
+  attack: z.int().min(0),
+  defense: z.int().min(0),
+  damageMin: z.int().min(1),
+  damageMax: z.int().min(1),
+  health: z.int().min(1),
+  speed: z.int().min(1),
+  flying: z.boolean(),
+  shots: z.int().min(0),
+};
+
+/** Файл существа. Описание полей: docs/mechanics/14-creatures.md, 31-recruitment.md. */
 export const creatureSchema = z
-  .strictObject({
-    id: z.string().regex(ID_PATTERN, ID_MESSAGE),
-    name: z.string().min(1),
-    attack: z.int().min(0),
-    defense: z.int().min(0),
-    damageMin: z.int().min(1),
-    damageMax: z.int().min(1),
-    health: z.int().min(1),
-    speed: z.int().min(1),
-    flying: z.boolean(),
-    shots: z.int().min(0),
+  .strictObject({ ...creatureFields, price: z.int().min(1), growth: z.int().min(1) })
+  .refine(
+    (creature) => creature.damageMin <= creature.damageMax,
+    DAMAGE_ORDER,
+  ) satisfies z.ZodType<CreatureDefinition>;
+
+/**
+ * Существо в сохранении. Цены и прироста в записях до этапа 4 нет: вместо них 0 — «нет»,
+ * и чтение состояния берёт их у существа игры (04-save.md). Незнакомые поля убираются.
+ */
+export const savedCreatureSchema = z
+  .object({
+    ...creatureFields,
+    price: z.int().min(1).catch(0),
+    growth: z.int().min(1).catch(0),
   })
-  .refine((creature) => creature.damageMin <= creature.damageMax, {
-    path: ["damageMin"],
-    message: "Урон «от» не может быть больше урона «до».",
-  }) satisfies z.ZodType<CreatureDefinition>;
+  .refine(
+    (creature) => creature.damageMin <= creature.damageMax,
+    DAMAGE_ORDER,
+  ) satisfies z.ZodType<CreatureDefinition>;
+
+const resourceCostSchema = z.strictObject({
+  gold: z.int().min(1).optional(),
+  wood: z.int().min(1).optional(),
+  ore: z.int().min(1).optional(),
+});
+
+/** Здание в файле зданий. Описание полей: docs/mechanics/30-town.md. */
+export const buildingSchema = z.strictObject({
+  id: z.string().regex(ID_PATTERN, ID_MESSAGE),
+  name: z.string().min(1),
+  cost: resourceCostSchema,
+  requires: z.array(z.string()).default([]),
+  income: z.int().min(1).optional(),
+  growthPercent: z.int().min(1).optional(),
+  tavern: z.boolean().optional(),
+  dwelling: z.string().optional(),
+}) satisfies z.ZodType<BuildingDefinition>;
+
+/**
+ * Разбирает файл зданий и проверяет его по смыслу: идентификаторы не повторяются,
+ * нужные здания и существа жилищ есть, требования не замкнуты в кольцо, таверна одна.
+ */
+export function parseBuildingsFile(
+  file: string,
+  text: string,
+  creatures: readonly CreatureDefinition[],
+): ContentResult<BuildingDefinition[]> {
+  const parsed = parseContentFile(file, text, z.array(buildingSchema).min(1));
+  if (!parsed.ok) {
+    return parsed;
+  }
+  const buildings = parsed.value;
+  const ids = buildings.map((building) => building.id);
+  const errors: { file: string; field: string; message: string }[] = [];
+  buildings.forEach((building, index) => {
+    if (ids.indexOf(building.id) !== index) {
+      errors.push({ file, field: `${index}.id`, message: `Здание «${building.id}» уже есть.` });
+    }
+    for (const required of building.requires) {
+      // Нужное здание стоит в файле раньше: так требования не замкнутся в кольцо.
+      if (!ids.slice(0, index).includes(required)) {
+        errors.push({
+          file,
+          field: `${index}.requires`,
+          message: `Здания «${required}» выше в файле нет.`,
+        });
+      }
+    }
+    const { dwelling } = building;
+    if (dwelling !== undefined && !creatures.some((creature) => creature.id === dwelling)) {
+      errors.push({ file, field: `${index}.dwelling`, message: `Существа «${dwelling}» нет.` });
+    }
+  });
+  if (buildings.filter((building) => building.tavern === true).length !== 1) {
+    errors.push({ file, field: "tavern", message: "Таверна должна быть ровно одна." });
+  }
+  return errors.length > 0 ? { ok: false, errors } : { ok: true, value: buildings };
+}
 
 export function parseCreatureFile(file: string, text: string): ContentResult<CreatureDefinition> {
   return parseContentFile(file, text, creatureSchema);

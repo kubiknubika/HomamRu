@@ -4,7 +4,8 @@
  */
 import type { CreatureDefinition } from "./battle/types.ts";
 import { contentErrors } from "./mapContent.ts";
-import type { Direction, MapDefinition, MapState, Position } from "./types.ts";
+import { townErrors } from "./townContent.ts";
+import type { BuildingDefinition, Direction, MapDefinition, MapState, Position } from "./types.ts";
 
 export const TERRAIN_LAND = ".";
 export const TERRAIN_OBSTACLE = "#";
@@ -107,6 +108,7 @@ function terrainErrors(terrain: readonly string[]): MapError[] {
 export function validateMap(
   map: MapDefinition,
   creatures: readonly CreatureDefinition[],
+  buildings: readonly BuildingDefinition[] = [],
 ): MapError[] {
   const errors = terrainErrors(map.terrain);
   if (map.players.length < 1 || map.players.length > MAX_PLAYERS) {
@@ -133,7 +135,11 @@ export function validateMap(
     }
     taken.add(key);
   });
-  errors.push(...objectErrors(map, taken), ...contentErrors(map, creatures));
+  errors.push(
+    ...objectErrors(map, taken),
+    ...contentErrors(map, creatures),
+    ...townErrors(map, creatures, buildings),
+  );
   return errors;
 }
 

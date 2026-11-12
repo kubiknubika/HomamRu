@@ -1,4 +1,5 @@
 import { CREATURES } from "./battle/testkit.ts";
+import { BUILDINGS } from "./testkit.ts";
 import { TEST_ARMY } from "./testkit.ts";
 import { describe, expect, it } from "vitest";
 import { createGame } from "./game.ts";
@@ -117,10 +118,10 @@ describe("создание партии", () => {
       { hero: { x: 1, y: 1, army: TEST_ARMY } },
       { hero: { x: 6, y: 6, army: TEST_ARMY } },
     ];
-    expect(createGame(mapOf({ players }), 42, CREATURES)).toEqual({
+    expect(createGame(mapOf({ players }), 42, CREATURES, BUILDINGS)).toEqual({
       ok: true,
       state: {
-        version: 3,
+        version: 4,
         rng: { s: 42 },
         map: {
           id: "test",
@@ -145,6 +146,7 @@ describe("создание партии", () => {
         day: 1,
         currentPlayer: 0,
         creatures: CREATURES,
+        buildings: BUILDINGS,
         battle: null,
         outcome: null,
       },
@@ -152,13 +154,13 @@ describe("создание партии", () => {
   });
 
   it("не создаёт партию на неверной карте и называет причину", () => {
-    const result = createGame(mapOf({ players: [] }), 1, CREATURES);
+    const result = createGame(mapOf({ players: [] }), 1, CREATURES, BUILDINGS);
     expect(result).toMatchObject({ ok: false, errors: [{ field: "players" }] });
   });
 
   it("не зависит от дальнейших изменений описания карты", () => {
     const terrain = rows(8, 8);
-    const result = createGame(mapOf({ terrain }), 1, CREATURES);
+    const result = createGame(mapOf({ terrain }), 1, CREATURES, BUILDINGS);
     terrain[0] = "########";
     expect(result).toMatchObject({ ok: true, state: { map: { terrain: rows(8, 8) } } });
   });

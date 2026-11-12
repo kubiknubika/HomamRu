@@ -17,7 +17,12 @@ const NO_RESOURCES = { gold: 0, wood: 0, ore: 0 };
 const FRESH = { attack: 0, defense: 0, army: TEST_DEFAULTS.heroArmy, experience: 0, level: 1 };
 
 /** Начальные значения параметров состояния, появившихся на шаге 3.2. */
-const NO_BATTLES = { creatures: TEST_DEFAULTS.creatures, battle: null, outcome: null };
+const NO_BATTLES = {
+  creatures: TEST_DEFAULTS.creatures,
+  buildings: TEST_DEFAULTS.buildings,
+  battle: null,
+  outcome: null,
+};
 
 /** Запись с произвольным содержимым и верной контрольной суммой. */
 function saveOf(record: unknown): string {
@@ -196,6 +201,7 @@ describe("чего игра не знает — убирается", () => {
       { id: "o10", type: "mine", x: 0, y: 2, kind: "sawmill", owner: null },
       { id: "o11", type: "mine", x: 40, y: 2, kind: "sawmill", owner: null },
       { ...FULL.objects[2], mood: "angry" },
+      { ...FULL.objects[3], walls: 3 },
     ],
     battle: { round: 3 },
   };

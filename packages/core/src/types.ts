@@ -12,7 +12,7 @@ import type { GameEvent } from "./events.ts";
 import type { RngState } from "./rng.ts";
 
 /** Номер версии формата состояния. Увеличивается при любом изменении формата. */
-export const STATE_VERSION = 3;
+export const STATE_VERSION = 4;
 
 /** Направления шага в порядке из спецификации перемещения. */
 export const DIRECTIONS = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"] as const;
@@ -51,7 +51,35 @@ export type MapObjectDefinition =
       readonly y: number;
       readonly creature: string;
       readonly count: number;
+    }
+  | {
+      readonly type: "town";
+      readonly x: number;
+      readonly y: number;
+      /** Номер игрока-владельца. */
+      readonly owner: number;
+      /** Что построено в начале. */
+      readonly buildings?: readonly string[] | undefined;
+      /** Гарнизон в начале. */
+      readonly garrison?: readonly ArmyStack[] | undefined;
     };
+
+/** Здание города: то же, что в файле зданий (30-town.md). */
+export interface BuildingDefinition {
+  readonly id: string;
+  readonly name: string;
+  readonly cost: ResourceAmounts;
+  /** Здания, без которых это не построить. */
+  readonly requires: readonly string[];
+  /** Доход города в день с этим зданием, золото. */
+  readonly income?: number | undefined;
+  /** Прибавка к приросту во всех жилищах, в процентах от основного. */
+  readonly growthPercent?: number | undefined;
+  /** Таверна: здесь нанимают героя; есть в каждом городе с начала (32-hero-hire.md). */
+  readonly tavern?: boolean | undefined;
+  /** Жилище: идентификатор существа, которое здесь нанимают (31-recruitment.md). */
+  readonly dwelling?: string | undefined;
+}
 
 /** Отряд армии: вид существ и их число. */
 export interface ArmyStack {
@@ -134,7 +162,23 @@ export interface GuardState {
   readonly power: number;
 }
 
-export type ObjectState = PileState | MineState | GuardState;
+/** Город (30-town.md). */
+export interface TownState {
+  readonly id: string;
+  readonly type: "town";
+  readonly x: number;
+  readonly y: number;
+  readonly owner: number;
+  /** Построенные здания по порядку постройки. */
+  readonly buildings: readonly string[];
+  /** Сегодня в городе уже строили. */
+  readonly builtToday: boolean;
+  /** Сколько существ каждого вида ждёт найма. */
+  readonly available: readonly ArmyStack[];
+  readonly garrison: readonly ArmyStack[];
+}
+
+export type ObjectState = PileState | MineState | GuardState | TownState;
 
 export interface HeroState {
   readonly id: string;
@@ -173,6 +217,8 @@ export interface GameState {
   readonly currentPlayer: number;
   /** Существа игры целиком: состояние не зависит от файлов. */
   readonly creatures: readonly CreatureDefinition[];
+  /** Здания игры целиком: состояние не зависит от файлов. */
+  readonly buildings: readonly BuildingDefinition[];
   /** Идущий бой; `null` — боя нет. */
   readonly battle: MapBattle | null;
   /** Итог партии; `null` — партия идёт. На этапе 3 бывает только поражение. */
@@ -191,8 +237,35 @@ export interface EndTurnCommand {
   readonly player: number;
 }
 
-/** Команды карты и команды боя: бой — часть партии. */
-export type Command = MoveHeroCommand | EndTurnCommand | BattleCommand;
+export interface BuildCommand {
+  readonly type: "build";
+  readonly player: number;
+  readonly townId: string;
+  readonly building: string;
+}
+
+export interface RecruitCommand {
+  readonly type: "recruit";
+  readonly player: number;
+  readonly townId: string;
+  readonly creature: string;
+  readonly count: number;
+}
+
+export interface TransferCommand {
+  readonly type: "transfer";
+  readonly player: number;
+  readonly townId: string;
+  /** Кто отдаёт: гарнизон герою или герой гарнизону. */
+  readonly from: "garrison" | "hero";
+  readonly creature: string;
+  readonly count: number;
+}
+
+export type TownCommand = BuildCommand | RecruitCommand | TransferCommand;
+
+/** Команды карты, города и боя: бой — часть партии. */
+export type Command = MoveHeroCommand | EndTurnCommand | TownCommand | BattleCommand;
 
 /** Коды отказа. Общие — в 00-state-and-commands.md, остальные — в документах команд. */
 export const REJECT_CODES = [
@@ -207,6 +280,17 @@ export const REJECT_CODES = [
   "BATTLE_IN_PROGRESS",
   "NO_BATTLE",
   "GAME_OVER",
+  "NO_TOWN",
+  "UNKNOWN_BUILDING",
+  "ALREADY_BUILT",
+  "BUILT_TODAY",
+  "REQUIREMENT_MISSING",
+  "NOT_ENOUGH_RESOURCES",
+  "NO_DWELLING",
+  "BAD_COUNT",
+  "NOT_AVAILABLE",
+  "HERO_NOT_IN_TOWN",
+  "LAST_STACK",
 ] as const;
 /** Отказ команды партии: свой код или код отказа команды боя (12-battle-actions.md). */
 export type RejectCode = (typeof REJECT_CODES)[number] | BattleRejectCode;

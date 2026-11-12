@@ -43,6 +43,8 @@ function pileParts(scene: Phaser.Scene, color: number): Phaser.GameObjects.GameO
   return [diamond];
 }
 
+const TOWN_COLOR = 0xd9_d2_c0;
+
 /** Шахта: квадрат цвета ресурса; у занятой — флажок цвета владельца. */
 function mineParts(
   scene: Phaser.Scene,
@@ -92,6 +94,10 @@ export function createObjectStub(
   }
   if (object.type === "guard") {
     return scene.add.container(0, 0, guardParts(scene, creatureName.slice(0, 1).toUpperCase()));
+  }
+  if (object.type === "town") {
+    // Заглушка города до шага 4.3: большой квадрат с флажком владельца.
+    return scene.add.container(0, 0, mineParts(scene, TOWN_COLOR, object.owner));
   }
   const color = RESOURCE_COLORS[MINE_INCOME[object.kind].resource];
   return scene.add.container(0, 0, mineParts(scene, color, object.owner));

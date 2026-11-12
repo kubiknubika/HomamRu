@@ -16,6 +16,7 @@ import {
 } from "@homamru/core";
 import type {
   ArmyStack,
+  BuildingDefinition,
   CreatureDefinition,
   GameState,
   HeroState,
@@ -24,7 +25,6 @@ import type {
   Position,
 } from "@homamru/core";
 import { z } from "zod";
-import { creatureSchema } from "./battle.ts";
 import type { SaveDefaults } from "./defaults.ts";
 import {
   armyStackSchema,
@@ -38,6 +38,7 @@ import {
   objectSchema,
 } from "./stateSchemas.ts";
 import type { LooseState } from "./stateSchemas.ts";
+import { readBuildings, readCreatures, readTown } from "./stateTown.ts";
 
 /** Из списка произвольных данных — только то, что читается по схеме. */
 function readable<S extends z.ZodType>(items: readonly unknown[], schema: S): z.infer<S>[] {
@@ -79,14 +80,6 @@ function landCell(raw: unknown, terrain: readonly string[], fallback: Position):
     : fallback;
 }
 
-/** Существа партии: читаемые из записи, а за ними существа игры, которых в записи нет. */
-function readCreatures(items: readonly unknown[], defaults: SaveDefaults): CreatureDefinition[] {
-  // Незнакомые поля существа убираются, как и везде в состоянии.
-  const saved = readable(items, creatureSchema.strip());
-  const known = new Set(saved.map((creature) => creature.id));
-  return [...saved, ...defaults.creatures.filter((creature) => !known.has(creature.id))];
-}
-
 /** Армия героя: отряды знакомых существ, не больше семи; если таких нет — начальная армия. */
 function readArmy(
   items: readonly unknown[],
@@ -107,16 +100,30 @@ function readObjects(
   items: readonly unknown[],
   terrain: readonly string[],
   known: ReadonlySet<string>,
+  buildings: readonly BuildingDefinition[],
 ): ObjectState[] {
   const taken = new Set<string>();
+  const townOwners = new Set<number>();
   const objects: ObjectState[] = [];
   for (const object of readable(items, objectSchema)) {
     const key = `${object.x},${object.y}`;
     const unknownGuard = object.type === "guard" && !known.has(object.creature);
-    if (terrain[object.y]?.[object.x] === undefined || taken.has(key) || unknownGuard) {
+    // У игрока не больше одного города: второй убирается.
+    const extraTown = object.type === "town" && townOwners.has(object.owner);
+    if (
+      terrain[object.y]?.[object.x] === undefined ||
+      taken.has(key) ||
+      unknownGuard ||
+      extraTown
+    ) {
       continue;
     }
     taken.add(key);
+    if (object.type === "town") {
+      townOwners.add(object.owner);
+      objects.push(readTown(object, buildings, known));
+      continue;
+    }
     if (object.type === "guard") {
       // Сила — число существ в тысячных; если она с числом не сходится, дробь роста сбрасывается.
       const fits = Math.floor(object.power / POWER_PER_CREATURE) === object.count;
@@ -167,6 +174,7 @@ function readBattle(
   raw: unknown,
   heroes: readonly HeroState[],
   objects: readonly ObjectState[],
+  creatures: readonly CreatureDefinition[],
 ): MapBattle | null {
   const battle = mapBattleSchema.safeParse(raw);
   if (!battle.success) {
@@ -189,7 +197,16 @@ function readBattle(
         stack.initialCount === want.count
       );
     });
-  return fits ? battle.data : DEFAULTS.battle;
+  if (!fits) {
+    return DEFAULTS.battle;
+  }
+  // Цена и прирост существ боя — те же, что у существ партии: в старых записях их нет.
+  const stacks = state.stacks.map((stack) => {
+    const ours = creatures.find((creature) => creature.id === stack.creature.id);
+    const { price = stack.creature.price, growth = stack.creature.growth } = ours ?? {};
+    return { ...stack, creature: { ...stack.creature, price, growth } };
+  });
+  return { ...battle.data, state: { ...state, stacks } };
 }
 
 /** Второй проход: значения, зависящие друг от друга. `null` — партию продолжить нельзя. */
@@ -214,11 +231,14 @@ function finishState(loose: LooseState, defaults: SaveDefaults): GameState | nul
       : Array.from({ length: count }, () => NO_HERO);
   const context = { terrain, starts, land, known, defaults };
   const heroes = listed.map((hero, index) => readHero(hero, index, context));
-  const objects = readObjects(loose.objects, terrain, known);
+  const buildings = readBuildings(loose.buildings, defaults);
+  const objects = readObjects(loose.objects, terrain, known, buildings);
   // Игроков столько, сколько нужно героям и шахтам, но не меньше одного и не больше предела.
   const owners = [
     ...heroes.map((hero) => hero.owner),
-    ...objects.map((object) => (object.type === "mine" ? (object.owner ?? 0) : 0)),
+    ...objects.map((object) =>
+      object.type === "mine" || object.type === "town" ? (object.owner ?? 0) : 0,
+    ),
   ];
   const playerCount = Math.max(
     1,
@@ -245,7 +265,8 @@ function finishState(loose: LooseState, defaults: SaveDefaults): GameState | nul
     day: loose.day,
     currentPlayer: loose.currentPlayer < playerCount ? loose.currentPlayer : DEFAULTS.currentPlayer,
     creatures,
-    battle: readBattle(loose.battle, heroes, objects),
+    buildings,
+    battle: readBattle(loose.battle, heroes, objects, creatures),
     outcome: loose.outcome,
   };
 }

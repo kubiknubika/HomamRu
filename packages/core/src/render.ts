@@ -7,6 +7,7 @@ import { renderBattle } from "./battle/render.ts";
 import { quantityWord } from "./guards.ts";
 import { MINE_INCOME } from "./objects.ts";
 import { formatBattleSideEvent } from "./renderEvents.ts";
+import { formatTown, formatTownEvent } from "./renderTown.ts";
 import { calendarOf } from "./time.ts";
 import { RESOURCES } from "./types.ts";
 import type {
@@ -22,6 +23,7 @@ import type {
 const PATH_SYMBOL = "*";
 const MINE_SYMBOL = "M";
 const GUARD_SYMBOL = "G";
+const TOWN_SYMBOL = "T";
 const PILE_SYMBOLS = { gold: "$", wood: "w", ore: "o" } as const;
 
 const RESOURCE_NAMES = { gold: "золото", wood: "дерево", ore: "руда" } as const;
@@ -48,6 +50,9 @@ function symbolOf(object: ObjectState): string {
   if (object.type === "pile") {
     return PILE_SYMBOLS[object.resource];
   }
+  if (object.type === "town") {
+    return TOWN_SYMBOL;
+  }
   return object.type === "mine" ? MINE_SYMBOL : GUARD_SYMBOL;
 }
 
@@ -66,6 +71,9 @@ function formatHero(state: GameState, hero: HeroState): string {
 
 function formatObject(state: GameState, object: ObjectState): string {
   const place = `${object.id} ${formatCell(object)}`;
+  if (object.type === "town") {
+    return formatTown(state, object).join("\n");
+  }
   if (object.type === "guard") {
     // Разработчику видны и слово, и точное число (21-guards.md).
     return `${place}: охранник, ${creatureName(state, object.creature)}, ${quantityWord(object.count)} (${object.count})`;
@@ -123,7 +131,8 @@ export function renderState(state: GameState, path: readonly Position[] = []): s
     `${" ".repeat(labelWidth)} ${header}`,
     ...rows.map((row, y) => `${String(y).padStart(labelWidth)} ${row.join("")}`),
     "",
-    ...state.objects.map((object) => formatObject(state, object)),
+    ...state.objects.filter((object) => object.type !== "town").map((o) => formatObject(state, o)),
+    ...state.objects.filter((object) => object.type === "town").map((o) => formatObject(state, o)),
     ...state.players.map(
       (player) => `Игрок ${player.id + 1}: ${formatResources(player.resources)}.`,
     ),
@@ -156,6 +165,11 @@ export function formatEvent(event: GameEvent): string {
     }
     case "incomeReceived":
       return `Игрок ${event.player + 1} получил доход: ${formatIncome(event.income)}`;
+    case "buildingBuilt":
+    case "creaturesGrew":
+    case "creaturesRecruited":
+    case "creaturesTransferred":
+      return formatTownEvent(event);
     default:
       return formatBattleSideEvent(event);
   }

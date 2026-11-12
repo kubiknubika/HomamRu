@@ -14,6 +14,24 @@ const stepSchema = z.union([
     expectError,
   }),
   z.strictObject({ endTurn: z.strictObject({}), expectError }),
+  // Команды города (30-town.md, 31-recruitment.md); отдаёт игрок, чей ход.
+  z.strictObject({
+    build: z.strictObject({ town: z.string(), building: z.string() }),
+    expectError,
+  }),
+  z.strictObject({
+    recruit: z.strictObject({ town: z.string(), creature: z.string(), count: z.number() }),
+    expectError,
+  }),
+  z.strictObject({
+    transfer: z.strictObject({
+      town: z.string(),
+      from: z.enum(["garrison", "hero"]),
+      creature: z.string(),
+      count: z.number(),
+    }),
+    expectError,
+  }),
   // Шаги боя — те же, что в сценариях боя; команду отдаёт сторона, чей отряд ходит.
   ...battleStepSchemas(expectError),
   /** «Бой до конца»: идущий бой доигрывает простой компьютер за обе стороны. */
@@ -61,7 +79,8 @@ const scenarioSchema = z.strictObject({
         .optional(),
       /**
        * Объекты по идентификатору: `absent` — объекта нет; `owner` — владелец шахты;
-       * `count` — число существ у охранника.
+       * `count` — число существ у охранника; `buildings`, `available`, `garrison` — город
+       * (проверяется только названное).
        */
       objects: z
         .record(
@@ -70,6 +89,11 @@ const scenarioSchema = z.strictObject({
             z.literal("absent"),
             z.strictObject({ owner: z.int().nullable() }),
             z.strictObject({ count: z.int() }),
+            z.strictObject({
+              buildings: z.array(z.string()).optional(),
+              available: z.array(armyStackSchema).optional(),
+              garrison: z.array(armyStackSchema).optional(),
+            }),
           ]),
         )
         .optional(),

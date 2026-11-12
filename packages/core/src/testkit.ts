@@ -6,7 +6,13 @@ import { createGame, DAILY_MOVEMENT, heroIdOf } from "./game.ts";
 import { NO_RESOURCES } from "./objects.ts";
 import { createRng } from "./rng.ts";
 import { STATE_VERSION } from "./types.ts";
-import type { GameState, MapObjectDefinition, Position } from "./types.ts";
+import type {
+  BuildingDefinition,
+  GameState,
+  MapObjectDefinition,
+  Position,
+  ResourceAmounts,
+} from "./types.ts";
 
 export { CREATURES } from "./battle/testkit.ts";
 
@@ -31,6 +37,56 @@ export const OPEN_FIELD = ["S.......", ...Array.from({ length: 7 }, () => ".....
 
 /** Армия героя в тестах, где армия не важна. */
 export const TEST_ARMY = [{ creature: "militia", count: 10 }];
+
+/** Здания для тестов: те же, что в data/buildings.yaml (30-town.md). */
+export const BUILDINGS: readonly BuildingDefinition[] = [
+  { id: "tavern", name: "Таверна", cost: { gold: 500, wood: 5 }, requires: [], tavern: true },
+  { id: "town-hall", name: "Ратуша", cost: { gold: 2500 }, requires: ["tavern"], income: 1000 },
+  { id: "fort", name: "Форт", cost: { gold: 5000, wood: 20, ore: 20 }, requires: [] },
+  {
+    id: "citadel",
+    name: "Цитадель",
+    cost: { gold: 2500, ore: 5 },
+    requires: ["fort"],
+    growthPercent: 50,
+  },
+  {
+    id: "castle",
+    name: "Замок",
+    cost: { gold: 5000, wood: 10, ore: 10 },
+    requires: ["citadel"],
+    growthPercent: 100,
+  },
+  { id: "smithy", name: "Кузница", cost: { gold: 1000, wood: 5 }, requires: [] },
+  {
+    id: "militia-yard",
+    name: "Двор ополченцев",
+    cost: { gold: 500, ore: 10 },
+    requires: ["fort"],
+    dwelling: "militia",
+  },
+  {
+    id: "slinger-range",
+    name: "Стрельбище пращников",
+    cost: { gold: 1000, wood: 5, ore: 5 },
+    requires: ["militia-yard"],
+    dwelling: "slinger",
+  },
+  {
+    id: "barracks",
+    name: "Казарма",
+    cost: { gold: 2000, ore: 5 },
+    requires: ["smithy", "militia-yard"],
+    dwelling: "armsman",
+  },
+  {
+    id: "falcon-tower",
+    name: "Соколиная башня",
+    cost: { gold: 1000, ore: 5 },
+    requires: ["barracks"],
+    dwelling: "falcon",
+  },
+];
 
 /**
  * Строит состояние по рисунку из спецификации: `S` — герой, `T` — цель,
@@ -72,6 +128,7 @@ export function fromPicture(rows: readonly string[]): Picture {
     day: 1,
     currentPlayer: 0,
     creatures: CREATURES,
+    buildings: BUILDINGS,
     battle: null,
     outcome: null,
   };
@@ -91,7 +148,13 @@ export function openField(size: number): GameState {
 export function gameWith(
   rows: readonly string[],
   objects: readonly MapObjectDefinition[],
-  options: { army?: readonly string[]; attack?: number; defense?: number; seed?: number } = {},
+  options: {
+    army?: readonly string[];
+    attack?: number;
+    defense?: number;
+    seed?: number;
+    resources?: ResourceAmounts;
+  } = {},
 ): GameState {
   const start = findSymbol(rows, "S");
   if (start === undefined) {
@@ -106,11 +169,17 @@ export function gameWith(
       id: "picture",
       name: "Рисунок",
       terrain: rows.map((row) => row.replaceAll("S", ".")),
-      players: [{ hero: { ...start, attack: options.attack, defense: options.defense, army } }],
+      players: [
+        {
+          hero: { ...start, attack: options.attack, defense: options.defense, army },
+          resources: options.resources,
+        },
+      ],
       objects,
     },
     options.seed ?? 1,
     CREATURES,
+    BUILDINGS,
   );
   if (!created.ok) {
     throw new Error(created.errors.map((error) => `${error.field}: ${error.message}`).join("; "));
