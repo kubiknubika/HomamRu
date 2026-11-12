@@ -4,6 +4,7 @@
 import { DAILY_MOVEMENT } from "./heroIds.ts";
 import { growGuards } from "./guards.ts";
 import { giveIncome } from "./objects.ts";
+import { countTownlessDays, firstPlayer, nextPlayerAfter } from "./players.ts";
 import { refreshTavern } from "./tavern.ts";
 import { startTownDay } from "./town.ts";
 import type { CommandResult, EndTurnCommand, GameEvent, GameState } from "./types.ts";
@@ -27,18 +28,25 @@ export function calendarOf(day: number): CalendarDate {
   };
 }
 
-export function applyEndTurn(state: GameState, command: EndTurnCommand): CommandResult {
+export function applyEndTurn(initial: GameState, command: EndTurnCommand): CommandResult {
   const events: GameEvent[] = [{ type: "turnEnded", player: command.player }];
-  const next = state.currentPlayer + 1;
-  if (next < state.players.length) {
-    return { ok: true, state: giveIncome({ ...state, currentPlayer: next }, next, events), events };
+  const next = nextPlayerAfter(initial, initial.currentPlayer);
+  if (next !== null) {
+    const turn = giveIncome({ ...initial, currentPlayer: next }, next, events);
+    return { ok: true, state: turn, events };
   }
-  const day = state.day + 1;
+  const day = initial.day + 1;
   events.push({ type: "dayStarted", day, ...calendarOf(day) });
+  // Семь дней без города считаются в начале дня (41-victory.md).
+  const state = countTownlessDays(initial, events);
+  if (state.outcome !== null) {
+    return { ok: true, state: { ...state, day }, events };
+  }
+  const first = firstPlayer(state);
   const started: GameState = {
     ...state,
     day,
-    currentPlayer: 0,
+    currentPlayer: first,
     heroes: state.heroes.map((hero) => ({ ...hero, movement: DAILY_MOVEMENT })),
   };
   // Первый день недели, начиная со второй: растут охранники (21-guards.md).
@@ -51,5 +59,5 @@ export function applyEndTurn(state: GameState, command: EndTurnCommand): Command
     grown = refreshTavern(grown, player.id, events);
   }
   // Доход приходит в начале хода владельца шахт, до его первой команды.
-  return { ok: true, state: giveIncome(grown, 0, events), events };
+  return { ok: true, state: giveIncome(grown, first, events), events };
 }

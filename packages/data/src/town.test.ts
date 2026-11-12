@@ -143,11 +143,11 @@ describe("город в сохранении", () => {
     });
   });
 
-  it("город без владельца или второй город того же игрока убирается", () => {
+  it("город без владельца убирается; второй город того же игрока остаётся — он захвачен", () => {
     const second = { ...TOWN, id: "o6", x: 3, y: 3 };
     const ownerless = { ...TOWN, id: "o7", x: 1, y: 2, owner: null };
     const objects = readTestState({ ...FULL_STATE, objects: [TOWN, second, ownerless] })?.objects;
-    expect(objects?.map((object) => object.id)).toEqual(["o5"]);
+    expect(objects?.map((object) => object.id)).toEqual(["o5", "o6"]);
   });
 
   it("владелец города, которого нет в списке игроков, добавляется в него", () => {

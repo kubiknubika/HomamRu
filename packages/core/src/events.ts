@@ -70,7 +70,15 @@ export type GameEvent =
       readonly from: number;
       readonly to: number;
     }
-  | { readonly type: "battleStarted"; readonly heroId: string; readonly guardId: string }
+  | {
+      readonly type: "battleStarted";
+      /** Нападающий герой. */
+      readonly heroId: string;
+      /** С кем бой: охранник, чужой герой, чужой город — что есть, то не `null`. */
+      readonly guardId: string | null;
+      readonly defenderHeroId: string | null;
+      readonly townId: string | null;
+    }
   /** Событие самого боя (этап 2), как есть. */
   | { readonly type: "battle"; readonly event: BattleEvent }
   | {
@@ -78,11 +86,46 @@ export type GameEvent =
       readonly outcome: BattleOutcome;
       /** Потери героя по отрядам армии, по порядку. */
       readonly heroLosses: readonly StackLoss[];
+      /** Сколько существ потерял обороняющийся, всего. */
       readonly guardLost: number;
+      /** Потери обороняющегося по отрядам, по порядку. */
+      readonly defenderLosses: readonly StackLoss[];
     }
   | { readonly type: "guardDefeated"; readonly objectId: string }
   | { readonly type: "heroDied"; readonly heroId: string; readonly reason: "destroyed" | "fled" }
-  | { readonly type: "gameOver"; readonly outcome: "defeat" }
+  | {
+      readonly type: "gameOver";
+      readonly outcome: "defeat" | "victory";
+      /** Победитель; при поражении единственного игрока — `null`. */
+      readonly winner: number | null;
+    }
+  | {
+      /** Гарнизон перед боем за город перешёл к герою, который в нём стоит. */
+      readonly type: "garrisonJoined";
+      readonly townId: string;
+      readonly heroId: string;
+      readonly army: readonly ArmyStack[];
+    }
+  | {
+      readonly type: "townCaptured";
+      readonly townId: string;
+      readonly owner: number;
+      readonly previousOwner: number;
+      /** Был ли бой: пустой город захватывается без него. */
+      readonly fought: boolean;
+    }
+  | {
+      /** У игрока нет города: сколько дней ему осталось. */
+      readonly type: "townlessCountdown";
+      readonly player: number;
+      readonly daysLeft: number;
+    }
+  | {
+      readonly type: "playerEliminated";
+      readonly player: number;
+      /** Нет ни героя, ни города — или вышли семь дней без города. */
+      readonly reason: "nothing" | "townless";
+    }
   | {
       readonly type: "experienceGained";
       readonly heroId: string;

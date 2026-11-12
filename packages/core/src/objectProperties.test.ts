@@ -1,6 +1,7 @@
 // Свойства из раздела «Свойства, верные всегда» спецификации 20-map-objects.md:
 // проверяются на случайных партиях. Случайность — от генератора ядра с сидом,
 // поэтому тест при каждом запуске одинаков.
+import { playBattleOut } from "./battleAuto.ts";
 import { CONTENT, TEST_ARMY } from "./testkit.ts";
 import { describe, expect, it } from "vitest";
 import { applyCommand } from "./commands.ts";
@@ -71,7 +72,7 @@ describe("свойства объектов карты на случайных �
       const pickedIds = new Set<string>();
       for (let step = 0; step < COMMANDS; step += 1) {
         const player = state.currentPlayer;
-        const hero = state.heroes[player];
+        const hero = state.heroes.find((candidate) => candidate.owner === player);
         const rollX = nextInt(rng, 0, SIZE - 1);
         const rollY = nextInt(rollX.rng, 0, SIZE - 1);
         ({ rng } = rollY);
@@ -100,7 +101,11 @@ describe("свойства объектов карты на случайных �
             expect(after).toBeGreaterThanOrEqual(0);
           }
         }
-        state = result.state;
+        // Герои встретились — бой доигрывает компьютер; запас игроков бой не меняет.
+        state = playBattleOut(result.state).state;
+        if (state.outcome !== null) {
+          break;
+        }
         // Подобранных кучек в списке нет; герой не стоит на клетке кучки.
         for (const object of state.objects) {
           expect(pickedIds.has(object.id)).toBe(false);

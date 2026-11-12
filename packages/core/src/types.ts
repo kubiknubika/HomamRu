@@ -13,7 +13,7 @@ import type { GameEvent } from "./events.ts";
 import type { RngState } from "./rng.ts";
 
 /** Номер версии формата состояния. Увеличивается при любом изменении формата. */
-export const STATE_VERSION = 5;
+export const STATE_VERSION = 6;
 
 /** Направления шага в порядке из спецификации перемещения. */
 export const DIRECTIONS = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"] as const;
@@ -108,6 +108,8 @@ export interface MapDefinition {
   /** Игроки по порядку хода. */
   readonly players: readonly {
     readonly hero: HeroDefinition;
+    /** Кто отдаёт команды: человек (по умолчанию) или компьютер (40-two-players.md). */
+    readonly kind?: PlayerKind | undefined;
     /** Начальный запас; чего нет — ноль. */
     readonly resources?: ResourceAmounts | undefined;
   }[];
@@ -128,9 +130,16 @@ export interface MapState {
   readonly starts: readonly Position[];
 }
 
-interface PlayerState {
+type PlayerKind = "human" | "computer";
+
+export interface PlayerState {
   /** Номер игрока с нуля; совпадает с местом в списке игроков. */
   readonly id: number;
+  readonly kind: PlayerKind;
+  /** Игрок выбыл: в очереди ходов его пропускают (41-victory.md). */
+  readonly eliminated: boolean;
+  /** Сколько дней игрок прожил без города; `null` — города он не терял. */
+  readonly townlessDays: number | null;
   readonly resources: Resources;
   /** Герои, которые ждут в таверне игрока; у игрока без города — пусто (32-hero-hire.md). */
   readonly tavern: readonly TavernOffer[];
@@ -205,10 +214,19 @@ export interface HeroState {
   readonly level: number;
 }
 
-/** Идущий бой героя с охранником (23-map-battle.md). */
+/**
+ * Идущий бой (23-map-battle.md, 40-two-players.md). Нападает всегда герой; обороняется
+ * охранник, чужой герой или чужой город (гарнизон либо герой вместе с гарнизоном).
+ */
 export interface MapBattle {
+  /** Нападающий герой. */
   readonly heroId: string;
-  readonly guardId: string;
+  /** Охранник-обороняющийся; `null` — бой не с охранником. */
+  readonly guardId: string | null;
+  /** Герой-обороняющийся; `null` — у обороняющегося героя нет. */
+  readonly defenderHeroId: string | null;
+  /** Город, за который идёт бой; `null` — бой не за город. */
+  readonly townId: string | null;
   readonly state: BattleState;
 }
 
@@ -234,8 +252,13 @@ export interface GameState {
   readonly tavern: TavernRules;
   /** Идущий бой; `null` — боя нет. */
   readonly battle: MapBattle | null;
-  /** Итог партии; `null` — партия идёт. На этапе 3 бывает только поражение. */
-  readonly outcome: "defeat" | null;
+  /**
+   * Итог партии; `null` — партия идёт. «Поражение» — единственный игрок выбыл;
+   * «победа» — на карте для двоих остался один, он записан в `winner` (41-victory.md).
+   */
+  readonly outcome: "defeat" | "victory" | null;
+  /** Победитель; `null` — партия идёт или победителя нет. */
+  readonly winner: number | null;
 }
 
 export interface MoveHeroCommand {
@@ -312,6 +335,7 @@ export const REJECT_CODES = [
   "NO_TAVERN",
   "HERO_EXISTS",
   "BAD_OFFER",
+  "CANNOT_FLEE",
 ] as const;
 /** Отказ команды партии: свой код или код отказа команды боя (12-battle-actions.md). */
 export type RejectCode = (typeof REJECT_CODES)[number] | BattleRejectCode;

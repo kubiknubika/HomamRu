@@ -6,6 +6,7 @@ import { nextInt } from "./rng.ts";
 import type { RngState } from "./rng.ts";
 import type { HireHeroCommand, TavernOffer } from "./tavernTypes.ts";
 import { pay, townOf } from "./town.ts";
+import type { TownState } from "./types.ts";
 import { reject } from "./types.ts";
 import type { ArmyStack, CommandResult, GameEvent, GameState, HeroState } from "./types.ts";
 
@@ -83,8 +84,11 @@ export function refreshTavern(state: GameState, player: number, events: GameEven
 /** Команда «нанять героя». Общие проверки (игрок, очередь хода, бой) уже сделаны. */
 export function applyHireHero(state: GameState, command: HireHeroCommand): CommandResult {
   const { player, townId } = command;
-  const town = townOf(state, player);
-  if (town === undefined || town.id !== townId) {
+  const town = state.objects.find(
+    (object): object is TownState =>
+      object.type === "town" && object.id === townId && object.owner === player,
+  );
+  if (town === undefined) {
     return reject("NO_TOWN", `Города ${townId} у игрока ${player + 1} нет.`);
   }
   const tavern = state.buildings.some(

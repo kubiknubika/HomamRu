@@ -52,6 +52,7 @@ const mapSchema = z.strictObject({
   players: z.array(
     z.strictObject({
       hero: heroSchema,
+      kind: z.enum(["human", "computer"]).optional(),
       resources: z
         .strictObject({
           gold: z.int().optional(),

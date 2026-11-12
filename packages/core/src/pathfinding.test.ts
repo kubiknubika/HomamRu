@@ -129,10 +129,11 @@ describe("поиск пути: правила", () => {
     expect(search(["SB.", "..T", "..."])).toMatchObject({ steps: ["SE", "E"] });
   });
 
-  it("пути нет, если цель — преграда, другой герой или клетка вне карты", () => {
+  it("пути нет, если цель — преграда или клетка вне карты; к чужому герою путь есть", () => {
     const { state } = fromPicture(["S#.", "..B", "..."]);
     expect(findPath(state, "A", { x: 1, y: 0 })).toEqual({ found: false });
-    expect(findPath(state, "A", { x: 2, y: 1 })).toEqual({ found: false });
+    // Клетка чужого героя — конец пути: это нападение (40-two-players.md).
+    expect(findPath(state, "A", { x: 2, y: 1 })).toMatchObject({ found: true, steps: ["SE", "E"] });
     expect(findPath(state, "A", { x: -1, y: 0 })).toEqual({ found: false });
     expect(findPath(state, "A", { x: 0, y: 3 })).toEqual({ found: false });
   });

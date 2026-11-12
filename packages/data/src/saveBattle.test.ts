@@ -104,7 +104,7 @@ describe("параметры шага 3.2: чего нет — начально�
     );
     const state = {
       ...old,
-      version: 5,
+      version: 6,
       // Города в записи нет — нет и таверны.
       players: FULL.players.map((player) => ({ ...player, tavern: [] })),
       heroes: [
@@ -125,6 +125,7 @@ describe("параметры шага 3.2: чего нет — начально�
       tavern: TAVERN,
       battle: null,
       outcome: null,
+      winner: null,
     };
     expect(decodeSave(text)).toEqual({
       kind: "ok",

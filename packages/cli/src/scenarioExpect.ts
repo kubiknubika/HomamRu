@@ -55,6 +55,9 @@ function checkTown(
   if (want.buildings !== undefined && (want.buildings.join(", ") || "пусто") !== built) {
     failures.push(`Город ${id}: ожидались здания ${want.buildings.join(", ")}, получены ${built}.`);
   }
+  if (want.townOwner !== undefined && want.townOwner !== object.owner) {
+    failures.push(`Город ${id}: ожидался владелец ${want.townOwner}, получен ${object.owner}.`);
+  }
   const armies = [
     ["ждут найма", want.available, object.available],
     ["гарнизон", want.garrison, object.garrison],
@@ -139,6 +142,17 @@ export function checkExpectations(scenario: Scenario, state: GameState): string[
   const outcome = state.outcome ?? "none";
   if (expected.outcome !== undefined && expected.outcome !== outcome) {
     failures.push(`Ожидался итог партии ${expected.outcome}, получен ${outcome}.`);
+  }
+  if (expected.winner !== undefined && expected.winner !== state.winner) {
+    failures.push(`Ожидался победитель ${expected.winner}, получен ${state.winner ?? "никто"}.`);
+  }
+  if (expected.eliminated !== undefined) {
+    const out = state.players.filter((player) => player.eliminated).map((player) => player.id);
+    if (out.join(",") !== expected.eliminated.toSorted((a, b) => a - b).join(",")) {
+      failures.push(
+        `Ожидались выбывшие игроки [${expected.eliminated.join(", ")}], получены [${out.join(", ")}].`,
+      );
+    }
   }
   return failures;
 }
