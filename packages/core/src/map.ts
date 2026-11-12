@@ -4,12 +4,12 @@
  */
 import type { Direction, MapDefinition, MapState, Position } from "./types.ts";
 
-const TERRAIN_LAND = ".";
-const TERRAIN_OBSTACLE = "#";
+export const TERRAIN_LAND = ".";
+export const TERRAIN_OBSTACLE = "#";
 
 const MIN_MAP_SIZE = 8;
 const MAX_MAP_SIZE = 144;
-const MAX_PLAYERS = 2;
+export const MAX_PLAYERS = 2;
 
 const STRAIGHT_STEP_COST = 100;
 const DIAGONAL_STEP_COST = 141;

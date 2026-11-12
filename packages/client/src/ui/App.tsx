@@ -18,6 +18,7 @@ import { BattleHud } from "./BattleHud.tsx";
 import { Dialog, DialogButton } from "./Dialog.tsx";
 import { FrameCounter } from "./FrameCounter.tsx";
 import { Hud } from "./Hud.tsx";
+import { TEXT } from "./texts.ts";
 
 interface AppProps {
   /** Элемент страницы, в котором Phaser рисует карту. */
@@ -29,9 +30,9 @@ interface AppProps {
 type Phase =
   | { readonly kind: "loading" }
   /** Сохранение есть: «Продолжить» или «Новая игра». */
-  | { readonly kind: "start"; readonly save: SaveBody }
+  | { readonly kind: "start"; readonly save: SaveBody; readonly adapted: boolean }
   /** Сохранение не читается. */
-  | { readonly kind: "problem"; readonly reason: "corrupt" | "old" }
+  | { readonly kind: "problem" }
   | { readonly kind: "playing"; readonly session: Session; readonly mapIndex: number };
 
 /** Окно поверх игры. */
@@ -43,14 +44,6 @@ type Overlay =
   | { readonly kind: "notice"; readonly text: string; readonly offerDump: boolean };
 
 const NO_OVERLAY: Overlay = { kind: "none" };
-
-const TEXT = {
-  corrupt: "Сохранение повреждено. Продолжить партию нельзя.",
-  old: "Сохранение сделано старой версией игры. Продолжить партию нельзя.",
-  storage: "Не удалось записать сохранение. Игра продолжается без сохранения.",
-  replay: "Сохранение не сходится с повтором партии. Сохраните дамп и отправьте его разработчику.",
-  confirm: "Начать новую игру? Текущая партия будет потеряна.",
-} as const;
 
 /** Держит партию, сохранение и холст Phaser. */
 export function App({ gameParent, storage }: AppProps) {
@@ -89,7 +82,8 @@ export function App({ gameParent, storage }: AppProps) {
       });
       setSaver(nextSaver);
       if (loaded.kind === "ok") {
-        setPhase({ kind: "start", save: loaded.record });
+        const { adapted, ...save } = loaded.record;
+        setPhase({ kind: "start", save, adapted });
       } else if (loaded.kind === "none") {
         setPhase(beginNew(nextSaver, 0));
         if (!readable) {
@@ -97,7 +91,7 @@ export function App({ gameParent, storage }: AppProps) {
         }
       } else {
         dumpSource.rawSaves = copies;
-        setPhase({ kind: "problem", reason: loaded.kind });
+        setPhase({ kind: "problem" });
       }
     }
     void load();
@@ -169,6 +163,7 @@ export function App({ gameParent, storage }: AppProps) {
       </Dialog>
     ) : (
       <Dialog title="Герои Ру">
+        {phase.adapted && <div className="dialog-text">{TEXT.adapted}</div>}
         <DialogButton
           label="Продолжить"
           onClick={() => {
@@ -188,14 +183,14 @@ export function App({ gameParent, storage }: AppProps) {
   if (phase.kind === "problem") {
     return (
       <Dialog title="Герои Ру">
-        <div className="dialog-text">{TEXT[phase.reason]}</div>
+        <div className="dialog-text">{TEXT.corrupt}</div>
         <DialogButton
           label="Новая игра"
           onClick={() => {
             newGame(0);
           }}
         />
-        {phase.reason === "corrupt" && <DialogButton label="Сохранить дамп" onClick={exportDump} />}
+        <DialogButton label="Сохранить дамп" onClick={exportDump} />
         {overlay.kind === "notice" && <div className="dialog-text">{overlay.text}</div>}
       </Dialog>
     );

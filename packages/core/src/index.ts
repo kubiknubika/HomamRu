@@ -1,8 +1,8 @@
 export { applyCommand, replay } from "./commands.ts";
 export type { ReplayResult } from "./commands.ts";
-export { createGame, DAILY_MOVEMENT } from "./game.ts";
+export { createGame, DAILY_MOVEMENT, heroIdOf } from "./game.ts";
 export type { CreateGameResult } from "./game.ts";
-export { cellsAlong, validateMap } from "./map.ts";
+export { cellsAlong, MAX_PLAYERS, TERRAIN_LAND, TERRAIN_OBSTACLE, validateMap } from "./map.ts";
 export type { MapError } from "./map.ts";
 export { findPath } from "./pathfinding.ts";
 export type { PathResult } from "./pathfinding.ts";

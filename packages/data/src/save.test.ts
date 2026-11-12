@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import { buildDump, DUMP_JOURNAL_COMMANDS, parseDump } from "./dump.ts";
 import { chooseSave, decodeSave, encodeSave, sameData, verifySave } from "./save.ts";
 import type { SaveBody } from "./save.ts";
+import { withChecksumOf } from "./testkit.ts";
 
 function newState(): GameState {
   const created = createGame(
@@ -50,7 +51,8 @@ describe("запись сохранения", () => {
   it("сохранить и сразу загрузить — то же состояние", () => {
     const body = play([MOVE, END]);
     const decoded = decodeSave(encodeSave(body, 7));
-    expect(decoded).toEqual({ kind: "ok", record: { ...body, seq: 7 } });
+    // Запись этой же версии читается без изменений: ничего не дописано и не убрано.
+    expect(decoded).toEqual({ kind: "ok", record: { ...body, seq: 7, adapted: false } });
   });
 
   it("запись с изменённым символом не загружается", () => {
@@ -65,27 +67,7 @@ describe("запись сохранения", () => {
     expect(decodeSave(text.slice(0, text.length / 2))).toEqual({ kind: "corrupt" });
     expect(decodeSave("")).toEqual({ kind: "corrupt" });
   });
-
-  it("целая запись другого формата — «старая»", () => {
-    const text = encodeSave(play([]), 1);
-    const json = text.slice(text.indexOf("\n") + 1).replace('"format":1', '"format":0');
-    // Старая сумма к новому тексту не подходит; с пересчитанной запись цела, но формат другой.
-    expect(decodeSave(`${text.slice(0, text.indexOf("\n"))}\n${json}`)).toEqual({
-      kind: "corrupt",
-    });
-    expect(decodeSave(withChecksumOf(json))).toEqual({ kind: "old" });
-  });
 });
-
-/** Считает верную контрольную сумму для произвольного текста — тем же FNV-1a. */
-function withChecksumOf(json: string): string {
-  let hash = 0x81_1c_9d_c5;
-  for (let i = 0; i < json.length; i += 1) {
-    hash ^= json.charCodeAt(i);
-    hash = Math.imul(hash, 0x01_00_01_93);
-  }
-  return `${(hash >>> 0).toString(16).padStart(8, "0")}\n${json}`;
-}
 
 describe("выбор из двух копий", () => {
   const older = encodeSave(play([MOVE]), 4);
@@ -113,9 +95,16 @@ describe("выбор из двух копий", () => {
     expect(chooseSave(["мусор", older.slice(0, 20)])).toEqual({ kind: "corrupt" });
   });
 
-  it("старый формат", () => {
-    const json = older.slice(older.indexOf("\n") + 1).replace('"format":1', '"format":0');
-    expect(chooseSave([withChecksumOf(json), null])).toEqual({ kind: "old" });
+  it("копия другой версии выбирается наравне с обычной — по порядковому номеру", () => {
+    const json = newer
+      .slice(newer.indexOf("\n") + 1)
+      .replace('"stateVersion":2', '"stateVersion":9');
+    expect(json).toContain('"stateVersion":9');
+    expect(chooseSave([older, withChecksumOf(json)])).toMatchObject({
+      kind: "ok",
+      slot: 1,
+      record: { seq: 5 },
+    });
   });
 });
 
