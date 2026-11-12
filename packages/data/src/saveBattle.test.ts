@@ -1,7 +1,7 @@
 // Параметры шага 3.2 в сохранении: docs/mechanics/04-save.md и 23-map-battle.md.
 import { applyCommand, createGame, playBattleOut, replay } from "@homamru/core";
 import type { Command, GameState } from "@homamru/core";
-import { BUILDINGS, CREATURES } from "@homamru/core/testkit";
+import { BUILDINGS, CONTENT, CREATURES, HEROES, TAVERN } from "@homamru/core/testkit";
 import { describe, expect, it } from "vitest";
 import { encodeSave, verifySave } from "./save.ts";
 import {
@@ -25,8 +25,7 @@ function newGame(army: { creature: string; count: number }[], guardCount: number
       objects: [{ type: "guard", x: 4, y: 1, creature: "militia", count: guardCount }],
     },
     11,
-    CREATURES,
-    BUILDINGS,
+    CONTENT,
   );
   if (!created.ok) {
     throw new Error("партия не создана");
@@ -105,10 +104,14 @@ describe("параметры шага 3.2: чего нет — начально�
     );
     const state = {
       ...old,
-      version: 4,
+      version: 5,
+      // Города в записи нет — нет и таверны.
+      players: FULL.players.map((player) => ({ ...player, tavern: [] })),
       heroes: [
         {
           ...old.heroes[0],
+          kind: "ratibor",
+          name: "Ратибор",
           attack: 0,
           defense: 0,
           army: [{ creature: "militia", count: 10 }],
@@ -118,6 +121,8 @@ describe("параметры шага 3.2: чего нет — начально�
       ],
       creatures: CREATURES,
       buildings: BUILDINGS,
+      heroKinds: HEROES,
+      tavern: TAVERN,
       battle: null,
       outcome: null,
     };

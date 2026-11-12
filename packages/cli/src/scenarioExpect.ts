@@ -31,6 +31,9 @@ function checkHero(hero: HeroState, want: HeroWant): string[] {
       failures.push(`Герой ${hero.id}: ${name} ${wanted}, получен ${got}.`);
     }
   }
+  if (want.kind !== undefined && want.kind !== hero.kind) {
+    failures.push(`Герой ${hero.id}: ожидался герой ${want.kind}, получен ${hero.kind}.`);
+  }
   if (want.army !== undefined && armyText(want.army) !== armyText(hero.army)) {
     failures.push(
       `Герой ${hero.id}: ожидалась армия ${armyText(want.army)}, получена ${armyText(hero.army)}.`,

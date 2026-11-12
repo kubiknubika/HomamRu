@@ -2,6 +2,7 @@
  * Проверка карты по смыслу: армии героев и охранники.
  * Спецификации: docs/mechanics/20-map-objects.md, 21-guards.md, 22-hero.md.
  */
+import type { HeroKind } from "./tavernTypes.ts";
 import { MAX_STACKS } from "./battle/types.ts";
 import type { CreatureDefinition } from "./battle/types.ts";
 import { GUARD_MAX_COUNT } from "./guards.ts";
@@ -49,12 +50,16 @@ function armyErrors(
 export function contentErrors(
   map: MapDefinition,
   creatures: readonly CreatureDefinition[],
+  heroes: readonly HeroKind[] = [],
 ): ContentError[] {
   const known = new Set(creatures.map((creature) => creature.id));
   const errors: ContentError[] = [];
   map.players.forEach((player, index) => {
     const field = `players.${index}.hero`;
-    const { attack = 0, defense = 0, army } = player.hero;
+    const { attack = 0, defense = 0, army, name } = player.hero;
+    if (name !== undefined && !heroes.some((kind) => kind.id === name)) {
+      errors.push({ field: `${field}.name`, message: `Героя «${name}» нет.` });
+    }
     if (!isCount(attack, 0) || !isCount(defense, 0)) {
       errors.push({ field, message: "Атака и защита героя — целые, не меньше 0." });
     }

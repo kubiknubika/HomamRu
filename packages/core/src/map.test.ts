@@ -1,5 +1,5 @@
 import { CREATURES } from "./battle/testkit.ts";
-import { BUILDINGS } from "./testkit.ts";
+import { BUILDINGS, CONTENT } from "./testkit.ts";
 import { TEST_ARMY } from "./testkit.ts";
 import { describe, expect, it } from "vitest";
 import { createGame } from "./game.ts";
@@ -21,7 +21,16 @@ function rows(width: number, height: number): string[] {
 }
 
 /** Герой в начале партии: характеристики по умолчанию и армия из тестовой карты. */
-const FRESH_HERO = { attack: 0, defense: 0, army: TEST_ARMY, experience: 0, level: 1 };
+// Имя в карте не названо — первый герой списка, с его атакой и защитой.
+const FRESH_HERO = {
+  kind: "ratibor",
+  name: "Ратибор",
+  attack: 2,
+  defense: 2,
+  army: TEST_ARMY,
+  experience: 0,
+  level: 1,
+};
 
 describe("проверка карты", () => {
   it("принимает верную карту", () => {
@@ -118,10 +127,10 @@ describe("создание партии", () => {
       { hero: { x: 1, y: 1, army: TEST_ARMY } },
       { hero: { x: 6, y: 6, army: TEST_ARMY } },
     ];
-    expect(createGame(mapOf({ players }), 42, CREATURES, BUILDINGS)).toEqual({
+    expect(createGame(mapOf({ players }), 42, CONTENT)).toEqual({
       ok: true,
       state: {
-        version: 4,
+        version: 5,
         rng: { s: 42 },
         map: {
           id: "test",
@@ -135,8 +144,8 @@ describe("создание партии", () => {
           ],
         },
         players: [
-          { id: 0, resources: { gold: 0, wood: 0, ore: 0 } },
-          { id: 1, resources: { gold: 0, wood: 0, ore: 0 } },
+          { id: 0, resources: { gold: 0, wood: 0, ore: 0 }, tavern: [] },
+          { id: 1, resources: { gold: 0, wood: 0, ore: 0 }, tavern: [] },
         ],
         heroes: [
           { id: "A", owner: 0, x: 1, y: 1, movement: 1000, ...FRESH_HERO },
@@ -147,6 +156,8 @@ describe("создание партии", () => {
         currentPlayer: 0,
         creatures: CREATURES,
         buildings: BUILDINGS,
+        heroKinds: CONTENT.heroes,
+        tavern: CONTENT.tavern,
         battle: null,
         outcome: null,
       },
@@ -154,13 +165,13 @@ describe("создание партии", () => {
   });
 
   it("не создаёт партию на неверной карте и называет причину", () => {
-    const result = createGame(mapOf({ players: [] }), 1, CREATURES, BUILDINGS);
+    const result = createGame(mapOf({ players: [] }), 1, CONTENT);
     expect(result).toMatchObject({ ok: false, errors: [{ field: "players" }] });
   });
 
   it("не зависит от дальнейших изменений описания карты", () => {
     const terrain = rows(8, 8);
-    const result = createGame(mapOf({ terrain }), 1, CREATURES, BUILDINGS);
+    const result = createGame(mapOf({ terrain }), 1, CONTENT);
     terrain[0] = "########";
     expect(result).toMatchObject({ ok: true, state: { map: { terrain: rows(8, 8) } } });
   });

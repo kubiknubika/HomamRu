@@ -3,8 +3,14 @@ import { describe, expect, it } from "vitest";
 import { createBattle } from "@homamru/core";
 import type { BattleScenario } from "@homamru/data";
 import { runBattleScenario } from "./battleScenario.ts";
-import { BUILDINGS } from "@homamru/core/testkit";
-import { listBattleFiles, loadBattle, loadBuildings, loadCreatures } from "./files.ts";
+import { BUILDINGS, HEROES, TAVERN } from "@homamru/core/testkit";
+import {
+  listBattleFiles,
+  loadBattle,
+  loadBuildings,
+  loadCreatures,
+  loadDefaults,
+} from "./files.ts";
 
 const creatures = loadCreatures();
 const files = listBattleFiles();
@@ -39,6 +45,11 @@ describe("файлы из папок data/creatures и data/battles", () => {
 
   it("здания — те же, что в тестах ядра (30-town.md)", () => {
     expect(loadBuildings()).toEqual(BUILDINGS);
+  });
+
+  it("герои и правила таверны — те же, что в тестах ядра (32-hero-hire.md)", () => {
+    const { heroes, tavern } = loadDefaults();
+    expect({ heroes, tavern }).toEqual({ heroes: HEROES, tavern: TAVERN });
   });
 
   it("папка боёв не пуста", () => {

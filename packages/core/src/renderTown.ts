@@ -2,6 +2,7 @@
  * Текст города и его событий. Спецификации: docs/mechanics/30-town.md, 31-recruitment.md.
  */
 import type { GameEvent } from "./events.ts";
+import type { TavernOffer } from "./tavernTypes.ts";
 import { RESOURCES } from "./types.ts";
 import type { ArmyStack, GameState, ResourceAmounts, TownState } from "./types.ts";
 
@@ -38,14 +39,49 @@ export function formatTown(state: GameState, town: TownState): string[] {
   ];
 }
 
+function offersText(state: GameState, offers: readonly TavernOffer[]): string {
+  return offers
+    .map((offer) => {
+      const name = state.heroKinds.find((kind) => kind.id === offer.kind)?.name ?? offer.kind;
+      return `${name} (${armyText(state, offer.army)})`;
+    })
+    .join("; ");
+}
+
+/** Таверна игрока одной строкой; у игрока без города таверны нет. */
+export function formatTavern(
+  state: GameState,
+  player: number,
+  offers: readonly TavernOffer[],
+): string[] {
+  return offers.length === 0 ? [] : [`Таверна игрока ${player + 1}: ${offersText(state, offers)}.`];
+}
+
 type TownEvent = Extract<
   GameEvent,
-  { type: "buildingBuilt" | "creaturesGrew" | "creaturesRecruited" | "creaturesTransferred" }
+  {
+    type:
+      | "buildingBuilt"
+      | "creaturesGrew"
+      | "creaturesRecruited"
+      | "creaturesTransferred"
+      | "heroHired"
+      | "tavernChanged";
+  }
 >;
+
+const idArmy = (army: readonly ArmyStack[]) =>
+  army.map((stack) => `${stack.creature} ${stack.count}`).join(", ");
 
 /** Печатает событие города одной строкой. */
 export function formatTownEvent(event: TownEvent): string {
   switch (event.type) {
+    case "heroHired":
+      return `В городе ${event.townId} нанят герой ${event.heroId} (${event.hero}): золото −${event.cost}; армия: ${idArmy(event.army)}`;
+    case "tavernChanged": {
+      const offers = event.offers.map((offer) => `${offer.kind} (${idArmy(offer.army)})`);
+      return `В таверне игрока ${event.player + 1} теперь: ${offers.join("; ")}`;
+    }
     case "buildingBuilt":
       return `В городе ${event.townId} построено ${event.building}: ${costText(event.spent)}`;
     case "creaturesGrew":

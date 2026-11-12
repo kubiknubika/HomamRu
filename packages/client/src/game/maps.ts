@@ -5,7 +5,7 @@
 import { createGame } from "@homamru/core";
 import type { GameState } from "@homamru/core";
 import { parseMapFile } from "@homamru/data";
-import { loadBuildings, loadCreatures } from "./content.ts";
+import { loadDefaults } from "./content.ts";
 import firstMapText from "../../../../data/maps/four-corners.yaml?raw";
 import guardsMapText from "../../../../data/maps/test-guards.yaml?raw";
 import largeMapText from "../../../../data/maps/test-large.yaml?raw";
@@ -41,11 +41,10 @@ export function startGame(index: number): GameState {
   if (entry === undefined) {
     throw new Error(`Карты с номером ${index} нет.`);
   }
-  const creatures = loadCreatures();
-  const buildings = loadBuildings();
-  const map = parseMapFile(entry.file, entry.text, creatures, buildings);
+  const content = loadDefaults();
+  const map = parseMapFile(entry.file, entry.text, content);
   const errors = map.ok ? [] : map.errors;
-  const created = map.ok ? createGame(map.value, SEED, creatures, buildings) : undefined;
+  const created = map.ok ? createGame(map.value, SEED, content) : undefined;
   if (created?.ok) {
     return created.state;
   }

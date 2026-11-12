@@ -1,0 +1,8 @@
+# Герои (docs/mechanics/32-hero-hire.md): имя и начальные атака и защита.
+# Первый в списке — герой игрока на карте, где имя не названо.
+- { id: ratibor, name: Ратибор, attack: 2, defense: 2 }
+- { id: velena, name: Велена, attack: 1, defense: 3 }
+- { id: gorislav, name: Горислав, attack: 3, defense: 1 }
+- { id: milava, name: Милава, attack: 2, defense: 2 }
+- { id: svetozar, name: Светозар, attack: 3, defense: 1 }
+- { id: zhdana, name: Ждана, attack: 1, defense: 3 }

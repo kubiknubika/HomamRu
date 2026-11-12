@@ -1,4 +1,4 @@
-import { BUILDINGS, CREATURES, TEST_ARMY } from "@homamru/core/testkit";
+import { TEST_ARMY, CONTENT } from "@homamru/core/testkit";
 import { createGame } from "@homamru/core";
 import { chooseSave } from "@homamru/data";
 import type { SaveBody, SaveSlot } from "@homamru/data";
@@ -6,7 +6,7 @@ import { describe, expect, it } from "vitest";
 import { createSaver } from "./saver.ts";
 import type { SaveStorage } from "./saveStorage.ts";
 
-const DEFAULTS = { creatures: CREATURES, buildings: BUILDINGS, heroArmy: TEST_ARMY };
+const DEFAULTS = { ...CONTENT, heroArmy: TEST_ARMY };
 
 function bodyOnDay(day: number): SaveBody {
   const created = createGame(
@@ -17,8 +17,7 @@ function bodyOnDay(day: number): SaveBody {
       players: [{ hero: { x: 1, y: 1, army: TEST_ARMY } }],
     },
     1,
-    CREATURES,
-    BUILDINGS,
+    CONTENT,
   );
   if (!created.ok) {
     throw new Error("карта не создалась");

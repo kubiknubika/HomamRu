@@ -1,6 +1,7 @@
 /**
  * Помощники для тестов ядра. В игре не используются.
  */
+import type { GameContent, HeroKind, TavernRules } from "./tavernTypes.ts";
 import { CREATURES } from "./battle/testkit.ts";
 import { createGame, DAILY_MOVEMENT, heroIdOf } from "./game.ts";
 import { NO_RESOURCES } from "./objects.ts";
@@ -37,6 +38,26 @@ export const OPEN_FIELD = ["S.......", ...Array.from({ length: 7 }, () => ".....
 
 /** Армия героя в тестах, где армия не важна. */
 export const TEST_ARMY = [{ creature: "militia", count: 10 }];
+
+/** Герои для тестов: те же, что в data/heroes.yaml (32-hero-hire.md). */
+export const HEROES: readonly HeroKind[] = [
+  { id: "ratibor", name: "Ратибор", attack: 2, defense: 2 },
+  { id: "velena", name: "Велена", attack: 1, defense: 3 },
+  { id: "gorislav", name: "Горислав", attack: 3, defense: 1 },
+  { id: "milava", name: "Милава", attack: 2, defense: 2 },
+  { id: "svetozar", name: "Светозар", attack: 3, defense: 1 },
+  { id: "zhdana", name: "Ждана", attack: 1, defense: 3 },
+];
+
+/** Правила таверны для тестов: те же, что в data/defaults.yaml. */
+export const TAVERN: TavernRules = {
+  price: 2500,
+  army: [
+    { creature: "militia", min: 10, max: 20, chance: 100 },
+    { creature: "slinger", min: 4, max: 7, chance: 88 },
+    { creature: "falcon", min: 2, max: 3, chance: 25 },
+  ],
+};
 
 /** Здания для тестов: те же, что в data/buildings.yaml (30-town.md). */
 export const BUILDINGS: readonly BuildingDefinition[] = [
@@ -111,10 +132,12 @@ export function fromPicture(rows: readonly string[]): Picture {
       terrain: rows.map((row) => row.replaceAll(/[STB]/g, ".")),
       starts: positions,
     },
-    players: positions.map((_, id) => ({ id, resources: NO_RESOURCES })),
+    players: positions.map((_, id) => ({ id, resources: NO_RESOURCES, tavern: [] })),
     heroes: positions.map((position, owner) => ({
       id: heroIdOf(owner),
       owner,
+      kind: "ratibor",
+      name: "Ратибор",
       x: position.x,
       y: position.y,
       movement: DAILY_MOVEMENT,
@@ -129,6 +152,8 @@ export function fromPicture(rows: readonly string[]): Picture {
     currentPlayer: 0,
     creatures: CREATURES,
     buildings: BUILDINGS,
+    heroKinds: HEROES,
+    tavern: TAVERN,
     battle: null,
     outcome: null,
   };
@@ -140,6 +165,14 @@ export function openField(size: number): GameState {
   const rows = Array.from({ length: size }, (_, y) => (y === 0 ? "S" : ".") + ".".repeat(size - 1));
   return fromPicture(rows).state;
 }
+
+/** Контент игры для тестов. */
+export const CONTENT: GameContent = {
+  creatures: CREATURES,
+  buildings: BUILDINGS,
+  heroes: HEROES,
+  tavern: TAVERN,
+};
 
 /**
  * Партия для тестов этапа 3: карта рисунком (`S` — герой), объекты и армия героя.
@@ -171,15 +204,15 @@ export function gameWith(
       terrain: rows.map((row) => row.replaceAll("S", ".")),
       players: [
         {
-          hero: { ...start, attack: options.attack, defense: options.defense, army },
+          // Без названных чисел — ноль, а не числа героя из списка: так удобнее считать бой.
+          hero: { ...start, attack: options.attack ?? 0, defense: options.defense ?? 0, army },
           resources: options.resources,
         },
       ],
       objects,
     },
     options.seed ?? 1,
-    CREATURES,
-    BUILDINGS,
+    CONTENT,
   );
   if (!created.ok) {
     throw new Error(created.errors.map((error) => `${error.field}: ${error.message}`).join("; "));

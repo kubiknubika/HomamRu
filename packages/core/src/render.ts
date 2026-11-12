@@ -7,7 +7,7 @@ import { renderBattle } from "./battle/render.ts";
 import { quantityWord } from "./guards.ts";
 import { MINE_INCOME } from "./objects.ts";
 import { formatBattleSideEvent } from "./renderEvents.ts";
-import { formatTown, formatTownEvent } from "./renderTown.ts";
+import { formatTavern, formatTown, formatTownEvent } from "./renderTown.ts";
 import { calendarOf } from "./time.ts";
 import { RESOURCES } from "./types.ts";
 import type {
@@ -66,7 +66,8 @@ function formatArmy(state: GameState, army: readonly ArmyStack[]): string {
 }
 
 function formatHero(state: GameState, hero: HeroState): string {
-  return `Герой ${hero.id}: уровень ${hero.level}, опыт ${hero.experience}, атака ${hero.attack}, защита ${hero.defense}; армия: ${formatArmy(state, hero.army)}.`;
+  const name = hero.name === "" ? "" : ` (${hero.name})`;
+  return `Герой ${hero.id}${name}: уровень ${hero.level}, опыт ${hero.experience}, атака ${hero.attack}, защита ${hero.defense}; армия: ${formatArmy(state, hero.army)}.`;
 }
 
 function formatObject(state: GameState, object: ObjectState): string {
@@ -133,6 +134,7 @@ export function renderState(state: GameState, path: readonly Position[] = []): s
     "",
     ...state.objects.filter((object) => object.type !== "town").map((o) => formatObject(state, o)),
     ...state.objects.filter((object) => object.type === "town").map((o) => formatObject(state, o)),
+    ...state.players.flatMap((player) => formatTavern(state, player.id, player.tavern)),
     ...state.players.map(
       (player) => `Игрок ${player.id + 1}: ${formatResources(player.resources)}.`,
     ),
@@ -169,6 +171,8 @@ export function formatEvent(event: GameEvent): string {
     case "creaturesGrew":
     case "creaturesRecruited":
     case "creaturesTransferred":
+    case "heroHired":
+    case "tavernChanged":
       return formatTownEvent(event);
     default:
       return formatBattleSideEvent(event);

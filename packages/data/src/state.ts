@@ -19,6 +19,7 @@ import type {
   BuildingDefinition,
   CreatureDefinition,
   GameState,
+  HeroKind,
   HeroState,
   MapBattle,
   ObjectState,
@@ -38,6 +39,7 @@ import {
   objectSchema,
 } from "./stateSchemas.ts";
 import type { LooseState } from "./stateSchemas.ts";
+import { readHeroKind, readHeroKinds, readTavern, readTavernRules } from "./stateTavern.ts";
 import { readBuildings, readCreatures, readTown } from "./stateTown.ts";
 
 /** Из списка произвольных данных — только то, что читается по схеме. */
@@ -143,6 +145,7 @@ interface HeroContext {
   readonly land: Position;
   readonly known: ReadonlySet<string>;
   readonly defaults: SaveDefaults;
+  readonly kinds: readonly HeroKind[];
 }
 
 function readHero(hero: LooseHero, index: number, context: HeroContext): HeroState {
@@ -154,6 +157,7 @@ function readHero(hero: LooseHero, index: number, context: HeroContext): HeroSta
   return {
     id: hero.id ?? heroIdOf(owner),
     owner,
+    ...readHeroKind(hero.kind, hero.name, context.kinds),
     x: inside ? x : start.x,
     y: inside ? y : start.y,
     movement: hero.movement,
@@ -229,7 +233,9 @@ function finishState(loose: LooseState, defaults: SaveDefaults): GameState | nul
     saved.length > 0 || loose.outcome !== null
       ? saved
       : Array.from({ length: count }, () => NO_HERO);
-  const context = { terrain, starts, land, known, defaults };
+  const kinds = readHeroKinds(loose.heroKinds, defaults);
+  const rules = readTavernRules(loose.tavern, known, defaults);
+  const context = { terrain, starts, land, known, defaults, kinds };
   const heroes = listed.map((hero, index) => readHero(hero, index, context));
   const buildings = readBuildings(loose.buildings, defaults);
   const objects = readObjects(loose.objects, terrain, known, buildings);
@@ -259,6 +265,12 @@ function finishState(loose: LooseState, defaults: SaveDefaults): GameState | nul
     players: Array.from({ length: playerCount }, (_, id) => ({
       id,
       resources: loose.players[id]?.resources ?? NO_RESOURCES,
+      tavern: readTavern(
+        loose.players[id]?.tavern,
+        objects.some((object) => object.type === "town" && object.owner === id),
+        heroes.find((hero) => hero.owner === id)?.kind,
+        { kinds, rules, known, defaults },
+      ),
     })),
     heroes,
     objects,
@@ -266,6 +278,8 @@ function finishState(loose: LooseState, defaults: SaveDefaults): GameState | nul
     currentPlayer: loose.currentPlayer < playerCount ? loose.currentPlayer : DEFAULTS.currentPlayer,
     creatures,
     buildings,
+    heroKinds: kinds,
+    tavern: rules,
     battle: readBattle(loose.battle, heroes, objects, creatures),
     outcome: loose.outcome,
   };

@@ -5,6 +5,7 @@
 import { applyMapBattleCommand } from "./mapBattle.ts";
 import { applyMoveHero } from "./movement.ts";
 import { applyEndTurn } from "./time.ts";
+import { applyHireHero } from "./tavern.ts";
 import { applyTownCommand } from "./town.ts";
 import { reject } from "./types.ts";
 import type { Command, CommandRejected, CommandResult, GameEvent, GameState } from "./types.ts";
@@ -15,6 +16,7 @@ const MAP_COMMANDS: ReadonlySet<string> = new Set([
   "build",
   "recruit",
   "transfer",
+  "hireHero",
 ]);
 const BATTLE_COMMANDS: ReadonlySet<string> = new Set([
   "battleMove",
@@ -42,7 +44,8 @@ export function applyCommand(state: GameState, command: Command): CommandResult 
     command.type !== "endTurn" &&
     command.type !== "build" &&
     command.type !== "recruit" &&
-    command.type !== "transfer"
+    command.type !== "transfer" &&
+    command.type !== "hireHero"
   ) {
     return applyMapBattleCommand(state, command);
   }
@@ -60,6 +63,8 @@ export function applyCommand(state: GameState, command: Command): CommandResult 
       return applyMoveHero(state, command);
     case "endTurn":
       return applyEndTurn(state, command);
+    case "hireHero":
+      return applyHireHero(state, command);
     default:
       return applyTownCommand(state, command);
   }

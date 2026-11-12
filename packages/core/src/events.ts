@@ -1,6 +1,8 @@
 /**
  * События партии. Описание: docs/mechanics/00-state-and-commands.md и документы механик.
  */
+import type { TavernOffer } from "./tavernTypes.ts";
+import type { ArmyStack } from "./types.ts";
 import type { BattleEvent } from "./battle/types.ts";
 import type { Position, Resource, ResourceAmounts, Resources } from "./types.ts";
 
@@ -115,6 +117,20 @@ export type GameEvent =
       readonly from: "garrison" | "hero";
       readonly creature: string;
       readonly count: number;
+    }
+  | {
+      readonly type: "heroHired";
+      readonly heroId: string;
+      /** Идентификатор героя из файла героев. */
+      readonly hero: string;
+      readonly townId: string;
+      readonly cost: number;
+      readonly army: readonly ArmyStack[];
+    }
+  | {
+      readonly type: "tavernChanged";
+      readonly player: number;
+      readonly offers: readonly TavernOffer[];
     }
   | {
       readonly type: "levelGained";

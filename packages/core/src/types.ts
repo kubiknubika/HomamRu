@@ -2,6 +2,7 @@
  * Типы игрового состояния, команд и событий.
  * Спецификация: docs/mechanics/00-state-and-commands.md.
  */
+import type { HeroKind, HireHeroCommand, TavernOffer, TavernRules } from "./tavernTypes.ts";
 import type {
   BattleCommand,
   BattleRejectCode,
@@ -12,7 +13,7 @@ import type { GameEvent } from "./events.ts";
 import type { RngState } from "./rng.ts";
 
 /** Номер версии формата состояния. Увеличивается при любом изменении формата. */
-export const STATE_VERSION = 4;
+export const STATE_VERSION = 5;
 
 /** Направления шага в порядке из спецификации перемещения. */
 export const DIRECTIONS = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"] as const;
@@ -89,9 +90,11 @@ export interface ArmyStack {
 
 /** Герой в файле карты: клетка, характеристики, армия (22-hero.md). */
 interface HeroDefinition extends Position {
-  /** По умолчанию 0. */
+  /** Идентификатор героя из файла героев; по умолчанию — первый из списка (32-hero-hire.md). */
+  readonly name?: string | undefined;
+  /** По умолчанию — как у героя из списка. */
   readonly attack?: number | undefined;
-  /** По умолчанию 0. */
+  /** По умолчанию — как у героя из списка. */
   readonly defense?: number | undefined;
   readonly army: readonly ArmyStack[];
 }
@@ -129,6 +132,8 @@ interface PlayerState {
   /** Номер игрока с нуля; совпадает с местом в списке игроков. */
   readonly id: number;
   readonly resources: Resources;
+  /** Герои, которые ждут в таверне игрока; у игрока без города — пусто (32-hero-hire.md). */
+  readonly tavern: readonly TavernOffer[];
 }
 
 interface PileState {
@@ -184,6 +189,10 @@ export interface HeroState {
   readonly id: string;
   /** Номер игрока-владельца. */
   readonly owner: number;
+  /** Идентификатор героя из файла героев. */
+  readonly kind: string;
+  /** Имя героя. */
+  readonly name: string;
   readonly x: number;
   readonly y: number;
   /** Остаток запаса хода на сегодня. */
@@ -219,6 +228,10 @@ export interface GameState {
   readonly creatures: readonly CreatureDefinition[];
   /** Здания игры целиком: состояние не зависит от файлов. */
   readonly buildings: readonly BuildingDefinition[];
+  /** Герои игры: из них выбираются герои таверны. */
+  readonly heroKinds: readonly HeroKind[];
+  /** Правила таверны: цена героя и его случайная армия. */
+  readonly tavern: TavernRules;
   /** Идущий бой; `null` — боя нет. */
   readonly battle: MapBattle | null;
   /** Итог партии; `null` — партия идёт. На этапе 3 бывает только поражение. */
@@ -265,7 +278,12 @@ interface TransferCommand {
 export type TownCommand = BuildCommand | RecruitCommand | TransferCommand;
 
 /** Команды карты, города и боя: бой — часть партии. */
-export type Command = MoveHeroCommand | EndTurnCommand | TownCommand | BattleCommand;
+export type Command =
+  | MoveHeroCommand
+  | EndTurnCommand
+  | TownCommand
+  | HireHeroCommand
+  | BattleCommand;
 
 /** Коды отказа. Общие — в 00-state-and-commands.md, остальные — в документах команд. */
 export const REJECT_CODES = [
@@ -291,6 +309,9 @@ export const REJECT_CODES = [
   "NOT_AVAILABLE",
   "HERO_NOT_IN_TOWN",
   "LAST_STACK",
+  "NO_TAVERN",
+  "HERO_EXISTS",
+  "BAD_OFFER",
 ] as const;
 /** Отказ команды партии: свой код или код отказа команды боя (12-battle-actions.md). */
 export type RejectCode = (typeof REJECT_CODES)[number] | BattleRejectCode;

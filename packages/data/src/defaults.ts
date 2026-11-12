@@ -3,17 +3,15 @@
  * Ими дополняется сохранение другой версии (docs/mechanics/04-save.md, «Сохранения других версий»).
  */
 import { MAX_STACKS } from "@homamru/core";
-import type { ArmyStack, BuildingDefinition, CreatureDefinition } from "@homamru/core";
+import type { ArmyStack, GameContent } from "@homamru/core";
 import { z } from "zod";
+import { tavernRulesSchema } from "./battle.ts";
 import { armyStackSchema } from "./map.ts";
 import { parseContentFile } from "./parse.ts";
 import type { ContentResult } from "./parse.ts";
 
-export interface SaveDefaults {
-  /** Существа игры: ими дополняется список существ партии. */
-  readonly creatures: readonly CreatureDefinition[];
-  /** Здания игры: ими дополняется список зданий партии. */
-  readonly buildings: readonly BuildingDefinition[];
+/** Контент игры и то, чем дополняется сохранение другой версии. */
+export interface SaveDefaults extends GameContent {
   /** Армия героя, у которого в сохранении армии нет. */
   readonly heroArmy: readonly ArmyStack[];
 }
@@ -24,33 +22,35 @@ const defaultsSchema = z.strictObject({
     .array(armyStackSchema.extend({ count: z.int().min(1) }))
     .min(1)
     .max(MAX_STACKS),
+  tavern: tavernRulesSchema,
 });
 
-/** Разбирает файл начальных значений; существа армии должны быть среди существ игры. */
+/**
+ * Разбирает файл начальных значений и собирает контент игры целиком.
+ * Существа армии героя и армии таверны должны быть среди существ игры.
+ */
 export function parseDefaultsFile(
   file: string,
   text: string,
-  creatures: readonly CreatureDefinition[],
-  buildings: readonly BuildingDefinition[],
+  content: Omit<GameContent, "tavern">,
 ): ContentResult<SaveDefaults> {
   const parsed = parseContentFile(file, text, defaultsSchema);
   if (!parsed.ok) {
     return parsed;
   }
-  const known = new Set(creatures.map((creature) => creature.id));
-  const errors = parsed.value.heroArmy.flatMap((stack, index) =>
+  const known = new Set(content.creatures.map((creature) => creature.id));
+  const { heroArmy, tavern } = parsed.value;
+  const stacks = [
+    ...heroArmy.map((stack, index) => ({ ...stack, field: `heroArmy.${index}.creature` })),
+    ...tavern.army.map((rule, index) => ({ ...rule, field: `tavern.army.${index}.creature` })),
+  ];
+  const errors = stacks.flatMap((stack) =>
     known.has(stack.creature)
       ? []
-      : [
-          {
-            file,
-            field: `heroArmy.${index}.creature`,
-            message: `Существа «${stack.creature}» нет.`,
-          },
-        ],
+      : [{ file, field: stack.field, message: `Существа «${stack.creature}» нет.` }],
   );
   if (errors.length > 0) {
     return { ok: false, errors };
   }
-  return { ok: true, value: { creatures, buildings, heroArmy: parsed.value.heroArmy } };
+  return { ok: true, value: { ...content, tavern, heroArmy } };
 }

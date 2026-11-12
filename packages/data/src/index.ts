@@ -14,5 +14,6 @@ export {
   parseBattleScenarioFile,
   parseBuildingsFile,
   parseCreatureFile,
+  parseHeroesFile,
 } from "./battle.ts";
 export type { BattleScenario, BattleScenarioStep } from "./battle.ts";

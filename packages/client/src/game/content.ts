@@ -1,17 +1,24 @@
 /** Контент игры, нужный партии: существа, здания и начальные значения для старых сохранений. */
-import type { BuildingDefinition, CreatureDefinition } from "@homamru/core";
-import { parseBuildingsFile, parseCreatureFile, parseDefaultsFile } from "@homamru/data";
+import type { CreatureDefinition } from "@homamru/core";
+import {
+  parseBuildingsFile,
+  parseCreatureFile,
+  parseDefaultsFile,
+  parseHeroesFile,
+} from "@homamru/data";
 import type { ContentError, SaveDefaults } from "@homamru/data";
 import buildingsText from "../../../../data/buildings.yaml?raw";
 import armsmanText from "../../../../data/creatures/armsman.json?raw";
 import falconText from "../../../../data/creatures/falcon.json?raw";
 import militiaText from "../../../../data/creatures/militia.json?raw";
 import slingerText from "../../../../data/creatures/slinger.json?raw";
+import heroesText from "../../../../data/heroes.yaml?raw";
 import defaultsText from "../../../../data/defaults.yaml?raw";
 
 const DEFAULTS_FILE = "data/defaults.yaml";
 
 const BUILDINGS_FILE = "data/buildings.yaml";
+const HEROES_FILE = "data/heroes.yaml";
 
 const CREATURE_FILES = [
   { file: "data/creatures/armsman.json", text: armsmanText },
@@ -33,14 +40,18 @@ export function loadCreatures(): CreatureDefinition[] {
   });
 }
 
-/** Все здания игры (docs/mechanics/30-town.md). */
-export function loadBuildings(): BuildingDefinition[] {
-  const parsed = parseBuildingsFile(BUILDINGS_FILE, buildingsText, loadCreatures());
-  return parsed.ok ? parsed.value : failContent(parsed.errors);
-}
-
-/** Начальные значения из контента (docs/mechanics/04-save.md, «Сохранения других версий»). */
+/** Контент игры целиком и начальные значения (docs/mechanics/04-save.md). */
 export function loadDefaults(): SaveDefaults {
-  const parsed = parseDefaultsFile(DEFAULTS_FILE, defaultsText, loadCreatures(), loadBuildings());
+  const creatures = loadCreatures();
+  const buildings = parseBuildingsFile(BUILDINGS_FILE, buildingsText, creatures);
+  const heroes = parseHeroesFile(HEROES_FILE, heroesText);
+  if (!buildings.ok || !heroes.ok) {
+    return failContent([
+      ...(buildings.ok ? [] : buildings.errors),
+      ...(heroes.ok ? [] : heroes.errors),
+    ]);
+  }
+  const content = { creatures, buildings: buildings.value, heroes: heroes.value };
+  const parsed = parseDefaultsFile(DEFAULTS_FILE, defaultsText, content);
   return parsed.ok ? parsed.value : failContent(parsed.errors);
 }

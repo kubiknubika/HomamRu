@@ -55,7 +55,7 @@ export function missingResources(resources: Resources, cost: ResourceAmounts): R
   return missing;
 }
 
-function pay(state: GameState, player: number, cost: ResourceAmounts): GameState {
+export function pay(state: GameState, player: number, cost: ResourceAmounts): GameState {
   return {
     ...state,
     players: state.players.map((candidate) =>

@@ -1,5 +1,5 @@
 // Экран карты на этапе 3: docs/mechanics/24-map-screen.md.
-import { BUILDINGS, CREATURES } from "@homamru/core/testkit";
+import { CONTENT } from "@homamru/core/testkit";
 import { chooseBattleCommand, createGame } from "@homamru/core";
 import type { Command, GameEvent, GameState, MapObjectDefinition } from "@homamru/core";
 import { describe, expect, it } from "vitest";
@@ -24,8 +24,7 @@ function newGame(army = [{ creature: "falcon", count: 30 }]): GameState {
       objects: OBJECTS,
     },
     1,
-    CREATURES,
-    BUILDINGS,
+    CONTENT,
   );
   if (!created.ok) {
     throw new Error(created.errors.map((error) => error.message).join("\n"));

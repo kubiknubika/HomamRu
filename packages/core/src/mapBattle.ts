@@ -2,6 +2,7 @@
  * Бой внутри партии: начало, команды, итог.
  * Спецификация: docs/mechanics/23-map-battle.md.
  */
+import { townOf } from "./town.ts";
 import { applyBattleCommand } from "./battle/commands.ts";
 import { createBattle } from "./battle/create.ts";
 import { BATTLE_HEIGHT, cellIndex } from "./battle/hex.ts";
@@ -125,7 +126,10 @@ function finishWon(state: GameState, battle: MapBattle, events: GameEvent[]): Ga
   };
 }
 
-/** Поражение или бегство: героя нет, у охранника выжившие, партия окончена. */
+/**
+ * Поражение или бегство: героя нет, у охранника выжившие. Партия окончена, только если
+ * у игрока нет города (32-hero-hire.md).
+ */
 function finishLost(
   state: GameState,
   battle: MapBattle,
@@ -134,7 +138,11 @@ function finishLost(
 ): GameState {
   const left = survivorsOf(battle.state, 1).get(0) ?? 0;
   events.push({ type: "heroDied", heroId: battle.heroId, reason });
-  events.push({ type: "gameOver", outcome: "defeat" });
+  const owner = state.heroes.find((candidate) => candidate.id === battle.heroId)?.owner;
+  const over = owner === undefined || townOf(state, owner) === undefined;
+  if (over) {
+    events.push({ type: "gameOver", outcome: "defeat" });
+  }
   return {
     ...state,
     objects: state.objects.map((object) =>
@@ -144,7 +152,7 @@ function finishLost(
     ),
     heroes: state.heroes.filter((candidate) => candidate.id !== battle.heroId),
     battle: null,
-    outcome: "defeat",
+    outcome: over ? "defeat" : state.outcome,
   };
 }
 
