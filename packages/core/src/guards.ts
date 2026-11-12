@@ -41,6 +41,27 @@ const QUANTITY_WORDS: readonly (readonly [number, string])[] = [
 ];
 const LARGEST_WORD = "легион";
 
+export interface QuantityStep {
+  readonly word: string;
+  /** Границы словами для игрока: «10–19», «1000+». */
+  readonly range: string;
+}
+
+/** Все слова о численности от меньшего к большему, каждое со своими границами. */
+export const QUANTITY_SCALE: readonly QuantityStep[] = [
+  ...QUANTITY_WORDS.map(([limit, word], index) => ({
+    word,
+    range: `${QUANTITY_WORDS[index - 1]?.[0] ?? 1}–${limit - 1}`,
+  })),
+  { word: LARGEST_WORD, range: `${QUANTITY_WORDS.at(-1)?.[0] ?? 1}+` },
+];
+
+/** Границы слова о численности для данного числа: игрок видит их рядом со словом. */
+export function quantityRange(count: number): string {
+  const word = quantityWord(count);
+  return QUANTITY_SCALE.find((step) => step.word === word)?.range ?? "";
+}
+
 /** Слово, которым игроку показана численность охранника. */
 export function quantityWord(count: number): string {
   return QUANTITY_WORDS.find(([limit]) => count < limit)?.[1] ?? LARGEST_WORD;

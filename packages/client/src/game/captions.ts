@@ -2,7 +2,7 @@
  * Надписи экрана карты: подписи объектов, предупреждение о бое, короткие сообщения.
  * Спецификация: docs/mechanics/24-map-screen.md. Правил игры здесь нет — только слова.
  */
-import { MINE_INCOME, quantityWord, RESOURCES } from "@homamru/core";
+import { MINE_INCOME, quantityRange, quantityWord, RESOURCES } from "@homamru/core";
 import type { GameEvent, GameState, GuardState, ObjectState, Resources } from "@homamru/core";
 
 export const RESOURCE_NAMES = { gold: "золото", wood: "дерево", ore: "руда" } as const;
@@ -18,9 +18,13 @@ export function creatureName(state: GameState, creatureId: string): string {
   return state.creatures.find((creature) => creature.id === creatureId)?.name ?? creatureId;
 }
 
-/** Существо и слово о численности: точного числа до боя игрок не видит. */
+/**
+ * Существо, слово о численности и его границы: точного числа до боя игрок не видит,
+ * а по одному слову не понять, что больше.
+ */
 function describeGuard(state: GameState, guard: GuardState): string {
-  return `${creatureName(state, guard.creature)}, ${quantityWord(guard.count)}`;
+  const { count } = guard;
+  return `${creatureName(state, guard.creature)}, ${quantityWord(count)} (${quantityRange(count)})`;
 }
 
 function ownerText(state: GameState, owner: number | null): string {
