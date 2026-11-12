@@ -1,6 +1,7 @@
 import { activeStackOf, findStack, turnQueue } from "@homamru/core";
 import type { BattleResult, BattleState, StackState } from "@homamru/core";
 import { useEffect, useState, useSyncExternalStore } from "react";
+import { canRotateScreen, lockLandscape, unlockOrientation } from "../battle/orientation.ts";
 import { PLAYER_SIDE, playerStack } from "../battle/battleSession.ts";
 import type { BattleSelection, BattleSession } from "../battle/battleSession.ts";
 import { Dialog, DialogButton } from "./Dialog.tsx";
@@ -31,6 +32,27 @@ function usePortrait(): boolean {
     };
   }, []);
   return portrait;
+}
+
+/**
+ * На телефоне поворачивает экран на время боя и возвращает после него.
+ * Сообщает, не вышло ли повернуть: тогда игрока просят повернуть устройство самому.
+ */
+function useLandscapeLock(): boolean {
+  const [failed, setFailed] = useState(false);
+  useEffect(() => {
+    let closed = false;
+    void lockLandscape().then((locked) => {
+      if (!closed && canRotateScreen() && !locked) {
+        setFailed(true);
+      }
+    });
+    return () => {
+      closed = true;
+      void unlockOrientation();
+    };
+  }, []);
+  return failed;
 }
 
 function hintOf(selection: BattleSelection | null): string | null {
@@ -111,8 +133,13 @@ export function BattleHud({ battle, onClose }: BattleHudProps) {
   const snapshot = useSyncExternalStore(battle.subscribe, battle.getSnapshot);
   const [confirmFlee, setConfirmFlee] = useState(false);
   const portrait = usePortrait();
+  const lockFailed = useLandscapeLock();
   const { state, selection, locked, log, inspected } = snapshot;
 
+  if (portrait && canRotateScreen() && !lockFailed) {
+    // Телефон поворачивает экран сам; до конца поворота ничего не показываем.
+    return null;
+  }
   if (portrait) {
     return (
       <Dialog title="Поверните устройство">

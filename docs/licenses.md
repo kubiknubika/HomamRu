@@ -40,6 +40,7 @@
 | react, react-dom | MIT | клиент |
 | @capacitor/core, @capacitor/cli, @capacitor/android | MIT | упаковка под Android |
 | @capacitor/filesystem, @capacitor/share | MIT | файл сохранения и окно «Поделиться» на Android |
+| @capacitor/screen-orientation | MIT | альбомная ориентация экрана на время боя |
 | zod | MIT | данные |
 | yaml | ISC | данные |
 | vite, @vitejs/plugin-react | MIT | сборка |
