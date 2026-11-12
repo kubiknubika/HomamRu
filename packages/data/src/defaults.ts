@@ -2,13 +2,12 @@
  * Начальные значения, которые берутся из контента игры, а не из кода: существа и армия героя.
  * Ими дополняется сохранение другой версии (docs/mechanics/04-save.md, «Сохранения других версий»).
  */
+import { MAX_STACKS } from "@homamru/core";
 import type { ArmyStack, CreatureDefinition } from "@homamru/core";
 import { z } from "zod";
 import { armyStackSchema } from "./map.ts";
 import { parseContentFile } from "./parse.ts";
 import type { ContentResult } from "./parse.ts";
-
-const MAX_STACKS = 7;
 
 export interface SaveDefaults {
   /** Существа игры: ими дополняется список существ партии. */

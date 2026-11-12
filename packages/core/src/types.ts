@@ -60,7 +60,7 @@ export interface ArmyStack {
 }
 
 /** Герой в файле карты: клетка, характеристики, армия (22-hero.md). */
-export interface HeroDefinition extends Position {
+interface HeroDefinition extends Position {
   /** По умолчанию 0. */
   readonly attack?: number | undefined;
   /** По умолчанию 0. */

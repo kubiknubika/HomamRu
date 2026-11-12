@@ -8,6 +8,8 @@ import {
   heroIdOf,
   levelOf,
   MAX_PLAYERS,
+  MAX_STACKS,
+  POWER_PER_CREATURE,
   STATE_VERSION,
   TERRAIN_LAND,
   TERRAIN_OBSTACLE,
@@ -36,9 +38,6 @@ import {
   objectSchema,
 } from "./stateSchemas.ts";
 import type { LooseState } from "./stateSchemas.ts";
-
-const MAX_STACKS = 7;
-const POWER_PER_CREATURE = 1000;
 
 /** Из списка произвольных данных — только то, что читается по схеме. */
 function readable<S extends z.ZodType>(items: readonly unknown[], schema: S): z.infer<S>[] {

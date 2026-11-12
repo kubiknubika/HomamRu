@@ -4,7 +4,14 @@
  * обычный `z.object` молча убирает незнакомые поля, `.catch` подставляет начальное значение.
  * Идущий бой читается строго: он либо цел, либо убирается.
  */
-import { DAILY_MOVEMENT, DIRECTIONS, MAX_PLAYERS, MINE_KINDS, RESOURCES } from "@homamru/core";
+import {
+  DAILY_MOVEMENT,
+  DIRECTIONS,
+  GUARD_MAX_COUNT,
+  MAX_PLAYERS,
+  MINE_KINDS,
+  RESOURCES,
+} from "@homamru/core";
 import type { BattleState, Command } from "@homamru/core";
 import { z } from "zod";
 import { creatureSchema } from "./battle.ts";
@@ -37,7 +44,6 @@ export const NO_RESOURCES = {
 } as const;
 
 const UINT32_MAX = 0xff_ff_ff_ff;
-const GUARD_MAX_COUNT = 4000;
 
 const amountSchema = z.int().min(0).catch(DEFAULTS.resource);
 const playerNumberSchema = z
