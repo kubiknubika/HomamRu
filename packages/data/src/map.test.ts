@@ -1,6 +1,9 @@
 import { TEST_ARMY } from "@homamru/core/testkit";
 import { describe, expect, it } from "vitest";
-import { parseMapFile } from "./map.ts";
+import { parseTestMap as parseMapFile } from "./testkit.ts";
+
+/** Армия героя в файле карты — та же, что `TEST_ARMY`. */
+const ARMY = "[{ creature: militia, count: 10 }]";
 
 function mapText(changes: { terrainRow?: string; hero?: string; extra?: string } = {}): string {
   return [
@@ -10,7 +13,7 @@ function mapText(changes: { terrainRow?: string; hero?: string; extra?: string }
     `  - "${changes.terrainRow ?? "........"}"`,
     ...Array.from({ length: 7 }, () => '  - "........"'),
     "players:",
-    `  - hero: ${changes.hero ?? "{ x: 1, y: 1 }"}`,
+    `  - hero: ${changes.hero ?? `{ x: 1, y: 1, army: ${ARMY} }`}`,
     changes.extra ?? "",
   ].join("\n");
 }
@@ -30,7 +33,10 @@ describe("файл карты", () => {
   });
 
   it("называет файл и поле при ошибке схемы", () => {
-    const result = parseMapFile("data/maps/test.yaml", mapText({ hero: "{ x: один, y: 1 }" }));
+    const result = parseMapFile(
+      "data/maps/test.yaml",
+      mapText({ hero: `{ x: один, y: 1, army: ${ARMY} }` }),
+    );
     expect(result).toMatchObject({
       ok: false,
       errors: [{ file: "data/maps/test.yaml", field: "players.0.hero.x" }],
@@ -62,7 +68,7 @@ describe("файл карты", () => {
   it("отвергает героя на преграде", () => {
     const result = parseMapFile(
       "data/maps/test.yaml",
-      mapText({ hero: "{ x: 0, y: 0 }", terrainRow: "#......." }),
+      mapText({ hero: `{ x: 0, y: 0, army: ${ARMY} }`, terrainRow: "#......." }),
     );
     expect(result).toMatchObject({ ok: false, errors: [{ field: "players.0.hero" }] });
   });

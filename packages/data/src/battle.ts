@@ -8,7 +8,7 @@ const ID_PATTERN = /^[a-z0-9-]+$/;
 const ID_MESSAGE = "Допустимы строчные латинские буквы, цифры и дефис.";
 
 /** Файл существа. Описание полей: docs/mechanics/14-creatures.md. */
-const creatureSchema = z
+export const creatureSchema = z
   .strictObject({
     id: z.string().regex(ID_PATTERN, ID_MESSAGE),
     name: z.string().min(1),

@@ -1,6 +1,18 @@
 /** Помощники для тестов сохранения. В игру не входят. */
 import { STATE_VERSION } from "@homamru/core";
 import type { GameState } from "@homamru/core";
+import { CREATURES } from "@homamru/core/testkit";
+import type { SaveDefaults } from "./defaults.ts";
+import { parseDump } from "./dump.ts";
+import { parseMapFile } from "./map.ts";
+import { chooseSave, decodeSave } from "./save.ts";
+import { readState } from "./state.ts";
+
+/** Начальные значения из контента — как их дал бы файл `data/defaults.yaml`. */
+export const TEST_DEFAULTS: SaveDefaults = {
+  creatures: CREATURES,
+  heroArmy: [{ creature: "militia", count: 10 }],
+};
 
 export const TEST_TERRAIN = ["....", ".#..", "....", "...."];
 
@@ -24,15 +36,44 @@ export const FULL_STATE: GameState = {
     { id: 1, resources: { gold: 5, wood: 6, ore: 7 } },
   ],
   heroes: [
-    { id: "A", owner: 0, x: 0, y: 0, movement: 359 },
-    { id: "B", owner: 1, x: 3, y: 3, movement: 1000 },
+    {
+      id: "A",
+      owner: 0,
+      x: 0,
+      y: 0,
+      movement: 359,
+      attack: 3,
+      defense: 2,
+      army: [
+        { creature: "militia", count: 17 },
+        { creature: "falcon", count: 4 },
+      ],
+      experience: 2100,
+      level: 3,
+    },
+    {
+      id: "B",
+      owner: 1,
+      x: 3,
+      y: 3,
+      movement: 1000,
+      attack: 0,
+      defense: 1,
+      army: [{ creature: "slinger", count: 9 }],
+      experience: 5,
+      level: 1,
+    },
   ],
   objects: [
     { id: "o1", type: "pile", x: 2, y: 0, resource: "wood", amount: 8 },
     { id: "o3", type: "mine", x: 0, y: 2, kind: "gold-mine", owner: 1 },
+    { id: "o4", type: "guard", x: 3, y: 1, creature: "falcon", count: 12, power: 12_840 },
   ],
   day: 9,
   currentPlayer: 1,
+  creatures: CREATURES,
+  battle: null,
+  outcome: null,
 };
 
 /** Собирает текст записи с верной контрольной суммой для произвольного JSON — тем же FNV-1a. */
@@ -44,3 +85,11 @@ export function withChecksumOf(json: string): string {
   }
   return `${(hash >>> 0).toString(16).padStart(8, "0")}\n${json}`;
 }
+
+/** Чтение с начальными значениями тестов — чтобы не повторять их в каждом вызове. */
+export const readTestState = (raw: unknown) => readState(raw, TEST_DEFAULTS);
+export const decodeTestSave = (text: string) => decodeSave(text, TEST_DEFAULTS);
+export const chooseTestSave = (copies: readonly [string | null, string | null]) =>
+  chooseSave(copies, TEST_DEFAULTS);
+export const parseTestDump = (text: string) => parseDump(text, TEST_DEFAULTS);
+export const parseTestMap = (file: string, text: string) => parseMapFile(file, text, CREATURES);
