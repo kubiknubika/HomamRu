@@ -67,6 +67,31 @@ export function reachableCells(state: BattleState, stack: StackState): Map<numbe
   return reachable;
 }
 
+/**
+ * Число шагов пешком от клетки `from` до каждой свободной клетки, в обход препятствий и отрядов.
+ * Клетка отряда `mover` считается свободной: это он идёт. Сама `from` может быть занята.
+ */
+export function walkSteps(state: BattleState, from: Cell, mover: StackState): Map<number, number> {
+  const blocked = blockedCells(state);
+  blocked.delete(cellIndex(mover));
+  const steps = new Map<number, number>([[cellIndex(from), 0]]);
+  let wave: Cell[] = [from];
+  for (let step = 1; wave.length > 0; step += 1) {
+    const next: Cell[] = [];
+    for (const cell of wave) {
+      for (const neighbour of neighbours(cell)) {
+        const index = cellIndex(neighbour);
+        if (!blocked.has(index) && !steps.has(index)) {
+          steps.set(index, step);
+          next.push(neighbour);
+        }
+      }
+    }
+    wave = next;
+  }
+  return steps;
+}
+
 /** Стоит ли рядом с отрядом живой враг. */
 export function hasAdjacentEnemy(state: BattleState, stack: StackState): boolean {
   return state.stacks.some(

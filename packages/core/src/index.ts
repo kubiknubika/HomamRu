@@ -51,3 +51,5 @@ export type {
   CreatureDefinition,
   StackState,
 } from "./battle/types.ts";
+export { chooseBattleCommand } from "./battle/ai.ts";
+export { randomBattle, runAutoBattle } from "./battle/autobattle.ts";
