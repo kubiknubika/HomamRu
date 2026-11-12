@@ -26,6 +26,8 @@ export type {
 export { applyBattleCommand, replayBattle } from "./battle/commands.ts";
 export type { BattleReplayResult } from "./battle/commands.ts";
 export { createBattle } from "./battle/create.ts";
+export { damageRange } from "./battle/damage.ts";
+export { turnQueue } from "./battle/turns.ts";
 export type { CreateBattleResult } from "./battle/create.ts";
 export { BATTLE_HEIGHT, BATTLE_WIDTH, distance, neighbours } from "./battle/hex.ts";
 export type { Cell } from "./battle/hex.ts";

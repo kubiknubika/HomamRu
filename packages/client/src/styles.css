@@ -191,3 +191,113 @@ body {
 .dialog-button:active {
   background: #57462a;
 }
+
+/* Бой. Нижняя панель: строка журнала 24 px и ряд с очередью и кнопками 48 px —
+   вместе те же 72 px, что BOTTOM_HEIGHT в battleScene.ts. */
+.battle-log {
+  position: absolute;
+  left: max(8px, env(safe-area-inset-left));
+  right: max(8px, env(safe-area-inset-right));
+  bottom: 48px;
+  height: 24px;
+  overflow: hidden;
+  font-size: 14px;
+  line-height: 24px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.battle-bar {
+  position: absolute;
+  left: max(8px, env(safe-area-inset-left));
+  right: max(8px, env(safe-area-inset-right));
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 48px;
+  user-select: none;
+}
+
+.battle-round {
+  flex: none;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.battle-turn {
+  font-size: 12px;
+  font-weight: 400;
+  opacity: 0.8;
+}
+
+.battle-queue {
+  display: flex;
+  flex: 1;
+  gap: 4px;
+  min-width: 0;
+  height: 40px;
+  overflow: hidden;
+}
+
+.battle-chip {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 38px;
+  height: 40px;
+  border: 2px solid transparent;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.battle-chip span {
+  font-size: 11px;
+  font-weight: 400;
+}
+
+.battle-chip-0 {
+  background: #c8372d;
+}
+
+.battle-chip-1 {
+  background: #2d6fc8;
+}
+
+.battle-chip-active {
+  border-color: #fff3d6;
+}
+
+.battle-button {
+  flex: none;
+  height: 44px;
+  padding: 0 12px;
+  border: 1px solid #8a6f35;
+  border-radius: 8px;
+  background: #3a2f1a;
+  color: inherit;
+  font: inherit;
+  font-size: 15px;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.battle-button:active {
+  background: #57462a;
+}
+
+.battle-button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.battle-info {
+  font-variant-numeric: tabular-nums;
+}

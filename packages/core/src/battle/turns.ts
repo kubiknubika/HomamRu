@@ -43,8 +43,14 @@ const PHASES: readonly { readonly turn: StackTurn; readonly fastestFirst: boolea
   { turn: "waiting", fastestFirst: false },
 ];
 
+/** Что нужно знать, чтобы выбрать следующий отряд. */
+interface TurnOrder {
+  readonly stacks: readonly StackState[];
+  readonly lastActedSide: BattleSide;
+}
+
 function goesBefore(
-  draft: BattleDraft,
+  draft: TurnOrder,
   stack: StackState,
   other: StackState,
   fastestFirst: boolean,
@@ -62,9 +68,12 @@ function goesBefore(
 }
 
 /** Следующий отряд в этом раунде; `undefined`, если раунд закончился. */
-function pickNext(draft: BattleDraft): Mutable<StackState> | undefined {
+function pickNext<S extends StackState>(draft: {
+  readonly stacks: readonly S[];
+  readonly lastActedSide: BattleSide;
+}): S | undefined {
   for (const phase of PHASES) {
-    let best: Mutable<StackState> | undefined;
+    let best: S | undefined;
     for (const stack of draft.stacks) {
       if (stack.count === 0 || stack.turn !== phase.turn) {
         continue;
@@ -145,4 +154,29 @@ export function endIfDestroyed(draft: BattleDraft): boolean {
     }
   }
   return false;
+}
+
+/**
+ * Очередь ходов до конца раунда: отряд, чей сейчас ход, и те, кто пойдёт за ним,
+ * если никто не будет ждать, не оцепенеет и не получит второй ход.
+ */
+export function turnQueue(state: TurnOrder & { readonly activeStack: string | null }): string[] {
+  const active = state.stacks.find((stack) => stack.id === state.activeStack);
+  if (active === undefined) {
+    return [];
+  }
+  const queue = [active.id];
+  let stacks = state.stacks.map((stack) =>
+    stack.id === active.id ? { ...stack, turn: "done" as const } : stack,
+  );
+  let lastActedSide = active.side;
+  for (;;) {
+    const next = pickNext({ stacks, lastActedSide });
+    if (next === undefined) {
+      return queue;
+    }
+    queue.push(next.id);
+    lastActedSide = next.side;
+    stacks = stacks.map((stack) => (stack.id === next.id ? { ...stack, turn: "done" } : stack));
+  }
 }

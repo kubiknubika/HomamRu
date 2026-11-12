@@ -100,3 +100,23 @@ export function halvingsOf(kind: StrikeKind, attacker: StackState, target: Stack
     kind === "shot" ? distance(attacker, target) > FULL_SHOT_RANGE : attacker.creature.shots > 0;
   return halved ? 1 : 0;
 }
+
+/**
+ * Урон, который удар нанесёт без удачи: наименьший и наибольший.
+ * Нужен экрану боя, чтобы показать игроку «от и до».
+ */
+export function damageRange(
+  sides: Sides,
+  attacker: StackState,
+  target: StackState,
+  kind: StrikeKind,
+): { readonly min: number; readonly max: number } {
+  const rolls = Math.min(attacker.count, MAX_ROLLS);
+  const attack = attackOf(sides, attacker);
+  const defense = defenseOf(sides, target);
+  const halvings = halvingsOf(kind, attacker, target);
+  const { damageMin, damageMax } = attacker.creature;
+  const of = (roll: number): number =>
+    computeDamage(baseDamageOf(roll * rolls, attacker.count), attack, defense, false, halvings);
+  return { min: of(damageMin), max: of(damageMax) };
+}

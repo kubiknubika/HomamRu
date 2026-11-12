@@ -1,0 +1,20 @@
+# Бой для пункта меню «Проверочный бой» (docs/mechanics/16-battle-screen.md).
+# Игрок — нападающий. У обеих сторон есть боевой дух и удача, чтобы их было видно в бою.
+id: trial
+name: Проверочный бой
+obstacles: [[5, 2], [6, 5], [8, 4], [9, 8], [7, 9]]
+attacker:
+  hero: { attack: 1, defense: 1 }
+  morale: 1
+  luck: 1
+  army:
+    - { creature: militia, count: 20 }
+    - { creature: slinger, count: 12 }
+    - { creature: falcon, count: 5 }
+defender:
+  morale: 1
+  luck: 1
+  army:
+    - { creature: militia, count: 25 }
+    - { creature: slinger, count: 10 }
+    - { creature: falcon, count: 4 }
