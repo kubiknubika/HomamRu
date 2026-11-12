@@ -4,6 +4,7 @@ import { describeObject, fightWarning, RESOURCE_NAMES } from "../game/captions.t
 import { activeHero } from "../game/session.ts";
 import type { Notice, Session } from "../game/session.ts";
 import { HeroWindow } from "./HeroWindow.tsx";
+import { Legend } from "./Legend.tsx";
 
 interface HudProps {
   readonly session: Session;
@@ -44,6 +45,7 @@ export function Hud({ session }: HudProps) {
     session.getSnapshot,
   );
   const [heroOpen, setHeroOpen] = useState(false);
+  const [legendOpen, setLegendOpen] = useState(false);
   const { month, week, weekday } = calendarOf(state.day);
   const hero = activeHero(state);
   const resources = state.players[state.currentPlayer]?.resources;
@@ -81,6 +83,15 @@ export function Hud({ session }: HudProps) {
         {notice !== null && <Messages notice={notice} />}
       </div>
       <div className="hud-actions">
+        <button
+          type="button"
+          className="hud hud-button"
+          onClick={() => {
+            setLegendOpen(true);
+          }}
+        >
+          Обозначения
+        </button>
         {hero !== undefined && (
           <button
             type="button"
@@ -96,6 +107,14 @@ export function Hud({ session }: HudProps) {
           Конец дня
         </button>
       </div>
+      {legendOpen && (
+        <Legend
+          state={state}
+          onClose={() => {
+            setLegendOpen(false);
+          }}
+        />
+      )}
       {heroOpen && hero !== undefined && (
         <HeroWindow
           state={state}

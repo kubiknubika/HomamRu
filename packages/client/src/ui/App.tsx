@@ -38,6 +38,8 @@ type Phase =
   | { readonly kind: "problem" }
   | { readonly kind: "playing"; readonly session: Session; readonly mapIndex: number };
 
+const MAP_INDEXES = Array.from({ length: MAP_COUNT }, (_, index) => index);
+
 function subscribeToNothing(): () => void {
   return doNothing;
 }
@@ -213,7 +215,6 @@ export function App({ gameParent, storage }: AppProps) {
     );
   }
 
-  const nextMap = (phase.mapIndex + 1) % MAP_COUNT;
   return (
     <>
       <Hud session={phase.session} />
@@ -228,15 +229,21 @@ export function App({ gameParent, storage }: AppProps) {
       </button>
       <div className="hud-debug">
         <FrameCounter frameMeter={frameMeter} />
-        <button
-          type="button"
+        <select
           className="hud hud-map-switch"
-          onClick={() => {
-            setOverlay({ kind: "confirmNew", mapIndex: nextMap });
+          aria-label="Карта"
+          value={phase.mapIndex}
+          onChange={(event) => {
+            // Список остаётся на текущей карте, пока игрок не подтвердил новую игру.
+            setOverlay({ kind: "confirmNew", mapIndex: Number(event.target.value) });
           }}
         >
-          Карта: {mapLabel(phase.mapIndex)}
-        </button>
+          {MAP_INDEXES.map((index) => (
+            <option key={index} value={index}>
+              Карта: {mapLabel(index)}
+            </option>
+          ))}
+        </select>
       </div>
       <GameDialogs
         overlay={overlay}

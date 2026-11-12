@@ -16,8 +16,8 @@ const SEED = 1;
 const MAP_FILES = [
   { file: "data/maps/test-guards.yaml", text: guardsMapText, label: "с охраной" },
   { file: "data/maps/test-objects.yaml", text: objectsMapText, label: "с объектами" },
-  { file: "data/maps/test-small.yaml", text: smallMapText, label: "маленькая" },
-  { file: "data/maps/test-large.yaml", text: largeMapText, label: "большая" },
+  { file: "data/maps/test-small.yaml", text: smallMapText, label: "маленькая пустая" },
+  { file: "data/maps/test-large.yaml", text: largeMapText, label: "большая пустая" },
 ] as const;
 
 export const MAP_COUNT = MAP_FILES.length;
