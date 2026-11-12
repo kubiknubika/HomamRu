@@ -62,6 +62,12 @@ export const heroKindSchema = z.strictObject({
   defense: z.int().min(0),
 }) satisfies z.ZodType<HeroKind>;
 
+/** Настройки компьютерного игрока (42-opponent.md). */
+export const opponentRulesSchema = z.strictObject({
+  advantagePercent: z.int().min(100).max(1000),
+  buildOrder: z.array(z.string()),
+});
+
 /** Правила таверны: цена героя и его случайная армия (32-hero-hire.md). */
 export const tavernRulesSchema = z.strictObject({
   price: z.int().min(1),

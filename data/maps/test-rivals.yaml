@@ -1,0 +1,54 @@
+# Проверочная карта для партий двух компьютеров (docs/mechanics/42-opponent.md).
+# Половины карты зеркальны; в середине — золотая шахта под охраной.
+id: test-rivals
+name: Проверочная карта соперников
+terrain:
+  - "...................."
+  - "...................."
+  - "...................."
+  - ".........##........."
+  - ".........##........."
+  - "...................."
+  - "...................."
+  - "...................."
+  - "...................."
+  - "...##....#.....##..."
+  - "...##.....#....##..."
+  - "...................."
+  - "...................."
+  - "...................."
+  - "...................."
+  - ".........##........."
+  - ".........##........."
+  - "...................."
+  - "...................."
+  - "...................."
+players:
+  - hero: { x: 1, y: 1, army: [{ creature: militia, count: 20 }, { creature: slinger, count: 8 }] }
+    kind: computer
+    resources: { gold: 5000, wood: 10, ore: 10 }
+  - hero:
+      { x: 18, y: 18, army: [{ creature: militia, count: 20 }, { creature: slinger, count: 8 }] }
+    kind: computer
+    resources: { gold: 5000, wood: 10, ore: 10 }
+objects:
+  - { type: town, x: 1, y: 2, owner: 0, buildings: [tavern, fort, militia-yard] }
+  - { type: town, x: 18, y: 17, owner: 1, buildings: [tavern, fort, militia-yard] }
+  - { type: pile, x: 5, y: 1, resource: gold, amount: 500 }
+  - { type: pile, x: 1, y: 6, resource: wood, amount: 6 }
+  - { type: pile, x: 6, y: 6, resource: ore, amount: 6 }
+  - { type: mine, x: 7, y: 2, kind: sawmill }
+  - { type: guard, x: 3, y: 7, creature: militia, count: 12 }
+  - { type: mine, x: 2, y: 8, kind: ore-pit }
+  - { type: guard, x: 12, y: 5, creature: slinger, count: 15 }
+  - { type: pile, x: 13, y: 4, resource: gold, amount: 1000 }
+  - { type: pile, x: 14, y: 18, resource: gold, amount: 500 }
+  - { type: pile, x: 18, y: 13, resource: wood, amount: 6 }
+  - { type: pile, x: 13, y: 13, resource: ore, amount: 6 }
+  - { type: mine, x: 12, y: 17, kind: sawmill }
+  - { type: guard, x: 16, y: 12, creature: militia, count: 12 }
+  - { type: mine, x: 17, y: 11, kind: ore-pit }
+  - { type: guard, x: 7, y: 14, creature: slinger, count: 15 }
+  - { type: pile, x: 6, y: 15, resource: gold, amount: 1000 }
+  - { type: guard, x: 8, y: 11, creature: armsman, count: 10 }
+  - { type: mine, x: 9, y: 10, kind: gold-mine }

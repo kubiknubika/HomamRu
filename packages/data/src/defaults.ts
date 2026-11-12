@@ -5,7 +5,7 @@
 import { MAX_STACKS } from "@homamru/core";
 import type { ArmyStack, GameContent } from "@homamru/core";
 import { z } from "zod";
-import { tavernRulesSchema } from "./battle.ts";
+import { opponentRulesSchema, tavernRulesSchema } from "./battle.ts";
 import { armyStackSchema } from "./map.ts";
 import { parseContentFile } from "./parse.ts";
 import type { ContentResult } from "./parse.ts";
@@ -23,23 +23,25 @@ const defaultsSchema = z.strictObject({
     .min(1)
     .max(MAX_STACKS),
   tavern: tavernRulesSchema,
+  opponent: opponentRulesSchema,
 });
 
 /**
  * Разбирает файл начальных значений и собирает контент игры целиком.
- * Существа армии героя и армии таверны должны быть среди существ игры.
+ * Существа армии героя и армии таверны должны быть среди существ игры,
+ * здания из порядка стройки компьютера — среди зданий игры.
  */
 export function parseDefaultsFile(
   file: string,
   text: string,
-  content: Omit<GameContent, "tavern">,
+  content: Omit<GameContent, "tavern" | "opponent">,
 ): ContentResult<SaveDefaults> {
   const parsed = parseContentFile(file, text, defaultsSchema);
   if (!parsed.ok) {
     return parsed;
   }
   const known = new Set(content.creatures.map((creature) => creature.id));
-  const { heroArmy, tavern } = parsed.value;
+  const { heroArmy, tavern, opponent } = parsed.value;
   const stacks = [
     ...heroArmy.map((stack, index) => ({ ...stack, field: `heroArmy.${index}.creature` })),
     ...tavern.army.map((rule, index) => ({ ...rule, field: `tavern.army.${index}.creature` })),
@@ -49,8 +51,13 @@ export function parseDefaultsFile(
       ? []
       : [{ file, field: stack.field, message: `Существа «${stack.creature}» нет.` }],
   );
+  for (const [index, id] of opponent.buildOrder.entries()) {
+    if (!content.buildings.some((building) => building.id === id)) {
+      errors.push({ file, field: `opponent.buildOrder.${index}`, message: `Здания «${id}» нет.` });
+    }
+  }
   if (errors.length > 0) {
     return { ok: false, errors };
   }
-  return { ok: true, value: { ...content, tavern, heroArmy } };
+  return { ok: true, value: { ...content, tavern, opponent, heroArmy } };
 }

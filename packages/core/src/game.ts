@@ -78,6 +78,10 @@ export function createGame(
     buildings: buildings.map((building) => ({ ...building })),
     heroKinds: content.heroes.map((kind) => ({ ...kind })),
     tavern: { price: content.tavern.price, army: content.tavern.army.map((rule) => ({ ...rule })) },
+    opponent: {
+      advantagePercent: content.opponent.advantagePercent,
+      buildOrder: [...content.opponent.buildOrder],
+    },
     battle: null,
     outcome: null,
     winner: null,

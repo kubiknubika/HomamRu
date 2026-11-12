@@ -11,3 +11,20 @@ tavern:
     - { creature: militia, min: 10, max: 20, chance: 100 }
     - { creature: slinger, min: 4, max: 7, chance: 88 }
     - { creature: falcon, min: 2, max: 3, chance: 25 }
+
+# Компьютерный игрок (docs/mechanics/42-opponent.md).
+# advantagePercent: во сколько раз его армия должна быть дороже цели, чтобы напасть (150 — в полтора раза).
+# buildOrder: в каком порядке он строит здания.
+opponent:
+  advantagePercent: 150
+  buildOrder:
+    - town-hall
+    - militia-yard
+    - slinger-range
+    - smithy
+    - barracks
+    - falcon-tower
+    - citadel
+    - castle
+    - tavern
+    - fort

@@ -3,9 +3,9 @@
  * Правила: docs/mechanics/04-save.md, «Сохранения других версий»; 32-hero-hire.md.
  */
 import { TAVERN_OFFERS } from "@homamru/core";
-import type { ArmyStack, HeroKind, TavernOffer, TavernRules } from "@homamru/core";
+import type { ArmyStack, HeroKind, OpponentRules, TavernOffer, TavernRules } from "@homamru/core";
 import { z } from "zod";
-import { heroKindSchema, tavernRulesSchema } from "./battle.ts";
+import { heroKindSchema, opponentRulesSchema, tavernRulesSchema } from "./battle.ts";
 import type { SaveDefaults } from "./defaults.ts";
 
 const stackSchema = z.object({ creature: z.string(), count: z.int().min(1) });
@@ -31,6 +31,19 @@ export function readTavernRules(
   const parsed = tavernRulesSchema.strip().safeParse(raw);
   const fits = parsed.success && parsed.data.army.every((rule) => known.has(rule.creature));
   return fits ? parsed.data : defaults.tavern;
+}
+
+/** Настройки компьютера: из записи, если читаются целиком и здания знакомы; иначе настройки игры. */
+export function readOpponentRules(
+  raw: unknown,
+  buildings: readonly { readonly id: string }[],
+  defaults: SaveDefaults,
+): OpponentRules {
+  const parsed = opponentRulesSchema.strip().safeParse(raw);
+  const fits =
+    parsed.success &&
+    parsed.data.buildOrder.every((id) => buildings.some((building) => building.id === id));
+  return fits ? parsed.data : defaults.opponent;
 }
 
 /** Кто герой: идентификатор из записи, если он знаком, иначе первый герой списка. */

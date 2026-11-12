@@ -40,7 +40,13 @@ import {
   objectSchema,
 } from "./stateSchemas.ts";
 import type { LooseState } from "./stateSchemas.ts";
-import { readHeroKind, readHeroKinds, readTavern, readTavernRules } from "./stateTavern.ts";
+import {
+  readHeroKind,
+  readHeroKinds,
+  readOpponentRules,
+  readTavern,
+  readTavernRules,
+} from "./stateTavern.ts";
 import { readBuildings, readCreatures, readTown } from "./stateTown.ts";
 
 /** Из списка произвольных данных — только то, что читается по схеме. */
@@ -282,6 +288,7 @@ function finishState(loose: LooseState, defaults: SaveDefaults): GameState | nul
     buildings,
     heroKinds: kinds,
     tavern: rules,
+    opponent: readOpponentRules(loose.opponent, buildings, defaults),
     battle: readBattle(loose.battle, heroes, objects, creatures),
     ...readOutcome(loose, fates),
   };
