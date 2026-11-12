@@ -14,7 +14,7 @@ export interface HeroKind {
 }
 
 /** Отряд в армии героя таверны: он есть, если бросок 1–100 не больше `chance`. */
-export interface TavernStackRule {
+interface TavernStackRule {
   readonly creature: string;
   readonly min: number;
   readonly max: number;
