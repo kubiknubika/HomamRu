@@ -3,7 +3,16 @@
  * Спецификация: docs/mechanics/12-battle-actions.md.
  */
 import { toState } from "./create.ts";
-import { applyDamage, computeDamage, defendBonusOf, GOOD_DICE, rollBaseDamage } from "./damage.ts";
+import {
+  applyDamage,
+  attackOf,
+  computeDamage,
+  defendBonusOf,
+  defenseOf,
+  GOOD_DICE,
+  halvingsOf,
+  rollBaseDamage,
+} from "./damage.ts";
 import { cellIndex, distance, inField, sameCell } from "./hex.ts";
 import type { Cell } from "./hex.ts";
 import { findStack, hasAdjacentEnemy, isAlive, reachableCells } from "./queries.ts";
@@ -18,9 +27,6 @@ import type {
   StackState,
   StrikeKind,
 } from "./types.ts";
-
-/** Дальше этого расстояния выстрел бьёт вполсилы. */
-const FULL_SHOT_RANGE = 10;
 
 type DraftStack = BattleDraft["stacks"][number];
 
@@ -76,12 +82,13 @@ function strike(
   const base = rollBaseDamage(draft.rng, attacker.creature, attacker.count);
   draft.rng = base.rng;
 
-  const attack = attacker.creature.attack + (side.hero?.attack ?? 0);
-  const defense =
-    target.creature.defense + (draft.sides[target.side].hero?.defense ?? 0) + target.defendBonus;
-  const isShooter = attacker.creature.shots > 0;
-  const halved = kind === "shot" ? distance(attacker, target) > FULL_SHOT_RANGE : isShooter;
-  const damage = computeDamage(base.value, attack, defense, lucky, halved ? 1 : 0);
+  const damage = computeDamage(
+    base.value,
+    attackOf(draft.sides, attacker),
+    defenseOf(draft.sides, target),
+    lucky,
+    halvingsOf(kind, attacker, target),
+  );
 
   const losses = applyDamage(target.count, target.firstHealth, target.creature.health, damage);
   target.count = losses.count;

@@ -3,9 +3,12 @@
  */
 import { nextInt } from "../rng.ts";
 import type { RngResult, RngState } from "../rng.ts";
-import type { CreatureDefinition } from "./types.ts";
+import { distance } from "./hex.ts";
+import type { BattleSideState, CreatureDefinition, StackState, StrikeKind } from "./types.ts";
 
 const MAX_ROLLS = 10;
+/** Дальше этого расстояния выстрел бьёт вполсилы. */
+const FULL_SHOT_RANGE = 10;
 const MAX_ATTACK_POINTS = 60;
 const MAX_DEFENSE_POINTS = 28;
 /** Жребий удачи и высокого боевого духа: «N из 24». */
@@ -77,4 +80,23 @@ export function applyDamage(
 /** Прибавка к защите от «защищаться»: 20 %, дробь отбрасывается, не меньше 1. */
 export function defendBonusOf(defense: number): number {
   return Math.max(1, Math.floor(defense / 5));
+}
+
+type Sides = readonly [BattleSideState, BattleSideState];
+
+/** Атака отряда с прибавкой героя. */
+export function attackOf(sides: Sides, stack: StackState): number {
+  return stack.creature.attack + (sides[stack.side].hero?.attack ?? 0);
+}
+
+/** Защита отряда с прибавками героя и «защищаться». */
+export function defenseOf(sides: Sides, stack: StackState): number {
+  return stack.creature.defense + (sides[stack.side].hero?.defense ?? 0) + stack.defendBonus;
+}
+
+/** Сколько раз урон делится пополам: стрелок в ближнем бою, выстрел дальше 10 клеток. */
+export function halvingsOf(kind: StrikeKind, attacker: StackState, target: StackState): number {
+  const halved =
+    kind === "shot" ? distance(attacker, target) > FULL_SHOT_RANGE : attacker.creature.shots > 0;
+  return halved ? 1 : 0;
 }
