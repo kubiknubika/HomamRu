@@ -41,7 +41,10 @@ function go(session: Session, x: number, y: number): void {
 /** Доигрывает бой на экране: за игрока ходит тот же простой компьютер. */
 function finishBattle(session: Session): void {
   const battle = session.getSnapshot().battle;
-  for (let turn = 0; turn < 500 && battle !== null; turn += 1) {
+  if (battle === null) {
+    return;
+  }
+  for (let turn = 0; turn < 500; turn += 1) {
     battle.animationDone();
     const { state } = battle.getSnapshot();
     const command = chooseBattleCommand(state);

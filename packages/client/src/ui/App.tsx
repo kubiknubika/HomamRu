@@ -1,6 +1,6 @@
 import { chooseSave, verifySave } from "@homamru/data";
 import type { SaveBody } from "@homamru/data";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { dumpSource, saveDump } from "../diagnostics/dump.ts";
 import { GAME_VERSION } from "../diagnostics/version.ts";
 import { createBattleSession } from "../battle/battleSession.ts";
@@ -16,9 +16,11 @@ import { createSaver } from "../save/saver.ts";
 import type { Saver } from "../save/saver.ts";
 import type { SaveStorage } from "../save/saveStorage.ts";
 import { BattleHud } from "./BattleHud.tsx";
-import { Dialog, DialogButton } from "./Dialog.tsx";
 import { FrameCounter } from "./FrameCounter.tsx";
+import { GameDialogs, NO_OVERLAY } from "./GameDialogs.tsx";
+import type { Overlay } from "./GameDialogs.tsx";
 import { Hud } from "./Hud.tsx";
+import { ProblemScreen, StartScreen } from "./StartScreens.tsx";
 import { TEXT } from "./texts.ts";
 
 interface AppProps {
@@ -36,15 +38,17 @@ type Phase =
   | { readonly kind: "problem" }
   | { readonly kind: "playing"; readonly session: Session; readonly mapIndex: number };
 
-/** Окно поверх игры. */
-type Overlay =
-  | { readonly kind: "none" }
-  | { readonly kind: "menu" }
-  /** Подтверждение новой игры на карте с данным номером. */
-  | { readonly kind: "confirmNew"; readonly mapIndex: number }
-  | { readonly kind: "notice"; readonly text: string; readonly offerDump: boolean };
+function subscribeToNothing(): () => void {
+  return doNothing;
+}
 
-const NO_OVERLAY: Overlay = { kind: "none" };
+function doNothing(): void {
+  // Партии нет — подписываться не на что.
+}
+
+function noSnapshot(): null {
+  return null;
+}
 
 /** Держит партию, сохранение и холст Phaser. */
 export function App({ gameParent, storage }: AppProps) {
@@ -52,7 +56,7 @@ export function App({ gameParent, storage }: AppProps) {
   const [overlay, setOverlay] = useState<Overlay>(NO_OVERLAY);
   const [saver, setSaver] = useState<Saver | null>(null);
   /** Проверочный бой поверх карты; партия на карте при этом не меняется. */
-  const [battle, setBattle] = useState<BattleSession | null>(null);
+  const [trial, setTrial] = useState<BattleSession | null>(null);
   const frameMeter = useMemo(() => createFrameMeter(), []);
 
   const notice = useCallback((text: string, offerDump: boolean) => {
@@ -102,6 +106,12 @@ export function App({ gameParent, storage }: AppProps) {
   }, [storage, notice]);
 
   const session = phase.kind === "playing" ? phase.session : null;
+  const played = useSyncExternalStore(
+    session?.subscribe ?? subscribeToNothing,
+    session?.getSnapshot ?? noSnapshot,
+  );
+  // На экране один бой: проверочный или бой партии.
+  const battle = trial ?? played?.battle ?? null;
   useEffect(() => {
     if (session === null) {
       return undefined;
@@ -146,54 +156,35 @@ export function App({ gameParent, storage }: AppProps) {
   }
 
   if (phase.kind === "start") {
-    return overlay.kind === "confirmNew" ? (
-      <Dialog title="Новая игра">
-        <div className="dialog-text">{TEXT.confirm}</div>
-        <DialogButton
-          label="Начать заново"
-          onClick={() => {
-            newGame(0);
-          }}
-        />
-        <DialogButton
-          label="Отмена"
-          onClick={() => {
-            setOverlay(NO_OVERLAY);
-          }}
-        />
-      </Dialog>
-    ) : (
-      <Dialog title="Герои Ру">
-        {phase.adapted && <div className="dialog-text">{TEXT.adapted}</div>}
-        <DialogButton
-          label="Продолжить"
-          onClick={() => {
-            continueGame(phase.save);
-          }}
-        />
-        <DialogButton
-          label="Новая игра"
-          onClick={() => {
-            setOverlay({ kind: "confirmNew", mapIndex: 0 });
-          }}
-        />
-      </Dialog>
+    return (
+      <StartScreen
+        adapted={phase.adapted}
+        confirming={overlay.kind === "confirmNew"}
+        onContinue={() => {
+          continueGame(phase.save);
+        }}
+        onAskNew={() => {
+          setOverlay({ kind: "confirmNew", mapIndex: 0 });
+        }}
+        onNew={() => {
+          newGame(0);
+        }}
+        onCancel={() => {
+          setOverlay(NO_OVERLAY);
+        }}
+      />
     );
   }
 
   if (phase.kind === "problem") {
     return (
-      <Dialog title="Герои Ру">
-        <div className="dialog-text">{TEXT.corrupt}</div>
-        <DialogButton
-          label="Новая игра"
-          onClick={() => {
-            newGame(0);
-          }}
-        />
-        <DialogButton label="Сохранить дамп" onClick={exportDump} />
-        {overlay.kind === "notice" && <div className="dialog-text">{overlay.text}</div>}
-      </Dialog>
+      <ProblemScreen
+        note={overlay.kind === "notice" ? overlay.text : null}
+        onNew={() => {
+          newGame(0);
+        }}
+        onDump={exportDump}
+      />
     );
   }
 
@@ -205,8 +196,17 @@ export function App({ gameParent, storage }: AppProps) {
         </div>
         <BattleHud
           battle={battle}
+          inGame={trial === null}
+          summary={trial === null ? played?.summary : null}
           onClose={() => {
-            setBattle(null);
+            if (trial !== null) {
+              setTrial(null);
+            } else if (played?.state.outcome === null) {
+              phase.session.leaveBattle();
+            } else {
+              // Партия проиграна: из окна итога — только новая игра.
+              newGame(phase.mapIndex);
+            }
           }}
         />
       </>
@@ -238,68 +238,19 @@ export function App({ gameParent, storage }: AppProps) {
           Карта: {mapLabel(phase.mapIndex)}
         </button>
       </div>
-      {overlay.kind === "menu" && (
-        <Dialog title="Меню">
-          <DialogButton
-            label="Вернуться в игру"
-            onClick={() => {
-              setOverlay(NO_OVERLAY);
-            }}
-          />
-          <DialogButton
-            label="Новая игра"
-            onClick={() => {
-              setOverlay({ kind: "confirmNew", mapIndex: phase.mapIndex });
-            }}
-          />
-          <DialogButton
-            label="Проверочный бой"
-            onClick={() => {
-              setOverlay(NO_OVERLAY);
-              // Каждый бой — с новым сидом; сам бой от сида зависит полностью.
-              setBattle(createBattleSession(startTrialBattle(Date.now() % 2_000_000_000)));
-            }}
-          />
-          <DialogButton
-            label="Сохранить дамп"
-            onClick={() => {
-              setOverlay(NO_OVERLAY);
-              exportDump();
-            }}
-          />
-        </Dialog>
-      )}
-      {overlay.kind === "confirmNew" && (
-        <Dialog title="Новая игра">
-          <div className="dialog-text">
-            {TEXT.confirm} Карта: {mapLabel(overlay.mapIndex)}.
-          </div>
-          <DialogButton
-            label="Начать заново"
-            onClick={() => {
-              newGame(overlay.mapIndex);
-            }}
-          />
-          <DialogButton
-            label="Отмена"
-            onClick={() => {
-              setOverlay(NO_OVERLAY);
-            }}
-          />
-        </Dialog>
-      )}
-      {overlay.kind === "notice" && (
-        <Dialog title="Внимание">
-          <div className="dialog-text">{overlay.text}</div>
-          {overlay.offerDump && <DialogButton label="Сохранить дамп" onClick={exportDump} />}
-          <DialogButton
-            label="Закрыть"
-            onClick={() => {
-              setOverlay(NO_OVERLAY);
-            }}
-          />
-        </Dialog>
-      )}
+      <GameDialogs
+        overlay={overlay}
+        defeated={played?.state.outcome === "defeat"}
+        mapIndex={phase.mapIndex}
+        setOverlay={setOverlay}
+        onNew={newGame}
+        onTrial={() => {
+          setOverlay(NO_OVERLAY);
+          // Каждый бой — с новым сидом; сам бой от сида зависит полностью.
+          setTrial(createBattleSession(startTrialBattle(Date.now() % 2_000_000_000)));
+        }}
+        onDump={exportDump}
+      />
     </>
   );
 }

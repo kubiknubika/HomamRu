@@ -27,7 +27,7 @@ export const TERRAIN_TEXTURE = "stub-terrain";
 export const LAND_TILE = 0;
 export const OBSTACLE_TILE = 1;
 
-function playerColor(player: number): number {
+export function playerColor(player: number): number {
   return PLAYER_COLORS[player] ?? PLAYER_COLORS[0];
 }
 

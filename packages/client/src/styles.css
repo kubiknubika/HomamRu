@@ -51,16 +51,81 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-.hud-end-day {
+.hud-resources {
+  display: flex;
+  gap: 14px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Цвета ресурсов те же, что у кучек и шахт на карте. */
+.hud-resource-gold {
+  color: #e9c53a;
+}
+
+.hud-resource-wood {
+  color: #c48a52;
+}
+
+.hud-resource-ore {
+  color: #c3c9d3;
+}
+
+/* Кнопки карты справа внизу: «Герой» над «Концом дня». */
+.hud-actions {
+  position: absolute;
   right: max(12px, env(safe-area-inset-right));
   bottom: max(12px, env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.hud-actions .hud,
+.hud-notes .hud {
+  position: static;
+}
+
+.hud-button {
   min-width: 120px;
   min-height: 48px;
   padding: 0 18px;
-  background: #3a2f1a;
+  background: #23303a;
   font-size: 16px;
-  font-weight: 600;
   cursor: pointer;
+}
+
+.hud-end-day {
+  background: #3a2f1a;
+  font-weight: 600;
+}
+
+/* Подписи и сообщения: посередине внизу, касания проходят сквозь них к карте. */
+.hud-notes {
+  position: absolute;
+  right: 0;
+  bottom: calc(max(12px, env(safe-area-inset-bottom)) + 124px);
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  pointer-events: none;
+}
+
+.hud-caption,
+.hud-message {
+  max-width: 100%;
+  padding: 8px 14px;
+  font-size: 15px;
+  line-height: 1.4;
+  text-align: center;
+  pointer-events: none;
+}
+
+.hud-caption {
+  border-color: #b5483f;
 }
 
 .hud-end-day:active {

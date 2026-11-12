@@ -8,12 +8,16 @@ import { CAMERA_MARGIN_PX, cameraBounds, clampZoom, NORMAL_ZOOM } from "./geomet
 /** Сдвиг пальца в пикселях экрана, после которого касание уже не выбор клетки. */
 const TAP_SLOP = 10;
 const WHEEL_ZOOM_SPEED = 0.0015;
+/** Сколько держать палец на месте, чтобы это стало удержанием (как в бою). */
+const HOLD_MS = 450;
 
 export interface CameraControlOptions {
   readonly worldWidth: number;
   readonly worldHeight: number;
   /** Вызывается при коротком касании; координаты — в мире. */
   readonly onTap: (worldX: number, worldY: number) => void;
+  /** Вызывается, когда палец держат на месте; после этого отпускание — не касание. */
+  readonly onHold: (worldX: number, worldY: number) => void;
 }
 
 export function installCameraControl(scene: Phaser.Scene, options: CameraControlOptions): void {
@@ -25,6 +29,22 @@ export function installCameraControl(scene: Phaser.Scene, options: CameraControl
   let pinchDistance = 0;
   /** Жест уже двигал или масштабировал карту — отпускание не считается касанием. */
   let gestureMoved = false;
+  let hold: Phaser.Time.TimerEvent | undefined;
+
+  function onDown(pointer: Phaser.Input.Pointer): void {
+    hold?.remove();
+    if (touches().length > 1) {
+      return;
+    }
+    hold = scene.time.delayedCall(HOLD_MS, () => {
+      // Палец всё ещё на месте: это удержание, и отпускание уже не выбор клетки.
+      if (pointer.isDown && !gestureMoved && pointer.getDistance() < TAP_SLOP) {
+        gestureMoved = true;
+        const point = camera.getWorldPoint(pointer.x, pointer.y);
+        options.onHold(point.x, point.y);
+      }
+    });
+  }
 
   function applyBounds(): void {
     const margin = CAMERA_MARGIN_PX / camera.zoom;
@@ -68,6 +88,7 @@ export function installCameraControl(scene: Phaser.Scene, options: CameraControl
   }
 
   function onUp(pointer: Phaser.Input.Pointer): void {
+    hold?.remove();
     pinchDistance = 0;
     const stillTouching = touches().length > 0;
     if (!gestureMoved && !stillTouching && pointer.getDistance() < TAP_SLOP) {
@@ -83,6 +104,7 @@ export function installCameraControl(scene: Phaser.Scene, options: CameraControl
     setZoom(camera.zoom * Math.exp(-dy * WHEEL_ZOOM_SPEED));
   }
 
+  input.on(Phaser.Input.Events.POINTER_DOWN, onDown);
   input.on(Phaser.Input.Events.POINTER_MOVE, onMove);
   input.on(Phaser.Input.Events.POINTER_UP, onUp);
   input.on(Phaser.Input.Events.POINTER_UP_OUTSIDE, onUp);
