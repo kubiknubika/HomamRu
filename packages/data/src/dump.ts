@@ -104,7 +104,11 @@ export type DumpParseResult =
   | { readonly ok: true; readonly dump: Dump }
   | { readonly ok: false; readonly message: string };
 
-/** Разбирает текст дампа. `defaults` — начальные значения из контента игры. */
+/**
+ * Разбирает текст дампа. Дамп другой версии читается так же, как сохранение другой версии
+ * (04-save.md): недостающее берётся начальным, незнакомое убирается.
+ * `defaults` — начальные значения из контента игры.
+ */
 export function parseDump(text: string, defaults: SaveDefaults): DumpParseResult {
   let raw: unknown;
   try {
@@ -118,12 +122,6 @@ export function parseDump(text: string, defaults: SaveDefaults): DumpParseResult
     return {
       ok: false,
       message: `Это не дамп игры: ${issue?.path.map(String).join(".") ?? ""}: ${issue?.message ?? ""}`,
-    };
-  }
-  if (parsed.data.versions.state !== STATE_VERSION) {
-    return {
-      ok: false,
-      message: `Дамп от другой версии состояния: ${parsed.data.versions.state}, а игра понимает ${STATE_VERSION}.`,
     };
   }
   return { ok: true, dump: parsed.data };
