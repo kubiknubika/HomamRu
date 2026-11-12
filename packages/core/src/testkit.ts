@@ -1,11 +1,12 @@
 /**
  * Помощники для тестов ядра. В игре не используются.
  */
-import { DAILY_MOVEMENT, heroIdOf } from "./game.ts";
+import { CREATURES } from "./battle/testkit.ts";
+import { createGame, DAILY_MOVEMENT, heroIdOf } from "./game.ts";
 import { NO_RESOURCES } from "./objects.ts";
 import { createRng } from "./rng.ts";
 import { STATE_VERSION } from "./types.ts";
-import type { GameState, Position } from "./types.ts";
+import type { GameState, MapObjectDefinition, Position } from "./types.ts";
 
 export interface Picture {
   readonly state: GameState;
@@ -22,6 +23,14 @@ function findSymbol(rows: readonly string[], symbol: string): Position | undefin
   }
   return undefined;
 }
+
+export { CREATURES } from "./battle/testkit.ts";
+
+/** Открытое поле 8×8 с героем в левом верхнем углу — рисунок для `gameWith`. */
+export const OPEN_FIELD = ["S.......", ...Array.from({ length: 7 }, () => "........")];
+
+/** Армия героя в тестах, где армия не важна. */
+export const TEST_ARMY = [{ creature: "militia", count: 10 }];
 
 /**
  * Строит состояние по рисунку из спецификации: `S` — герой, `T` — цель,
@@ -53,10 +62,18 @@ export function fromPicture(rows: readonly string[]): Picture {
       x: position.x,
       y: position.y,
       movement: DAILY_MOVEMENT,
+      attack: 0,
+      defense: 0,
+      army: TEST_ARMY,
+      experience: 0,
+      level: 1,
     })),
     objects: [],
     day: 1,
     currentPlayer: 0,
+    creatures: CREATURES,
+    battle: null,
+    outcome: null,
   };
   return { state, target: findSymbol(rows, "T") ?? start };
 }
@@ -65,4 +82,48 @@ export function fromPicture(rows: readonly string[]): Picture {
 export function openField(size: number): GameState {
   const rows = Array.from({ length: size }, (_, y) => (y === 0 ? "S" : ".") + ".".repeat(size - 1));
   return fromPicture(rows).state;
+}
+
+/**
+ * Партия для тестов этапа 3: карта рисунком (`S` — герой), объекты и армия героя.
+ * Армия записывается как в тестах боя: `"militia:20"`.
+ */
+export function gameWith(
+  rows: readonly string[],
+  objects: readonly MapObjectDefinition[],
+  options: { army?: readonly string[]; attack?: number; defense?: number; seed?: number } = {},
+): GameState {
+  const start = findSymbol(rows, "S");
+  if (start === undefined) {
+    throw new Error("На рисунке нет героя (S).");
+  }
+  const army = (options.army ?? ["militia:10"]).map((entry) => {
+    const [creature = "", count = "1"] = entry.split(":");
+    return { creature, count: Number(count) };
+  });
+  const created = createGame(
+    {
+      id: "picture",
+      name: "Рисунок",
+      terrain: rows.map((row) => row.replaceAll("S", ".")),
+      players: [{ hero: { ...start, attack: options.attack, defense: options.defense, army } }],
+      objects,
+    },
+    options.seed ?? 1,
+    CREATURES,
+  );
+  if (!created.ok) {
+    throw new Error(created.errors.map((error) => `${error.field}: ${error.message}`).join("; "));
+  }
+  return created.state;
+}
+
+/** Ставит героя в клетку в обход правил — для положений, до которых долго идти. */
+export function placeHero(state: GameState, x: number, y: number, movement?: number): GameState {
+  return {
+    ...state,
+    heroes: state.heroes.map((hero, index) =>
+      index === 0 ? { ...hero, x, y, movement: movement ?? hero.movement } : hero,
+    ),
+  };
 }

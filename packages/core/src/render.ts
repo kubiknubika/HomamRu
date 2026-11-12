@@ -3,13 +3,25 @@
  * Спецификация: docs/mechanics/05-diagnostics.md.
  */
 import { DAILY_MOVEMENT, heroIdOf } from "./game.ts";
+import { renderBattle } from "./battle/render.ts";
+import { quantityWord } from "./guards.ts";
 import { MINE_INCOME } from "./objects.ts";
+import { formatBattleSideEvent } from "./renderEvents.ts";
 import { calendarOf } from "./time.ts";
 import { RESOURCES } from "./types.ts";
-import type { GameEvent, GameState, ObjectState, Position, Resources } from "./types.ts";
+import type {
+  ArmyStack,
+  GameEvent,
+  GameState,
+  HeroState,
+  ObjectState,
+  Position,
+  Resources,
+} from "./types.ts";
 
 const PATH_SYMBOL = "*";
 const MINE_SYMBOL = "M";
+const GUARD_SYMBOL = "G";
 const PILE_SYMBOLS = { gold: "$", wood: "w", ore: "o" } as const;
 
 const RESOURCE_NAMES = { gold: "золото", wood: "дерево", ore: "руда" } as const;
@@ -32,8 +44,32 @@ function formatIncome(income: Resources): string {
     .join(", ");
 }
 
-function formatObject(object: ObjectState): string {
+function symbolOf(object: ObjectState): string {
+  if (object.type === "pile") {
+    return PILE_SYMBOLS[object.resource];
+  }
+  return object.type === "mine" ? MINE_SYMBOL : GUARD_SYMBOL;
+}
+
+/** Название существа; если его нет среди существ партии — его идентификатор. */
+function creatureName(state: GameState, id: string): string {
+  return state.creatures.find((creature) => creature.id === id)?.name ?? id;
+}
+
+function formatArmy(state: GameState, army: readonly ArmyStack[]): string {
+  return army.map((stack) => `${creatureName(state, stack.creature)} ${stack.count}`).join(", ");
+}
+
+function formatHero(state: GameState, hero: HeroState): string {
+  return `Герой ${hero.id}: уровень ${hero.level}, опыт ${hero.experience}, атака ${hero.attack}, защита ${hero.defense}; армия: ${formatArmy(state, hero.army)}.`;
+}
+
+function formatObject(state: GameState, object: ObjectState): string {
   const place = `${object.id} ${formatCell(object)}`;
+  if (object.type === "guard") {
+    // Разработчику видны и слово, и точное число (21-guards.md).
+    return `${place}: охранник, ${creatureName(state, object.creature)}, ${quantityWord(object.count)} (${object.count})`;
+  }
   if (object.type === "pile") {
     return `${place}: кучка, ${RESOURCE_NAMES[object.resource]} ${object.amount}`;
   }
@@ -64,7 +100,7 @@ export function renderState(state: GameState, path: readonly Position[] = []): s
   for (const object of state.objects) {
     const row = rows[object.y];
     if (row !== undefined) {
-      row[object.x] = object.type === "mine" ? MINE_SYMBOL : PILE_SYMBOLS[object.resource];
+      row[object.x] = symbolOf(object);
     }
   }
   for (const hero of state.heroes) {
@@ -82,14 +118,23 @@ export function renderState(state: GameState, path: readonly Position[] = []): s
       (hero) =>
         `Герой ${hero.id}: клетка ${formatCell(hero)}, запас хода ${hero.movement} из ${DAILY_MOVEMENT}.`,
     ),
+    ...state.heroes.map((hero) => formatHero(state, hero)),
     "",
     `${" ".repeat(labelWidth)} ${header}`,
     ...rows.map((row, y) => `${String(y).padStart(labelWidth)} ${row.join("")}`),
     "",
-    ...state.objects.map(formatObject),
+    ...state.objects.map((object) => formatObject(state, object)),
     ...state.players.map(
       (player) => `Игрок ${player.id + 1}: ${formatResources(player.resources)}.`,
     ),
+    ...(state.outcome === null ? [] : ["Партия окончена: поражение."]),
+    ...(state.battle === null
+      ? []
+      : [
+          "",
+          `Идёт бой: герой ${state.battle.heroId} против охранника ${state.battle.guardId}.`,
+          renderBattle(state.battle.state),
+        ]),
   ];
   return lines.join("\n");
 }
@@ -111,5 +156,7 @@ export function formatEvent(event: GameEvent): string {
     }
     case "incomeReceived":
       return `Игрок ${event.player + 1} получил доход: ${formatIncome(event.income)}`;
+    default:
+      return formatBattleSideEvent(event);
   }
 }

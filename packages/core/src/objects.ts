@@ -2,6 +2,7 @@
  * Объекты карты и ресурсы игроков: кучки, шахты, доход.
  * Спецификация: docs/mechanics/20-map-objects.md.
  */
+import { POWER_PER_CREATURE } from "./guards.ts";
 import { nextInt } from "./rng.ts";
 import type { RngState } from "./rng.ts";
 import { RESOURCES } from "./types.ts";
@@ -59,6 +60,10 @@ export function createObjects(
     const { x, y } = definition;
     if (definition.type === "mine") {
       return { id, type: "mine", x, y, kind: definition.kind, owner: null };
+    }
+    if (definition.type === "guard") {
+      const { creature, count } = definition;
+      return { id, type: "guard", x, y, creature, count, power: count * POWER_PER_CREATURE };
     }
     const { resource } = definition;
     if (definition.amount !== undefined) {

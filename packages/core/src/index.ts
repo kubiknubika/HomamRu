@@ -11,6 +11,11 @@ export { createRng, nextFloat, nextInt, nextUint32 } from "./rng.ts";
 export type { RngResult, RngState } from "./rng.ts";
 export { calendarOf } from "./time.ts";
 export { incomeOf, objectAt } from "./objects.ts";
+export { guardWatching, quantityWord } from "./guards.ts";
+export { guardBattleCommand, playBattleOut } from "./battleAuto.ts";
+export type { BattlePlayedOut } from "./battleAuto.ts";
+export { experienceForLevel, levelOf, MAX_LEVEL } from "./hero.ts";
+export type { BattleOutcome, StackLoss } from "./events.ts";
 export { DIRECTIONS, MINE_KINDS, REJECT_CODES, RESOURCES, STATE_VERSION } from "./types.ts";
 export type {
   Command,
@@ -19,7 +24,10 @@ export type {
   Direction,
   GameEvent,
   GameState,
+  ArmyStack,
+  GuardState,
   HeroState,
+  MapBattle,
   MapDefinition,
   MapObjectDefinition,
   ObjectState,

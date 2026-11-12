@@ -1,3 +1,4 @@
+import { TEST_ARMY } from "@homamru/core/testkit";
 import { describe, expect, it } from "vitest";
 import { parseMapFile } from "./map.ts";
 
@@ -19,7 +20,11 @@ describe("файл карты", () => {
     const result = parseMapFile("data/maps/test.yaml", mapText());
     expect(result).toMatchObject({
       ok: true,
-      value: { id: "test", name: "Проверочная", players: [{ hero: { x: 1, y: 1 } }] },
+      value: {
+        id: "test",
+        name: "Проверочная",
+        players: [{ hero: { x: 1, y: 1, army: TEST_ARMY } }],
+      },
     });
     expect(result.ok ? result.value.terrain : []).toHaveLength(8);
   });

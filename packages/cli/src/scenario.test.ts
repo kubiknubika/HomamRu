@@ -1,3 +1,4 @@
+import { TEST_ARMY } from "@homamru/core/testkit";
 import { basename } from "node:path";
 import { describe, expect, it } from "vitest";
 import type { MapDefinition } from "@homamru/core";
@@ -9,7 +10,7 @@ const MAP: MapDefinition = {
   id: "open",
   name: "Поле",
   terrain: Array.from({ length: 8 }, () => "........"),
-  players: [{ hero: { x: 0, y: 0 } }],
+  players: [{ hero: { x: 0, y: 0, army: TEST_ARMY } }],
 };
 
 function scenarioOf(changes: Partial<Scenario>): Scenario {

@@ -1,6 +1,7 @@
 // Бюджеты скорости ядра из docs/mechanics/stage-1.md.
 // Тест лежит здесь, а не в ядре: ядру запрещено системное время.
 // Стоимости путей посчитаны скриптом docs/mechanics/examples/movement.py.
+import { CREATURES, TEST_ARMY } from "@homamru/core/testkit";
 import { performance } from "node:perf_hooks";
 import { describe, expect, it } from "vitest";
 import { applyCommand, createGame, findPath } from "@homamru/core";
@@ -12,8 +13,14 @@ const COMMAND_BUDGET_MS = 5;
 
 function gameOn(terrain: string[]): GameState {
   const created = createGame(
-    { id: "budget", name: "Нагрузка", terrain, players: [{ hero: { x: 0, y: 0 } }] },
+    {
+      id: "budget",
+      name: "Нагрузка",
+      terrain,
+      players: [{ hero: { x: 0, y: 0, army: TEST_ARMY } }],
+    },
     1,
+    CREATURES,
   );
   if (!created.ok) {
     throw new Error(created.errors.map((error) => error.message).join("\n"));

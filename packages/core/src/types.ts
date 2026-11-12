@@ -2,10 +2,17 @@
  * Типы игрового состояния, команд и событий.
  * Спецификация: docs/mechanics/00-state-and-commands.md.
  */
+import type {
+  BattleCommand,
+  BattleRejectCode,
+  BattleState,
+  CreatureDefinition,
+} from "./battle/types.ts";
+import type { GameEvent } from "./events.ts";
 import type { RngState } from "./rng.ts";
 
 /** Номер версии формата состояния. Увеличивается при любом изменении формата. */
-export const STATE_VERSION = 2;
+export const STATE_VERSION = 3;
 
 /** Направления шага в порядке из спецификации перемещения. */
 export const DIRECTIONS = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"] as const;
@@ -37,7 +44,29 @@ export type MapObjectDefinition =
       /** Если не задано — выбирается случайно при создании партии. */
       readonly amount?: number | undefined;
     }
-  | { readonly type: "mine"; readonly x: number; readonly y: number; readonly kind: MineKind };
+  | { readonly type: "mine"; readonly x: number; readonly y: number; readonly kind: MineKind }
+  | {
+      readonly type: "guard";
+      readonly x: number;
+      readonly y: number;
+      readonly creature: string;
+      readonly count: number;
+    };
+
+/** Отряд армии: вид существ и их число. */
+export interface ArmyStack {
+  readonly creature: string;
+  readonly count: number;
+}
+
+/** Герой в файле карты: клетка, характеристики, армия (22-hero.md). */
+export interface HeroDefinition extends Position {
+  /** По умолчанию 0. */
+  readonly attack?: number | undefined;
+  /** По умолчанию 0. */
+  readonly defense?: number | undefined;
+  readonly army: readonly ArmyStack[];
+}
 
 /** Описание карты до начала партии: то же, что в файле карты. */
 export interface MapDefinition {
@@ -47,7 +76,7 @@ export interface MapDefinition {
   readonly terrain: readonly string[];
   /** Игроки по порядку хода. */
   readonly players: readonly {
-    readonly hero: Position;
+    readonly hero: HeroDefinition;
     /** Начальный запас; чего нет — ноль. */
     readonly resources?: ResourceAmounts | undefined;
   }[];
@@ -93,7 +122,19 @@ interface MineState {
   readonly owner: number | null;
 }
 
-export type ObjectState = PileState | MineState;
+/** Охранник: нейтральный отряд (21-guards.md). */
+export interface GuardState {
+  readonly id: string;
+  readonly type: "guard";
+  readonly x: number;
+  readonly y: number;
+  readonly creature: string;
+  readonly count: number;
+  /** Число существ в тысячных долях: в нём копится дробь недельного роста. */
+  readonly power: number;
+}
+
+export type ObjectState = PileState | MineState | GuardState;
 
 export interface HeroState {
   readonly id: string;
@@ -103,6 +144,19 @@ export interface HeroState {
   readonly y: number;
   /** Остаток запаса хода на сегодня. */
   readonly movement: number;
+  readonly attack: number;
+  readonly defense: number;
+  /** От 1 до 7 отрядов; порядок задаёт места на поле боя. */
+  readonly army: readonly ArmyStack[];
+  readonly experience: number;
+  readonly level: number;
+}
+
+/** Идущий бой героя с охранником (23-map-battle.md). */
+export interface MapBattle {
+  readonly heroId: string;
+  readonly guardId: string;
+  readonly state: BattleState;
 }
 
 export interface GameState {
@@ -117,6 +171,12 @@ export interface GameState {
   readonly day: number;
   /** Номер игрока, чей сейчас ход. */
   readonly currentPlayer: number;
+  /** Существа игры целиком: состояние не зависит от файлов. */
+  readonly creatures: readonly CreatureDefinition[];
+  /** Идущий бой; `null` — боя нет. */
+  readonly battle: MapBattle | null;
+  /** Итог партии; `null` — партия идёт. На этапе 3 бывает только поражение. */
+  readonly outcome: "defeat" | null;
 }
 
 export interface MoveHeroCommand {
@@ -131,58 +191,8 @@ export interface EndTurnCommand {
   readonly player: number;
 }
 
-export type Command = MoveHeroCommand | EndTurnCommand;
-
-interface HeroSteppedEvent {
-  readonly type: "heroStepped";
-  readonly heroId: string;
-  readonly from: Position;
-  readonly to: Position;
-  readonly cost: number;
-  readonly movementLeft: number;
-}
-
-interface TurnEndedEvent {
-  readonly type: "turnEnded";
-  readonly player: number;
-}
-
-interface DayStartedEvent {
-  readonly type: "dayStarted";
-  readonly day: number;
-  readonly month: number;
-  readonly week: number;
-  readonly weekday: number;
-}
-
-interface PilePickedEvent {
-  readonly type: "pilePicked";
-  readonly objectId: string;
-  readonly player: number;
-  readonly resource: Resource;
-  readonly amount: number;
-}
-
-interface MineCapturedEvent {
-  readonly type: "mineCaptured";
-  readonly objectId: string;
-  readonly owner: number;
-  readonly previousOwner: number | null;
-}
-
-interface IncomeReceivedEvent {
-  readonly type: "incomeReceived";
-  readonly player: number;
-  readonly income: Resources;
-}
-
-export type GameEvent =
-  | HeroSteppedEvent
-  | TurnEndedEvent
-  | DayStartedEvent
-  | PilePickedEvent
-  | MineCapturedEvent
-  | IncomeReceivedEvent;
+/** Команды карты и команды боя: бой — часть партии. */
+export type Command = MoveHeroCommand | EndTurnCommand | BattleCommand;
 
 /** Коды отказа. Общие — в 00-state-and-commands.md, остальные — в документах команд. */
 export const REJECT_CODES = [
@@ -194,8 +204,12 @@ export const REJECT_CODES = [
   "EMPTY_PATH",
   "STEP_BLOCKED",
   "NOT_ENOUGH_MOVEMENT",
+  "BATTLE_IN_PROGRESS",
+  "NO_BATTLE",
+  "GAME_OVER",
 ] as const;
-export type RejectCode = (typeof REJECT_CODES)[number];
+/** Отказ команды партии: свой код или код отказа команды боя (12-battle-actions.md). */
+export type RejectCode = (typeof REJECT_CODES)[number] | BattleRejectCode;
 
 interface CommandAccepted {
   readonly ok: true;
@@ -214,3 +228,5 @@ export type CommandResult = CommandAccepted | CommandRejected;
 export function reject(code: RejectCode, message: string): CommandRejected {
   return { ok: false, code, message };
 }
+
+export type { GameEvent } from "./events.ts";

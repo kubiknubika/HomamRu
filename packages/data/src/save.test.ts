@@ -1,3 +1,4 @@
+import { CREATURES, TEST_ARMY } from "@homamru/core/testkit";
 import { applyCommand, createGame } from "@homamru/core";
 import type { Command, GameState } from "@homamru/core";
 import { describe, expect, it } from "vitest";
@@ -12,9 +13,10 @@ function newState(): GameState {
       id: "t",
       name: "Проверочная",
       terrain: Array.from({ length: 8 }, () => "........"),
-      players: [{ hero: { x: 1, y: 1 } }],
+      players: [{ hero: { x: 1, y: 1, army: TEST_ARMY } }],
     },
     1,
+    CREATURES,
   );
   if (!created.ok) {
     throw new Error("карта не создалась");

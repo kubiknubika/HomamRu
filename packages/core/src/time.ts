@@ -2,6 +2,7 @@
  * Ходы игроков и календарь. Спецификация: docs/mechanics/03-time.md.
  */
 import { DAILY_MOVEMENT } from "./game.ts";
+import { growGuards } from "./guards.ts";
 import { giveIncome } from "./objects.ts";
 import type { CommandResult, EndTurnCommand, GameEvent, GameState } from "./types.ts";
 
@@ -38,6 +39,8 @@ export function applyEndTurn(state: GameState, command: EndTurnCommand): Command
     currentPlayer: 0,
     heroes: state.heroes.map((hero) => ({ ...hero, movement: DAILY_MOVEMENT })),
   };
+  // Первый день недели, начиная со второй: растут охранники (21-guards.md).
+  const grown = calendarOf(day).weekday === 1 ? growGuards(started, events) : started;
   // Доход приходит в начале хода владельца шахт, до его первой команды.
-  return { ok: true, state: giveIncome(started, 0, events), events };
+  return { ok: true, state: giveIncome(grown, 0, events), events };
 }

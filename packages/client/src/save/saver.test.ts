@@ -1,3 +1,4 @@
+import { CREATURES, TEST_ARMY } from "@homamru/core/testkit";
 import { createGame } from "@homamru/core";
 import { chooseSave } from "@homamru/data";
 import type { SaveBody, SaveSlot } from "@homamru/data";
@@ -11,9 +12,10 @@ function bodyOnDay(day: number): SaveBody {
       id: "t",
       name: "Проверочная",
       terrain: Array.from({ length: 8 }, () => "........"),
-      players: [{ hero: { x: 1, y: 1 } }],
+      players: [{ hero: { x: 1, y: 1, army: TEST_ARMY } }],
     },
     1,
+    CREATURES,
   );
   if (!created.ok) {
     throw new Error("карта не создалась");

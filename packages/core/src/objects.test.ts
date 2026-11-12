@@ -1,3 +1,5 @@
+import { CREATURES } from "./battle/testkit.ts";
+import { TEST_ARMY } from "./testkit.ts";
 import { describe, expect, it } from "vitest";
 import { applyCommand } from "./commands.ts";
 import { createGame } from "./game.ts";
@@ -14,16 +16,16 @@ function mapOf(objects: MapObjectDefinition[], players = 1): MapDefinition {
     id: "t",
     name: "t",
     terrain: TERRAIN,
-    players: [{ hero: { x: 1, y: 1 }, resources: { gold: 100 } }, { hero: { x: 6, y: 6 } }].slice(
-      0,
-      players,
-    ),
+    players: [
+      { hero: { x: 1, y: 1, army: TEST_ARMY }, resources: { gold: 100 } },
+      { hero: { x: 6, y: 6, army: TEST_ARMY } },
+    ].slice(0, players),
     objects,
   };
 }
 
 function start(objects: MapObjectDefinition[], seed = 1, players = 1): GameState {
-  const created = createGame(mapOf(objects, players), seed);
+  const created = createGame(mapOf(objects, players), seed, CREATURES);
   if (!created.ok) {
     throw new Error("партия не создана");
   }
@@ -93,7 +95,7 @@ describe("создание партии с объектами — 20-map-objects
     const base = mapOf([]);
     const terrain = ["..#.....", ...TERRAIN.slice(1)];
     const errorsOf = (objects: MapObjectDefinition[], rows = TERRAIN) =>
-      validateMap({ ...base, terrain: rows, objects }).map((error) => error.field);
+      validateMap({ ...base, terrain: rows, objects }, CREATURES).map((error) => error.field);
     expect(errorsOf([{ type: "pile", x: 8, y: 0, resource: "gold" }])).toEqual(["objects.0"]);
     expect(errorsOf([{ type: "mine", x: 2, y: 0, kind: "ore-pit" }], terrain)).toEqual([
       "objects.0",
@@ -108,8 +110,13 @@ describe("создание партии с объектами — 20-map-objects
     expect(errorsOf([{ type: "pile", x: 3, y: 3, resource: "gold", amount: 0 }])).toEqual([
       "objects.0",
     ]);
-    const negative = { ...base, players: [{ hero: { x: 1, y: 1 }, resources: { wood: -1 } }] };
-    expect(validateMap(negative).map((error) => error.field)).toEqual(["players.0.resources.wood"]);
+    const negative = {
+      ...base,
+      players: [{ hero: { x: 1, y: 1, army: TEST_ARMY }, resources: { wood: -1 } }],
+    };
+    expect(validateMap(negative, CREATURES).map((error) => error.field)).toEqual([
+      "players.0.resources.wood",
+    ]);
   });
 });
 
@@ -223,7 +230,7 @@ describe("текстовый вывод объектов", () => {
       { type: "mine", x: 6, y: 0, kind: "gold-mine" },
     ]);
     const lines = renderState(state).split("\n");
-    expect(lines[4]).toBe(" 0 ...$woM.");
+    expect(lines[5]).toBe(" 0 ...$woM.");
     expect(lines.slice(-6)).toEqual([
       "",
       "o1 (3, 0): кучка, золото 700",
