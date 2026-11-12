@@ -38,7 +38,8 @@ describe("автобои — 15-battle-ai.md", () => {
       "battleMove",
       "battleShoot",
     ]);
-  });
+    // Тысяча боёв идёт около 3 с; на медленной машине проверки не укладывалась в обычные 5 с.
+  }, 30_000);
 
   it("случайный бой по одному сиду всегда один и тот же, по разным — разный", () => {
     expect(randomBattle(5, CREATURES)).toEqual(randomBattle(5, CREATURES));

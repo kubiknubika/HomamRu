@@ -1,3 +1,4 @@
+import type { BattleSummary } from "../game/captions.ts";
 import { activeStackOf, canShoot, findStack, turnQueue } from "@homamru/core";
 import type { BattleResult, BattleState } from "@homamru/core";
 import { useEffect, useState, useSyncExternalStore } from "react";
@@ -10,6 +11,13 @@ interface BattleHudProps {
   readonly battle: BattleSession;
   /** Закрывает бой и возвращает на карту. */
   readonly onClose: () => void;
+  /**
+   * Итог боя внутри партии: опыт и уровни. У такого боя нельзя закрыть экран посреди боя,
+   * а после поражения остаётся одна кнопка — «Новая игра». У проверочного боя итога нет.
+   */
+  readonly summary?: BattleSummary | null | undefined;
+  /** Бой идёт внутри партии, а не отдельно от неё. */
+  readonly inGame?: boolean | undefined;
 }
 
 /** Сколько ближайших отрядов показывает очередь ходов; что не влезло по ширине — обрезается. */
@@ -72,18 +80,30 @@ function Losses({ state, side }: { readonly state: BattleState; readonly side: 0
 }
 
 /** Интерфейс поверх поля боя: очередь ходов, кнопки, журнал, окна. */
-export function BattleHud({ battle, onClose }: BattleHudProps) {
+function Rewards({ summary }: { readonly summary: BattleSummary }) {
+  return (
+    <div className="dialog-text">
+      <div>Опыт: +{summary.experience}</div>
+      {summary.levels.map((line) => (
+        <div key={line}>{line}</div>
+      ))}
+    </div>
+  );
+}
+
+export function BattleHud({ battle, onClose, summary, inGame = false }: BattleHudProps) {
   const snapshot = useSyncExternalStore(battle.subscribe, battle.getSnapshot);
   const [confirmFlee, setConfirmFlee] = useState(false);
   const [journal, setJournal] = useState(false);
   const portrait = usePortrait();
   const { state, selection, locked, log, history, inspected } = snapshot;
+  const won = state.result?.winner === PLAYER_SIDE;
 
   if (portrait) {
     return (
       <Dialog title="Поверните устройство">
         <div className="dialog-text">Бой идёт только в альбомной ориентации.</div>
-        <DialogButton label="Закрыть бой" onClick={onClose} />
+        {!inGame && <DialogButton label="Закрыть бой" onClick={onClose} />}
       </Dialog>
     );
   }
@@ -201,11 +221,12 @@ export function BattleHud({ battle, onClose }: BattleHudProps) {
         </Dialog>
       )}
       {state.result !== null && !locked && (
-        <Dialog title={state.result.winner === PLAYER_SIDE ? "Победа" : "Поражение"}>
+        <Dialog title={won ? "Победа" : "Поражение"}>
           <div className="dialog-text">{reasonOf(state.result)}</div>
           <Losses state={state} side={0} />
           <Losses state={state} side={1} />
-          <DialogButton label="Закрыть" onClick={onClose} />
+          {won && summary !== null && summary !== undefined && <Rewards summary={summary} />}
+          <DialogButton label={inGame && !won ? "Новая игра" : "Закрыть"} onClick={onClose} />
         </Dialog>
       )}
     </>

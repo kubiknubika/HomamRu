@@ -128,7 +128,16 @@ export function attackableTargets(snapshot: BattleSnapshot): StackState[] {
     : enemies.filter((enemy) => attackCells(state, me, enemy).length > 0);
 }
 
-export function createBattleSession(initial: BattleState): BattleSession {
+/**
+ * Вызывается с каждой принятой командой боя — и игрока, и компьютера.
+ * Бой внутри партии так передаёт команды партии (docs/mechanics/23-map-battle.md).
+ */
+type OnBattleCommand = (command: BattleCommand) => void;
+
+export function createBattleSession(
+  initial: BattleState,
+  onCommand?: OnBattleCommand,
+): BattleSession {
   let snapshot: BattleSnapshot = {
     state: initial,
     selection: null,
@@ -157,6 +166,7 @@ export function createBattleSession(initial: BattleState): BattleSession {
       publish({ selection: null });
       return;
     }
+    onCommand?.(command);
     const route = routeOf(snapshot.state, command);
     const line = describeEvents(result.events, result.state);
     const history = line === "" ? snapshot.history : [...snapshot.history, line];

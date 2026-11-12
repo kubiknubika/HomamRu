@@ -10,7 +10,7 @@ export { formatEvent, renderState } from "./render.ts";
 export { createRng, nextFloat, nextInt, nextUint32 } from "./rng.ts";
 export type { RngResult, RngState } from "./rng.ts";
 export { calendarOf } from "./time.ts";
-export { incomeOf, objectAt } from "./objects.ts";
+export { incomeOf, MINE_INCOME, objectAt } from "./objects.ts";
 export { GUARD_MAX_COUNT, guardWatching, POWER_PER_CREATURE, quantityWord } from "./guards.ts";
 export { MAX_STACKS } from "./battle/types.ts";
 export { guardBattleCommand, playBattleOut } from "./battleAuto.ts";

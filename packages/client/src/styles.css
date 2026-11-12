@@ -51,16 +51,81 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-.hud-end-day {
+.hud-resources {
+  display: flex;
+  gap: 14px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Цвета ресурсов те же, что у кучек и шахт на карте. */
+.hud-resource-gold {
+  color: #e9c53a;
+}
+
+.hud-resource-wood {
+  color: #c48a52;
+}
+
+.hud-resource-ore {
+  color: #c3c9d3;
+}
+
+/* Кнопки карты справа внизу: «Герой» над «Концом дня». */
+.hud-actions {
+  position: absolute;
   right: max(12px, env(safe-area-inset-right));
   bottom: max(12px, env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.hud-actions .hud,
+.hud-notes .hud {
+  position: static;
+}
+
+.hud-button {
   min-width: 120px;
   min-height: 48px;
   padding: 0 18px;
-  background: #3a2f1a;
+  background: #23303a;
   font-size: 16px;
-  font-weight: 600;
   cursor: pointer;
+}
+
+.hud-end-day {
+  background: #3a2f1a;
+  font-weight: 600;
+}
+
+/* Подписи и сообщения: посередине внизу, касания проходят сквозь них к карте. */
+.hud-notes {
+  position: absolute;
+  right: 0;
+  bottom: calc(max(12px, env(safe-area-inset-bottom)) + 180px);
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  pointer-events: none;
+}
+
+.hud-caption,
+.hud-message {
+  max-width: 100%;
+  padding: 8px 14px;
+  font-size: 15px;
+  line-height: 1.4;
+  text-align: center;
+  pointer-events: none;
+}
+
+.hud-caption {
+  border-color: #b5483f;
 }
 
 .hud-end-day:active {
@@ -106,7 +171,7 @@ body {
 /* Узкий экран (книжная ориентация): отладочный угол уходит под панель с датой. */
 @media (max-width: 560px) {
   .hud-debug {
-    top: calc(max(12px, env(safe-area-inset-top)) + 68px);
+    top: calc(max(12px, env(safe-area-inset-top)) + 92px);
   }
 }
 
@@ -310,4 +375,131 @@ body {
 .battle-journal div {
   padding: 3px 0;
   border-bottom: 1px solid #2c323c;
+}
+
+/* Условные обозначения: значки повторяют заглушки карты (game/stubs.ts, game/objectStubs.ts). */
+.legend {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 14px;
+  line-height: 1.3;
+}
+
+.legend-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.legend-cell {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 3px;
+  background: #5d8a43;
+}
+
+.legend-icon {
+  display: flex;
+  box-sizing: border-box;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.legend-hero {
+  width: 24px;
+  height: 24px;
+  border: 2px solid #fff3d6;
+  border-radius: 50%;
+  background: #c8372d;
+}
+
+.legend-guard {
+  width: 22px;
+  height: 22px;
+  background: #8a6fa8;
+  /* Ромб, как на карте. */
+  clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+}
+
+.legend-mine {
+  width: 22px;
+  height: 22px;
+  border: 2px solid #1b1e24;
+}
+
+.legend-pile {
+  width: 12px;
+  height: 12px;
+  border: 2px solid #1b1e24;
+  transform: rotate(45deg);
+}
+
+.legend-gold {
+  background: #e9c53a;
+}
+
+.legend-wood {
+  background: #8b5a2b;
+}
+
+.legend-ore {
+  background: #a3a9b3;
+}
+
+.legend-flag {
+  width: 0;
+  height: 0;
+  border-top: 7px solid transparent;
+  border-bottom: 7px solid transparent;
+  border-left: 14px solid #c8372d;
+}
+
+.legend-obstacle {
+  width: 32px;
+  height: 32px;
+  border: 5px solid #4a4f5a;
+  border-radius: 3px;
+  background: #6b7280;
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.legend-today {
+  background: #fff3a0;
+}
+
+.legend-later {
+  background: #9aa3b5;
+}
+
+.legend-ring {
+  width: 22px;
+  height: 22px;
+  border: 4px solid #fff3a0;
+  border-radius: 50%;
+  background: radial-gradient(#fff3a0 0 30%, transparent 34%);
+}
+
+.legend-cross {
+  color: #e2463c;
+  font-size: 22px;
+}
+
+.legend-zone {
+  width: 32px;
+  height: 32px;
+  border-radius: 3px;
+  background: rgb(226 70 60 / 45%);
 }
