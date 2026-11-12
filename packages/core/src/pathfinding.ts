@@ -31,20 +31,29 @@ const STEPS = DIRECTIONS.flatMap((direction) => {
   return delta === undefined ? [] : [{ direction, delta, cost: stepCost(delta) }];
 });
 
-/** Клетки, куда нельзя встать: не земля или занята другим героем. */
+/**
+ * Клетки, куда нельзя встать: 1 — не земля или занята другим героем;
+ * 2 — объект: его клетка может быть только концом пути (20-map-objects.md).
+ */
+const BLOCKED = 1;
+const OBJECT = 2;
+
 function blockedCells(state: GameState, heroId: string): Uint8Array {
   const { map } = state;
   const blocked = new Uint8Array(map.width * map.height);
   for (let y = 0; y < map.height; y += 1) {
     for (let x = 0; x < map.width; x += 1) {
       if (!isLand(map, x, y)) {
-        blocked[y * map.width + x] = 1;
+        blocked[y * map.width + x] = BLOCKED;
       }
     }
   }
+  for (const object of state.objects) {
+    blocked[object.y * map.width + object.x] = OBJECT;
+  }
   for (const other of state.heroes) {
     if (other.id !== heroId) {
-      blocked[other.y * map.width + other.x] = 1;
+      blocked[other.y * map.width + other.x] = BLOCKED;
     }
   }
   return blocked;
@@ -84,7 +93,10 @@ function costsToTarget(
         continue;
       }
       const previous = py * map.width + px;
-      if (blocked[previous] === 1 || !terrainAllowsStep(map, px, py, step.delta)) {
+      // Сквозь объект пути нет; но герой может стоять на шахте в начале пути.
+      const closed =
+        blocked[previous] === BLOCKED || (blocked[previous] === OBJECT && previous !== start);
+      if (closed || !terrainAllowsStep(map, px, py, step.delta)) {
         continue;
       }
       const total = cost + step.cost;
@@ -130,7 +142,7 @@ export function findPath(state: GameState, heroId: string, target: Position): Pa
   const blocked = blockedCells(state, heroId);
   const start = hero.y * map.width + hero.x;
   const goal = target.y * map.width + target.x;
-  if (blocked[goal] === 1) {
+  if (blocked[goal] === BLOCKED) {
     return NOT_FOUND;
   }
   const costs = costsToTarget(map, blocked, start, goal);
@@ -148,7 +160,8 @@ export function findPath(state: GameState, heroId: string, target: Position): Pa
       const cell = (y + step.delta.dy) * map.width + (x + step.delta.dx);
       return (
         terrainAllowsStep(map, x, y, step.delta) &&
-        blocked[cell] !== 1 &&
+        blocked[cell] !== BLOCKED &&
+        (blocked[cell] !== OBJECT || cell === goal) &&
         costs[cell] === left - step.cost
       );
     });

@@ -4,12 +4,12 @@
  */
 import type { Direction, MapDefinition, MapState, Position } from "./types.ts";
 
-const TERRAIN_LAND = ".";
-const TERRAIN_OBSTACLE = "#";
+export const TERRAIN_LAND = ".";
+export const TERRAIN_OBSTACLE = "#";
 
 const MIN_MAP_SIZE = 8;
 const MAX_MAP_SIZE = 144;
-const MAX_PLAYERS = 2;
+export const MAX_PLAYERS = 2;
 
 const STRAIGHT_STEP_COST = 100;
 const DIAGONAL_STEP_COST = 141;
@@ -127,6 +127,48 @@ export function validateMap(map: MapDefinition): MapError[] {
       errors.push({ field, message: `В клетке (${x}, ${y}) уже стоит другой герой.` });
     }
     taken.add(key);
+  });
+  errors.push(...objectErrors(map, taken));
+  return errors;
+}
+
+/** Проверяет объекты карты: место и числа (20-map-objects.md). `taken` — клетки героев. */
+function objectErrors(map: MapDefinition, taken: Set<string>): MapError[] {
+  const errors: MapError[] = [];
+  (map.objects ?? []).forEach((object, index) => {
+    const { x, y } = object;
+    const field = `objects.${index}`;
+    const symbol = map.terrain[y]?.[x];
+    if (!Number.isInteger(x) || !Number.isInteger(y) || symbol === undefined) {
+      errors.push({ field, message: `Объект стоит вне карты: клетка (${x}, ${y}).` });
+      return;
+    }
+    if (symbol !== TERRAIN_LAND) {
+      errors.push({ field, message: `Объект стоит не на земле: клетка (${x}, ${y}).` });
+    }
+    const key = `${x},${y}`;
+    if (taken.has(key)) {
+      errors.push({ field, message: `Клетка (${x}, ${y}) уже занята героем или другим объектом.` });
+    }
+    taken.add(key);
+    if (object.type === "pile" && object.amount !== undefined) {
+      if (!Number.isInteger(object.amount) || object.amount < 1) {
+        errors.push({
+          field,
+          message: `Количество в кучке ${object.amount}; должно быть целым, не меньше 1.`,
+        });
+      }
+    }
+  });
+  map.players.forEach((player, index) => {
+    for (const [resource, amount] of Object.entries(player.resources ?? {})) {
+      if (amount !== undefined && (!Number.isInteger(amount) || amount < 0)) {
+        errors.push({
+          field: `players.${index}.resources.${resource}`,
+          message: `Запас ${amount}; должен быть целым, не меньше 0.`,
+        });
+      }
+    }
   });
   return errors;
 }

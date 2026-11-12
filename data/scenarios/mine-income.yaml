@@ -1,0 +1,21 @@
+name: Занятая лесопилка даёт два дерева в день, начиная со следующего дня
+map: test-objects
+seed: 1
+steps:
+  # Мимо кучки дерева (1, 3) к лесопилке (1, 5).
+  - move: { hero: A, path: [SW, S, S, SE] }
+  - endTurn: {}
+  - endTurn: {}
+  # Сойти с шахты можно; пройти сквозь неё нельзя.
+  - move: { hero: A, path: [N, S, S] }
+    expectError: STEP_BLOCKED
+  - move: { hero: A, path: [E] }
+expect:
+  day: 3
+  heroes:
+    A: { x: 2, y: 5, movement: 900 }
+  objects:
+    o3: { owner: 0 }
+    o4: { owner: null }
+  resources:
+    - { gold: 100, wood: 4, ore: 0 }

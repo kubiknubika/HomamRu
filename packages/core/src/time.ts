@@ -2,6 +2,7 @@
  * Ходы игроков и календарь. Спецификация: docs/mechanics/03-time.md.
  */
 import { DAILY_MOVEMENT } from "./game.ts";
+import { giveIncome } from "./objects.ts";
 import type { CommandResult, EndTurnCommand, GameEvent, GameState } from "./types.ts";
 
 const DAYS_IN_WEEK = 7;
@@ -27,18 +28,16 @@ export function applyEndTurn(state: GameState, command: EndTurnCommand): Command
   const events: GameEvent[] = [{ type: "turnEnded", player: command.player }];
   const next = state.currentPlayer + 1;
   if (next < state.players.length) {
-    return { ok: true, state: { ...state, currentPlayer: next }, events };
+    return { ok: true, state: giveIncome({ ...state, currentPlayer: next }, next, events), events };
   }
   const day = state.day + 1;
   events.push({ type: "dayStarted", day, ...calendarOf(day) });
-  return {
-    ok: true,
-    state: {
-      ...state,
-      day,
-      currentPlayer: 0,
-      heroes: state.heroes.map((hero) => ({ ...hero, movement: DAILY_MOVEMENT })),
-    },
-    events,
+  const started: GameState = {
+    ...state,
+    day,
+    currentPlayer: 0,
+    heroes: state.heroes.map((hero) => ({ ...hero, movement: DAILY_MOVEMENT })),
   };
+  // Доход приходит в начале хода владельца шахт, до его первой команды.
+  return { ok: true, state: giveIncome(started, 0, events), events };
 }

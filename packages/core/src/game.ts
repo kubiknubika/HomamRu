@@ -3,6 +3,7 @@
  */
 import { validateMap } from "./map.ts";
 import type { MapError } from "./map.ts";
+import { addResources, createObjects, NO_RESOURCES } from "./objects.ts";
 import { createRng } from "./rng.ts";
 import { STATE_VERSION } from "./types.ts";
 import type { GameState, MapDefinition } from "./types.ts";
@@ -27,19 +28,24 @@ export function createGame(map: MapDefinition, seed: number): CreateGameResult {
   if (errors.length > 0) {
     return { ok: false, errors };
   }
+  const { objects, rng } = createObjects(map.objects ?? [], createRng(seed));
   return {
     ok: true,
     state: {
       version: STATE_VERSION,
-      rng: createRng(seed),
+      rng,
       map: {
         id: map.id,
         name: map.name,
         width: map.terrain[0]?.length ?? 0,
         height: map.terrain.length,
         terrain: [...map.terrain],
+        starts: map.players.map((player) => ({ x: player.hero.x, y: player.hero.y })),
       },
-      players: map.players.map((_, id) => ({ id })),
+      players: map.players.map((player, id) => ({
+        id,
+        resources: addResources(NO_RESOURCES, player.resources ?? {}),
+      })),
       heroes: map.players.map((player, owner) => ({
         id: heroIdOf(owner),
         owner,
@@ -47,6 +53,7 @@ export function createGame(map: MapDefinition, seed: number): CreateGameResult {
         y: player.hero.y,
         movement: DAILY_MOVEMENT,
       })),
+      objects,
       day: 1,
       currentPlayer: 0,
     },

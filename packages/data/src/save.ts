@@ -6,9 +6,12 @@
 import { replay, STATE_VERSION } from "@homamru/core";
 import type { Command, GameState } from "@homamru/core";
 import { z } from "zod";
-import { commandSchema, gameStateSchema } from "./state.ts";
+import { commandSchema, readState } from "./state.ts";
 
-/** Версия формата сохранения. Увеличивается при любом изменении состава записи. */
+/**
+ * Версия формата сохранения. Увеличивается при любом изменении состава записи.
+ * Пишется в запись для дампа; на загрузку не влияет.
+ */
 export const SAVE_FORMAT = 1;
 
 /** Содержимое сохранения без служебных полей. */
@@ -26,18 +29,23 @@ export interface SaveBody {
 interface SaveRecord extends SaveBody {
   /** Порядковый номер записи: у более свежей он больше. */
   readonly seq: number;
+  /**
+   * При чтении что-то было дописано начальным значением или убрано как незнакомое:
+   * запись сделана другой версией игры.
+   */
+  readonly adapted: boolean;
 }
 
-const headSchema = z.looseObject({ format: z.int(), stateVersion: z.int() });
+/** Начальные значения служебных полей записи (таблица в 04-save.md). */
+const DEFAULT_SEQ = 0;
+const DEFAULT_GAME_VERSION = "неизвестно";
 
-const recordSchema = z.strictObject({
-  format: z.literal(SAVE_FORMAT),
-  stateVersion: z.literal(STATE_VERSION),
-  seq: z.int().min(0),
-  gameVersion: z.string(),
-  initial: gameStateSchema,
-  commands: z.array(commandSchema),
-  state: gameStateSchema,
+const recordSchema = z.object({
+  seq: z.int().min(0).catch(DEFAULT_SEQ),
+  gameVersion: z.string().catch(DEFAULT_GAME_VERSION),
+  initial: z.unknown().optional(),
+  commands: z.unknown().optional(),
+  state: z.unknown().optional(),
 });
 
 /** Контрольная сумма текста: FNV-1a, 32 бита, восемь шестнадцатеричных цифр. */
@@ -66,12 +74,14 @@ export function encodeSave(body: SaveBody, seq: number): string {
 
 export type DecodeResult =
   | { readonly kind: "ok"; readonly record: SaveRecord }
-  /** Запись испорчена: не сходится контрольная сумма или состав. */
-  | { readonly kind: "corrupt" }
-  /** Запись цела, но сделана в другом формате. */
-  | { readonly kind: "old" };
+  /** Запись испорчена: не сходится контрольная сумма или в ней нет того, без чего не продолжить. */
+  | { readonly kind: "corrupt" };
 
-/** Разбирает текст записи. Запись с неверной контрольной суммой не загружается никогда. */
+/**
+ * Разбирает текст записи. Запись с неверной контрольной суммой не загружается никогда.
+ * Запись другой версии читается: недостающее берётся начальным, незнакомое убирается
+ * (04-save.md, «Сохранения других версий»).
+ */
 export function decodeSave(text: string): DecodeResult {
   const split = text.indexOf("\n");
   if (split < 0) {
@@ -87,19 +97,30 @@ export function decodeSave(text: string): DecodeResult {
   } catch {
     return { kind: "corrupt" };
   }
-  const head = headSchema.safeParse(raw);
-  if (!head.success) {
-    return { kind: "corrupt" };
-  }
-  if (head.data.format !== SAVE_FORMAT || head.data.stateVersion !== STATE_VERSION) {
-    return { kind: "old" };
-  }
   const parsed = recordSchema.safeParse(raw);
-  if (!parsed.success) {
+  const state = parsed.success ? readState(parsed.data.state) : null;
+  if (!parsed.success || state === null) {
     return { kind: "corrupt" };
   }
-  const { seq, gameVersion, initial, commands, state } = parsed.data;
-  return { kind: "ok", record: { seq, gameVersion, initial, commands, state } };
+  const { seq, gameVersion } = parsed.data;
+  const initial = readState(parsed.data.initial);
+  const commands = z.array(commandSchema).safeParse(parsed.data.commands);
+  // История годится для повтора, только если всё прочитано как записано.
+  const intact =
+    initial !== null &&
+    commands.success &&
+    sameData(state, parsed.data.state) &&
+    sameData(initial, parsed.data.initial);
+  if (intact) {
+    return {
+      kind: "ok",
+      record: { seq, gameVersion, initial, commands: commands.data, state, adapted: false },
+    };
+  }
+  return {
+    kind: "ok",
+    record: { seq, gameVersion, initial: state, commands: [], state, adapted: true },
+  };
 }
 
 /** Номер копии сохранения: их две. */
@@ -109,17 +130,14 @@ export type LoadResult =
   /** Сохранения нет. */
   | { readonly kind: "none" }
   | { readonly kind: "ok"; readonly record: SaveRecord; readonly slot: SaveSlot }
-  | { readonly kind: "corrupt" }
-  | { readonly kind: "old" };
+  | { readonly kind: "corrupt" };
 
 /**
  * Выбирает из двух копий целую запись с большим порядковым номером.
- * `null` — копии нет. Если целых нет: «старая», когда хоть одна копия от другого формата,
- * иначе «испорчена».
+ * `null` — копии нет. Если копии есть, но целых нет — «испорчена».
  */
 export function chooseSave(copies: readonly [string | null, string | null]): LoadResult {
   let best: { record: SaveRecord; slot: SaveSlot } | undefined;
-  let sawOld = false;
   let sawCorrupt = false;
   for (const slot of [0, 1] as const) {
     const text = copies[slot];
@@ -127,9 +145,7 @@ export function chooseSave(copies: readonly [string | null, string | null]): Loa
       continue;
     }
     const decoded = decodeSave(text);
-    if (decoded.kind === "old") {
-      sawOld = true;
-    } else if (decoded.kind === "corrupt") {
+    if (decoded.kind === "corrupt") {
       sawCorrupt = true;
     } else if (best === undefined || decoded.record.seq > best.record.seq) {
       best = { record: decoded.record, slot };
@@ -137,9 +153,6 @@ export function chooseSave(copies: readonly [string | null, string | null]): Loa
   }
   if (best !== undefined) {
     return { kind: "ok", ...best };
-  }
-  if (sawOld) {
-    return { kind: "old" };
   }
   return sawCorrupt ? { kind: "corrupt" } : { kind: "none" };
 }

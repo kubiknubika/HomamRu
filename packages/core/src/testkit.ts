@@ -2,6 +2,7 @@
  * Помощники для тестов ядра. В игре не используются.
  */
 import { DAILY_MOVEMENT, heroIdOf } from "./game.ts";
+import { NO_RESOURCES } from "./objects.ts";
 import { createRng } from "./rng.ts";
 import { STATE_VERSION } from "./types.ts";
 import type { GameState, Position } from "./types.ts";
@@ -43,8 +44,9 @@ export function fromPicture(rows: readonly string[]): Picture {
       width: rows[0]?.length ?? 0,
       height: rows.length,
       terrain: rows.map((row) => row.replaceAll(/[STB]/g, ".")),
+      starts: positions,
     },
-    players: positions.map((_, id) => ({ id })),
+    players: positions.map((_, id) => ({ id, resources: NO_RESOURCES })),
     heroes: positions.map((position, owner) => ({
       id: heroIdOf(owner),
       owner,
@@ -52,6 +54,7 @@ export function fromPicture(rows: readonly string[]): Picture {
       y: position.y,
       movement: DAILY_MOVEMENT,
     })),
+    objects: [],
     day: 1,
     currentPlayer: 0,
   };

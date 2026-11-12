@@ -29,6 +29,23 @@ const scenarioSchema = z.strictObject({
           z.strictObject({ x: z.int(), y: z.int(), movement: z.int().optional() }),
         )
         .optional(),
+      /** Запас ресурсов игроков по порядку; проверяются только названные ресурсы. */
+      resources: z
+        .array(
+          z.strictObject({
+            gold: z.int().optional(),
+            wood: z.int().optional(),
+            ore: z.int().optional(),
+          }),
+        )
+        .optional(),
+      /** Объекты по идентификатору: `absent` — объекта нет; `owner` — владелец шахты. */
+      objects: z
+        .record(
+          z.string(),
+          z.union([z.literal("absent"), z.strictObject({ owner: z.int().nullable() })]),
+        )
+        .optional(),
     })
     .optional(),
 });
