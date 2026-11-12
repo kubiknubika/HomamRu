@@ -199,6 +199,7 @@ export function App({ gameParent, storage }: AppProps) {
         <BattleHud
           battle={battle}
           inGame={trial === null}
+          gameOver={trial === null && played?.state.outcome === "defeat"}
           summary={trial === null ? played?.summary : null}
           onClose={() => {
             if (trial !== null) {

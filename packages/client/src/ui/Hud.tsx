@@ -1,46 +1,20 @@
-import { calendarOf, DAILY_MOVEMENT, RESOURCES } from "@homamru/core";
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { calendarOf, DAILY_MOVEMENT, RESOURCES, townOf } from "@homamru/core";
+import { useState, useSyncExternalStore } from "react";
 import { describeObject, fightWarning, RESOURCE_NAMES } from "../game/captions.ts";
 import { activeHero } from "../game/session.ts";
-import type { Notice, Session } from "../game/session.ts";
+import type { Session } from "../game/session.ts";
 import { HeroWindow } from "./HeroWindow.tsx";
 import { Legend } from "./Legend.tsx";
+import { Messages } from "./Messages.tsx";
+import { TownScreen } from "./TownScreen.tsx";
 
 interface HudProps {
   readonly session: Session;
 }
 
-/** Сколько секунд сообщение остаётся на экране. */
-const MESSAGE_MS = 4000;
-
-/** Сообщение о случившемся: строки на несколько секунд. */
-function Messages({ notice }: { readonly notice: Notice }) {
-  const [hiddenId, setHiddenId] = useState(0);
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setHiddenId(notice.id);
-    }, MESSAGE_MS);
-    return () => {
-      clearTimeout(timer);
-    };
-  }, [notice.id]);
-  if (hiddenId === notice.id) {
-    return null;
-  }
-  return (
-    <div className="hud hud-message">
-      {notice.lines.map((line, index) => (
-        // Строки одного сообщения не переставляются.
-        // oxlint-disable-next-line react/no-array-index-key
-        <div key={index}>{line}</div>
-      ))}
-    </div>
-  );
-}
-
 /** Интерфейс поверх карты: ресурсы, дата, запас хода, подписи, кнопки героя и конца дня. */
 export function Hud({ session }: HudProps) {
-  const { state, selection, inspected, notice } = useSyncExternalStore(
+  const { state, selection, inspected, notice, townOpen } = useSyncExternalStore(
     session.subscribe,
     session.getSnapshot,
   );
@@ -48,6 +22,7 @@ export function Hud({ session }: HudProps) {
   const [legendOpen, setLegendOpen] = useState(false);
   const { month, week, weekday } = calendarOf(state.day);
   const hero = activeHero(state);
+  const town = townOf(state, state.currentPlayer);
   const resources = state.players[state.currentPlayer]?.resources;
   // Подпись объекта по удержанию важнее предупреждения о бое: игрок только что её попросил.
   const caption =
@@ -80,7 +55,7 @@ export function Hud({ session }: HudProps) {
       </div>
       <div className="hud-notes">
         {caption !== null && <div className="hud hud-caption">{caption}</div>}
-        {notice !== null && <Messages notice={notice} />}
+        {notice !== null && !townOpen && <Messages notice={notice} />}
       </div>
       <div className="hud-actions">
         <button
@@ -92,7 +67,14 @@ export function Hud({ session }: HudProps) {
         >
           Обозначения
         </button>
-        {hero !== undefined && (
+        {town !== undefined && (
+          <button type="button" className="hud hud-button" onClick={session.openTown}>
+            Город
+          </button>
+        )}
+        {hero === undefined ? (
+          <div className="hud hud-hint">Героя нет: наймите в таверне города</div>
+        ) : (
           <button
             type="button"
             className="hud hud-button"
@@ -115,6 +97,7 @@ export function Hud({ session }: HudProps) {
           }}
         />
       )}
+      {townOpen && town !== undefined && <TownScreen session={session} town={town} />}
       {heroOpen && hero !== undefined && (
         <HeroWindow
           state={state}

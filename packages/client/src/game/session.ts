@@ -5,7 +5,7 @@
  * Спецификации: docs/mechanics/02-hero-movement.md («Как игрок управляет героем»),
  * 24-map-screen.md.
  */
-import { applyCommand, cellsAlong, findPath, guardWatching, objectAt } from "@homamru/core";
+import { applyCommand, cellsAlong, findPath, guardWatching, objectAt, townOf } from "@homamru/core";
 import type {
   Command,
   GameEvent,
@@ -43,6 +43,8 @@ export interface SessionSnapshot {
    * после боя интерфейс карты появляется позже, чем приходят события.
    */
   readonly notice: Notice | null;
+  /** Открыт экран города игрока, чей сейчас ход (33-town-screen.md). */
+  readonly townOpen: boolean;
 }
 
 export interface Notice {
@@ -64,6 +66,16 @@ export interface Session {
   endTurn(): void;
   /** Карта показала, что герой дошёл: если начался бой, открывается экран боя. */
   enterBattle(): void;
+  /** Карта показала, что герой дошёл: если он встал на свой город, открывается экран города. */
+  heroArrived(): void;
+  openTown(): void;
+  closeTown(): void;
+  build(building: string): void;
+  recruit(creature: string, count: number): void;
+  /** Передать отряд: `from` — кто отдаёт. */
+  transfer(from: "garrison" | "hero", creature: string, count: number): void;
+  /** Нанять героя таверны с номером 0 или 1. */
+  hireHero(offer: number): void;
   /** Игрок закрыл окно итога боя: экран возвращается к карте. */
   leaveBattle(): void;
 }
@@ -115,6 +127,7 @@ export function createSession(initial: GameState, onAccepted?: OnAccepted): Sess
     battle: null,
     summary: null,
     notice: null,
+    townOpen: false,
   };
   /** События команды, закончившей бой: карта узнаёт о них, когда игрок вернулся на неё. */
   let afterBattle: readonly GameEvent[] = [];
@@ -172,7 +185,7 @@ export function createSession(initial: GameState, onAccepted?: OnAccepted): Sess
     const battle = snapshot.state.battle;
     if (battle !== null && snapshot.battle === null) {
       const screen = createBattleSession(battle.state, sendBattle);
-      publish({ battle: screen, selection: null, inspected: null, summary: null });
+      publish({ battle: screen, selection: null, inspected: null, summary: null, townOpen: false });
     }
   }
 
@@ -180,6 +193,15 @@ export function createSession(initial: GameState, onAccepted?: OnAccepted): Sess
   function mapOpen(): boolean {
     const { state, battle } = snapshot;
     return state.battle === null && battle === null && state.outcome === null;
+  }
+
+  /** Команда города: её отдаёт игрок, чей ход, своему городу. Отклонённая ничего не меняет. */
+  function sendTown(make: (base: { player: number; townId: string }) => Command): void {
+    const player = snapshot.state.currentPlayer;
+    const town = townOf(snapshot.state, player);
+    if (town !== undefined && mapOpen()) {
+      send(make({ player, townId: town.id }));
+    }
   }
 
   // Сохранение сделано посреди боя — сразу экран боя.
@@ -223,6 +245,34 @@ export function createSession(initial: GameState, onAccepted?: OnAccepted): Sess
       }
     },
     enterBattle: openBattle,
+    heroArrived: () => {
+      const { state } = snapshot;
+      const hero = activeHero(state);
+      const town = townOf(state, state.currentPlayer);
+      if (hero !== undefined && town !== undefined && sameCell(hero, town) && mapOpen()) {
+        publish({ townOpen: true, selection: null, inspected: null });
+      }
+    },
+    openTown: () => {
+      if (townOf(snapshot.state, snapshot.state.currentPlayer) !== undefined && mapOpen()) {
+        publish({ townOpen: true, inspected: null });
+      }
+    },
+    closeTown: () => {
+      publish({ townOpen: false });
+    },
+    build: (building) => {
+      sendTown((base) => ({ type: "build", ...base, building }));
+    },
+    recruit: (creature, count) => {
+      sendTown((base) => ({ type: "recruit", ...base, creature, count }));
+    },
+    transfer: (from, creature, count) => {
+      sendTown((base) => ({ type: "transfer", ...base, from, creature, count }));
+    },
+    hireHero: (offer) => {
+      sendTown((base) => ({ type: "hireHero", ...base, offer }));
+    },
     leaveBattle: () => {
       if (snapshot.battle !== null && snapshot.state.battle === null) {
         const events = afterBattle;

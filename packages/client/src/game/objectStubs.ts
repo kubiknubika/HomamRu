@@ -1,5 +1,5 @@
 /**
- * Заглушки объектов карты (догма 14): кучки, шахты, охранники рисуются кодом.
+ * Заглушки объектов карты (догма 14): кучки, шахты, охранники, города рисуются кодом.
  * Как они выглядят: docs/mechanics/24-map-screen.md, «Что добавляется на карте».
  */
 import { MINE_INCOME } from "@homamru/core";
@@ -15,6 +15,7 @@ const OUTLINE_COLOR = 0x1b1e24;
 const GUARD_COLOR = 0x8a6fa8;
 const GUARD_OUTLINE_COLOR = 0xf0e6ff;
 const FLAG_POLE_COLOR = 0xf4f4f4;
+const TOWN_OUTLINE_COLOR = 0xfff3d6;
 
 /** Зона охранника и он сам, когда показан путь, который кончается боем. */
 export const ZONE_COLOR = 0xe2463c;
@@ -43,7 +44,16 @@ function pileParts(scene: Phaser.Scene, color: number): Phaser.GameObjects.GameO
   return [diamond];
 }
 
-const TOWN_COLOR = 0xd9_d2_c0;
+/** Город: крупный значок цвета владельца с буквой «Г» (33-town-screen.md). */
+function townParts(scene: Phaser.Scene, owner: number): Phaser.GameObjects.GameObject[] {
+  const size = TILE * 0.9;
+  const walls = scene.add.rectangle(0, 0, size, size, playerColor(owner));
+  walls.setStrokeStyle(5, TOWN_OUTLINE_COLOR);
+  const letter = scene.add
+    .text(0, 0, "Г", { ...LETTER_STYLE, fontSize: `${TILE * 0.56}px` })
+    .setOrigin(0.5);
+  return [walls, letter];
+}
 
 /** Шахта: квадрат цвета ресурса; у занятой — флажок цвета владельца. */
 function mineParts(
@@ -96,8 +106,7 @@ export function createObjectStub(
     return scene.add.container(0, 0, guardParts(scene, creatureName.slice(0, 1).toUpperCase()));
   }
   if (object.type === "town") {
-    // Заглушка города до шага 4.3: большой квадрат с флажком владельца.
-    return scene.add.container(0, 0, mineParts(scene, TOWN_COLOR, object.owner));
+    return scene.add.container(0, 0, townParts(scene, object.owner));
   }
   const color = RESOURCE_COLORS[MINE_INCOME[object.kind].resource];
   return scene.add.container(0, 0, mineParts(scene, color, object.owner));

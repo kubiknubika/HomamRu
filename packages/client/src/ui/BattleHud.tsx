@@ -18,6 +18,8 @@ interface BattleHudProps {
   readonly summary?: BattleSummary | null | undefined;
   /** Бой идёт внутри партии, а не отдельно от неё. */
   readonly inGame?: boolean | undefined;
+  /** Партия проиграна: из окна итога — только новая игра. С городом партия продолжается. */
+  readonly gameOver?: boolean | undefined;
 }
 
 /** Сколько ближайших отрядов показывает очередь ходов; что не влезло по ширине — обрезается. */
@@ -91,7 +93,8 @@ function Rewards({ summary }: { readonly summary: BattleSummary }) {
   );
 }
 
-export function BattleHud({ battle, onClose, summary, inGame = false }: BattleHudProps) {
+export function BattleHud(props: BattleHudProps) {
+  const { battle, onClose, summary, inGame = false, gameOver = false } = props;
   const snapshot = useSyncExternalStore(battle.subscribe, battle.getSnapshot);
   const [confirmFlee, setConfirmFlee] = useState(false);
   const [journal, setJournal] = useState(false);
@@ -226,7 +229,7 @@ export function BattleHud({ battle, onClose, summary, inGame = false }: BattleHu
           <Losses state={state} side={0} />
           <Losses state={state} side={1} />
           {won && summary !== null && summary !== undefined && <Rewards summary={summary} />}
-          <DialogButton label={inGame && !won ? "Новая игра" : "Закрыть"} onClick={onClose} />
+          <DialogButton label={gameOver ? "Новая игра" : "Закрыть"} onClick={onClose} />
         </Dialog>
       )}
     </>
