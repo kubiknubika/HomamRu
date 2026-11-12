@@ -5,7 +5,8 @@
   "license": "GPL-3.0-or-later",
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./testkit": "./src/testkit.ts"
   },
   "scripts": {
     "typecheck": "tsc -p tsconfig.json"

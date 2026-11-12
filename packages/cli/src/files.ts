@@ -6,10 +6,11 @@ import {
   parseBattleFile,
   parseBattleScenarioFile,
   parseCreatureFile,
+  parseDefaultsFile,
   parseMapFile,
   parseScenarioFile,
 } from "@homamru/data";
-import type { ContentResult } from "@homamru/data";
+import type { ContentResult, SaveDefaults } from "@homamru/data";
 import { runBattleScenario } from "./battleScenario.ts";
 import { runScenario } from "./scenario.ts";
 import type { ScenarioRun } from "./scenario.ts";
@@ -19,6 +20,7 @@ const MAPS_DIR = join(ROOT, "data/maps");
 const SCENARIOS_DIR = join(ROOT, "data/scenarios");
 const BATTLES_DIR = join(ROOT, "data/battles");
 const CREATURES_DIR = join(ROOT, "data/creatures");
+const DEFAULTS_FILE = join(ROOT, "data/defaults.yaml");
 
 function fromRoot(path: string): string {
   return relative(ROOT, path);
@@ -51,6 +53,12 @@ export function loadCreatures(): CreatureDefinition[] {
     });
 }
 
+/** Начальные значения из контента: существа и армия героя, которой нет в старом сохранении. */
+export function loadDefaults(): SaveDefaults {
+  const text = readFileSync(DEFAULTS_FILE, "utf8");
+  return unwrap(parseDefaultsFile(fromRoot(DEFAULTS_FILE), text, loadCreatures()));
+}
+
 /** Пути всех файлов боёв, по алфавиту. */
 export function listBattleFiles(): string[] {
   return readdirSync(BATTLES_DIR)
@@ -77,8 +85,9 @@ export function runScenarioFile(path: string): ScenarioRun {
   }
   const scenario = unwrap(parseScenarioFile(fromRoot(path), text));
   const mapPath = join(MAPS_DIR, `${scenario.map}.yaml`);
-  const map = unwrap(parseMapFile(fromRoot(mapPath), readFileSync(mapPath, "utf8")));
-  return runScenario(scenario, map);
+  const creatures = loadCreatures();
+  const map = unwrap(parseMapFile(fromRoot(mapPath), readFileSync(mapPath, "utf8"), creatures));
+  return runScenario(scenario, map, creatures);
 }
 
 /** Пути всех файлов карт, по алфавиту. */
@@ -91,7 +100,7 @@ export function listMapFiles(): string[] {
 
 /** Проверяет файл карты; возвращает список ошибок с именем файла и местом. */
 export function checkMapFile(path: string): string[] {
-  const result = parseMapFile(fromRoot(path), readFileSync(path, "utf8"));
+  const result = parseMapFile(fromRoot(path), readFileSync(path, "utf8"), loadCreatures());
   if (result.ok) {
     const expected = `${result.value.id}.yaml`;
     return path.endsWith(`/${expected}`)

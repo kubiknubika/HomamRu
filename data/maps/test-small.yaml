@@ -10,4 +10,4 @@ terrain:
   - "........"
   - "........"
 players:
-  - hero: { x: 1, y: 1 }
+  - hero: { x: 1, y: 1, army: [{ creature: militia, count: 10 }] }

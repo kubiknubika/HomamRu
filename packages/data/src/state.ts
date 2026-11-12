@@ -1,117 +1,51 @@
 /**
- * Чтение игрового состояния и команд, пришедших извне: из сохранения и дампа.
+ * Чтение игрового состояния, пришедшего извне: из сохранения и дампа.
  * Состояние читается терпимо: чего нет — берётся начальное значение, чего игра не знает — убирается.
  * Правила и таблица начальных значений: docs/mechanics/04-save.md, «Сохранения других версий».
  * Описание полей: docs/mechanics/00-state-and-commands.md.
  */
 import {
-  DAILY_MOVEMENT,
-  DIRECTIONS,
   heroIdOf,
+  levelOf,
   MAX_PLAYERS,
-  MINE_KINDS,
-  RESOURCES,
+  MAX_STACKS,
+  POWER_PER_CREATURE,
   STATE_VERSION,
   TERRAIN_LAND,
   TERRAIN_OBSTACLE,
 } from "@homamru/core";
-import type { Command, GameState, ObjectState, Position } from "@homamru/core";
+import type {
+  ArmyStack,
+  CreatureDefinition,
+  GameState,
+  HeroState,
+  MapBattle,
+  ObjectState,
+  Position,
+} from "@homamru/core";
 import { z } from "zod";
+import { creatureSchema } from "./battle.ts";
+import type { SaveDefaults } from "./defaults.ts";
+import {
+  armyStackSchema,
+  cellSchema,
+  DEFAULTS,
+  heroSchema,
+  looseStateSchema,
+  mapBattleSchema,
+  NO_HERO,
+  NO_RESOURCES,
+  objectSchema,
+} from "./stateSchemas.ts";
+import type { LooseState } from "./stateSchemas.ts";
 
-/**
- * Начальные значения параметров состояния — те, что вписываются, когда в записи их нет.
- * Новый параметр состояния обязан получить значение здесь и строку в таблице 04-save.md.
- */
-const DEFAULTS = {
-  rng: 0,
-  mapId: "unknown",
-  mapName: "Без названия",
-  resource: 0,
-  movement: DAILY_MOVEMENT,
-  mineOwner: null,
-  day: 1,
-  currentPlayer: 0,
-} as const;
-
-const NO_RESOURCES = {
-  gold: DEFAULTS.resource,
-  wood: DEFAULTS.resource,
-  ore: DEFAULTS.resource,
-} as const;
-
-const UINT32_MAX = 0xff_ff_ff_ff;
-
-const amountSchema = z.int().min(0).catch(DEFAULTS.resource);
-const playerNumberSchema = z
-  .int()
-  .min(0)
-  .max(MAX_PLAYERS - 1);
-
-const playerSchema = z.object({
-  resources: z
-    .object({ gold: amountSchema, wood: amountSchema, ore: amountSchema })
-    .catch(NO_RESOURCES),
-});
-
-// Обычный `z.object` молча убирает незнакомые поля — это и есть правило «чего игра не знает».
-const objectSchema = z.discriminatedUnion("type", [
-  z.object({
-    id: z.string(),
-    type: z.literal("pile"),
-    x: z.int(),
-    y: z.int(),
-    resource: z.enum(RESOURCES),
-    amount: z.int().min(1),
-  }),
-  z.object({
-    id: z.string(),
-    type: z.literal("mine"),
-    x: z.int(),
-    y: z.int(),
-    kind: z.enum(MINE_KINDS),
-    owner: playerNumberSchema.nullable().catch(DEFAULTS.mineOwner),
-  }),
-]);
-
-const cellSchema = z.object({ x: z.int(), y: z.int() });
-
-/** Герой, о котором в записи ничего нет: всё берётся начальное. */
-const NO_HERO = {
-  id: undefined,
-  owner: undefined,
-  x: undefined,
-  y: undefined,
-  movement: DEFAULTS.movement,
-} as const;
-
-const heroSchema = z.object({
-  id: z.string().optional().catch(undefined),
-  owner: playerNumberSchema.optional().catch(undefined),
-  x: z.int().optional().catch(undefined),
-  y: z.int().optional().catch(undefined),
-  movement: z.int().min(0).catch(DEFAULTS.movement),
-});
-
-/** Первый проход: поля по одному. Что зависит от соседних полей, доделывает `finishState`. */
-const looseStateSchema = z.object({
-  rng: z
-    .object({ s: z.int().min(0).max(UINT32_MAX).catch(DEFAULTS.rng) })
-    .catch({ s: DEFAULTS.rng }),
-  map: z.object({
-    id: z.string().catch(DEFAULTS.mapId),
-    name: z.string().catch(DEFAULTS.mapName),
-    // Начального значения нет: без местности партию не продолжить.
-    terrain: z.array(z.string().min(1)).min(1),
-    starts: z.array(z.unknown()).catch([]),
-  }),
-  players: z.array(playerSchema.catch({ resources: NO_RESOURCES })).catch([]),
-  heroes: z.array(z.unknown()).catch([]),
-  objects: z.array(z.unknown()).catch([]),
-  day: z.int().min(1).catch(DEFAULTS.day),
-  currentPlayer: z.int().min(0).catch(DEFAULTS.currentPlayer),
-});
-
-type LooseState = z.infer<typeof looseStateSchema>;
+/** Из списка произвольных данных — только то, что читается по схеме. */
+function readable<S extends z.ZodType>(items: readonly unknown[], schema: S): z.infer<S>[] {
+  return items.flatMap((item) => {
+    const parsed = schema.safeParse(item);
+    return parsed.success ? [parsed.data] : [];
+  });
+}
 
 /** Незнакомые символы местности заменяются обычной землёй. Строки разной длины — `null`. */
 function readTerrain(rows: readonly string[]): string[] | null {
@@ -145,60 +79,142 @@ function landCell(raw: unknown, terrain: readonly string[], fallback: Position):
     : fallback;
 }
 
-/** Объекты, которые игра понимает: известного вида, на карте, не больше одного в клетке. */
-function readObjects(items: readonly unknown[], width: number, height: number): ObjectState[] {
+/** Существа партии: читаемые из записи, а за ними существа игры, которых в записи нет. */
+function readCreatures(items: readonly unknown[], defaults: SaveDefaults): CreatureDefinition[] {
+  // Незнакомые поля существа убираются, как и везде в состоянии.
+  const saved = readable(items, creatureSchema.strip());
+  const known = new Set(saved.map((creature) => creature.id));
+  return [...saved, ...defaults.creatures.filter((creature) => !known.has(creature.id))];
+}
+
+/** Армия героя: отряды знакомых существ, не больше семи; если таких нет — начальная армия. */
+function readArmy(
+  items: readonly unknown[],
+  known: ReadonlySet<string>,
+  defaults: SaveDefaults,
+): readonly ArmyStack[] {
+  const army = readable(items, armyStackSchema)
+    .filter((stack) => known.has(stack.creature))
+    .slice(0, MAX_STACKS);
+  return army.length > 0 ? army : defaults.heroArmy;
+}
+
+/**
+ * Объекты, которые игра понимает: известного вида, на карте, не больше одного в клетке;
+ * охранник — из знакомых существ.
+ */
+function readObjects(
+  items: readonly unknown[],
+  terrain: readonly string[],
+  known: ReadonlySet<string>,
+): ObjectState[] {
   const taken = new Set<string>();
   const objects: ObjectState[] = [];
-  for (const item of items) {
-    const parsed = objectSchema.safeParse(item);
-    if (!parsed.success) {
-      continue;
-    }
-    const { x, y } = parsed.data;
-    const key = `${x},${y}`;
-    if (x < 0 || y < 0 || x >= width || y >= height || taken.has(key)) {
+  for (const object of readable(items, objectSchema)) {
+    const key = `${object.x},${object.y}`;
+    const unknownGuard = object.type === "guard" && !known.has(object.creature);
+    if (terrain[object.y]?.[object.x] === undefined || taken.has(key) || unknownGuard) {
       continue;
     }
     taken.add(key);
-    objects.push(parsed.data);
+    if (object.type === "guard") {
+      // Сила — число существ в тысячных; если она с числом не сходится, дробь роста сбрасывается.
+      const fits = Math.floor(object.power / POWER_PER_CREATURE) === object.count;
+      objects.push(fits ? object : { ...object, power: object.count * POWER_PER_CREATURE });
+    } else {
+      objects.push(object);
+    }
   }
   return objects;
 }
 
+type LooseHero = z.infer<typeof heroSchema> | typeof NO_HERO;
+
+interface HeroContext {
+  readonly terrain: readonly string[];
+  readonly starts: readonly Position[];
+  readonly land: Position;
+  readonly known: ReadonlySet<string>;
+  readonly defaults: SaveDefaults;
+}
+
+function readHero(hero: LooseHero, index: number, context: HeroContext): HeroState {
+  const owner = hero.owner ?? Math.min(index, MAX_PLAYERS - 1);
+  // Клетки нет или она вне карты — герой встаёт на стартовую клетку своего игрока.
+  const start = context.starts[owner] ?? context.land;
+  const { x, y } = hero;
+  const inside = x !== undefined && y !== undefined && context.terrain[y]?.[x] !== undefined;
+  return {
+    id: hero.id ?? heroIdOf(owner),
+    owner,
+    x: inside ? x : start.x,
+    y: inside ? y : start.y,
+    movement: hero.movement,
+    attack: hero.attack,
+    defense: hero.defense,
+    army: readArmy(hero.army, context.known, context.defaults),
+    experience: hero.experience,
+    // Уровень всегда считается по опыту.
+    level: levelOf(hero.experience),
+  };
+}
+
+/**
+ * Идущий бой: цел и сходится с партией — нападает герой с его армией, обороняется охранник
+ * в его числе. Иначе боя нет: конец такого боя нельзя было бы перенести на карту.
+ */
+function readBattle(
+  raw: unknown,
+  heroes: readonly HeroState[],
+  objects: readonly ObjectState[],
+): MapBattle | null {
+  const battle = mapBattleSchema.safeParse(raw);
+  if (!battle.success) {
+    return DEFAULTS.battle;
+  }
+  const { heroId, guardId, state } = battle.data;
+  const hero = heroes.find((candidate) => candidate.id === heroId);
+  const guard = objects.find((object) => object.id === guardId);
+  if (hero === undefined || guard?.type !== "guard") {
+    return DEFAULTS.battle;
+  }
+  const expected = [...hero.army.map((stack) => ({ side: 0, ...stack })), { side: 1, ...guard }];
+  const fits =
+    state.stacks.length === expected.length &&
+    state.stacks.every((stack, index) => {
+      const want = expected[index];
+      return (
+        stack.side === want?.side &&
+        stack.creature.id === want.creature &&
+        stack.initialCount === want.count
+      );
+    });
+  return fits ? battle.data : DEFAULTS.battle;
+}
+
 /** Второй проход: значения, зависящие друг от друга. `null` — партию продолжить нельзя. */
-function finishState(loose: LooseState): GameState | null {
+function finishState(loose: LooseState, defaults: SaveDefaults): GameState | null {
   const terrain = readTerrain(loose.map.terrain);
-  if (terrain === null) {
+  const land = terrain === null ? null : firstLand(terrain);
+  if (terrain === null || land === null) {
     return null;
   }
-  const land = firstLand(terrain);
-  if (land === null) {
-    return null;
-  }
-  const width = terrain[0]?.length ?? 0;
-  const height = terrain.length;
   const starts = loose.map.starts
     .slice(0, MAX_PLAYERS)
     .map((start) => landCell(start, terrain, land));
+  const creatures = readCreatures(loose.creatures, defaults);
+  const known = new Set(creatures.map((creature) => creature.id));
   // Списка героев нет — по герою каждому игроку, о котором в записи хоть что-то есть.
-  const known = Math.max(1, Math.min(MAX_PLAYERS, Math.max(loose.players.length, starts.length)));
-  // Запись героя, которая вовсе не читается, убирается — как незнакомый объект.
-  const readable = loose.heroes.flatMap((item) => {
-    const hero = heroSchema.safeParse(item);
-    return hero.success ? [hero.data] : [];
-  });
-  const listed = readable.length > 0 ? readable : Array.from({ length: known }, () => NO_HERO);
-  const heroes = listed.map((hero, index) => {
-    const owner = hero.owner ?? Math.min(index, MAX_PLAYERS - 1);
-    // Клетки нет или она вне карты — герой встаёт на стартовую клетку своего игрока.
-    const start = starts[owner] ?? land;
-    const { x, y } = hero;
-    if (x === undefined || y === undefined || terrain[y]?.[x] === undefined) {
-      return { id: hero.id ?? heroIdOf(owner), owner, ...start, movement: hero.movement };
-    }
-    return { id: hero.id ?? heroIdOf(owner), owner, x, y, movement: hero.movement };
-  });
-  const objects = readObjects(loose.objects, width, height);
+  // После поражения героя нет, и это не пропуск.
+  const count = Math.max(1, Math.min(MAX_PLAYERS, Math.max(loose.players.length, starts.length)));
+  const saved = readable(loose.heroes, heroSchema);
+  const listed =
+    saved.length > 0 || loose.outcome !== null
+      ? saved
+      : Array.from({ length: count }, () => NO_HERO);
+  const context = { terrain, starts, land, known, defaults };
+  const heroes = listed.map((hero, index) => readHero(hero, index, context));
+  const objects = readObjects(loose.objects, terrain, known);
   // Игроков столько, сколько нужно героям и шахтам, но не меньше одного и не больше предела.
   const owners = [
     ...heroes.map((hero) => hero.owner),
@@ -209,19 +225,28 @@ function finishState(loose: LooseState): GameState | null {
     Math.min(loose.players.length, MAX_PLAYERS),
     ...owners.map((owner) => owner + 1),
   );
-  const players = Array.from({ length: playerCount }, (_, id) => ({
-    id,
-    resources: loose.players[id]?.resources ?? NO_RESOURCES,
-  }));
   return {
     version: STATE_VERSION,
     rng: loose.rng,
-    map: { id: loose.map.id, name: loose.map.name, width, height, terrain, starts },
-    players,
+    map: {
+      id: loose.map.id,
+      name: loose.map.name,
+      width: terrain[0]?.length ?? 0,
+      height: terrain.length,
+      terrain,
+      starts,
+    },
+    players: Array.from({ length: playerCount }, (_, id) => ({
+      id,
+      resources: loose.players[id]?.resources ?? NO_RESOURCES,
+    })),
     heroes,
     objects,
     day: loose.day,
     currentPlayer: loose.currentPlayer < playerCount ? loose.currentPlayer : DEFAULTS.currentPlayer,
+    creatures,
+    battle: readBattle(loose.battle, heroes, objects),
+    outcome: loose.outcome,
   };
 }
 
@@ -229,30 +254,7 @@ function finishState(loose: LooseState): GameState | null {
  * Читает состояние из произвольных данных. `null` — в данных нет того, без чего партию
  * не продолжить: местности, или на карте нет ни одной клетки земли.
  */
-export function readState(raw: unknown): GameState | null {
+export function readState(raw: unknown, defaults: SaveDefaults): GameState | null {
   const loose = looseStateSchema.safeParse(raw);
-  return loose.success ? finishState(loose.data) : null;
+  return loose.success ? finishState(loose.data, defaults) : null;
 }
-
-/** То же чтение в виде схемы — для разбора дампа. */
-export const gameStateSchema = z.unknown().transform((raw, ctx): GameState => {
-  const state = readState(raw);
-  if (state === null) {
-    ctx.addIssue({
-      code: "custom",
-      message: "Состояние не читается: нет местности или на карте нет земли.",
-    });
-    return z.NEVER;
-  }
-  return state;
-});
-
-export const commandSchema = z.discriminatedUnion("type", [
-  z.strictObject({
-    type: z.literal("moveHero"),
-    player: z.int(),
-    heroId: z.string(),
-    path: z.array(z.enum(DIRECTIONS)),
-  }),
-  z.strictObject({ type: z.literal("endTurn"), player: z.int() }),
-]) satisfies z.ZodType<Command>;

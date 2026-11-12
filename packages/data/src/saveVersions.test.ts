@@ -1,11 +1,23 @@
 // Сохранения других версий: docs/mechanics/04-save.md, раздел «Сохранения других версий».
 import { applyCommand, STATE_VERSION } from "@homamru/core";
 import { describe, expect, it } from "vitest";
-import { decodeSave, encodeSave, verifySave } from "./save.ts";
-import { readState } from "./state.ts";
-import { FULL_STATE as FULL, TEST_TERRAIN as TERRAIN, withChecksumOf } from "./testkit.ts";
+import { encodeSave, verifySave } from "./save.ts";
+import {
+  decodeTestSave as decodeSave,
+  FULL_STATE as FULL,
+  readTestState as readState,
+  TEST_DEFAULTS,
+  TEST_TERRAIN as TERRAIN,
+  withChecksumOf,
+} from "./testkit.ts";
 
 const NO_RESOURCES = { gold: 0, wood: 0, ore: 0 };
+
+/** Начальные значения параметров героя, появившихся на шаге 3.2. */
+const FRESH = { attack: 0, defense: 0, army: TEST_DEFAULTS.heroArmy, experience: 0, level: 1 };
+
+/** Начальные значения параметров состояния, появившихся на шаге 3.2. */
+const NO_BATTLES = { creatures: TEST_DEFAULTS.creatures, battle: null, outcome: null };
 
 /** Запись с произвольным содержимым и верной контрольной суммой. */
 function saveOf(record: unknown): string {
@@ -31,10 +43,11 @@ describe("чего в записи нет — берётся начальное 
         starts: [],
       },
       players: [{ id: 0, resources: NO_RESOURCES }],
-      heroes: [{ id: "A", owner: 0, x: 1, y: 0, movement: 1000 }],
+      heroes: [{ id: "A", owner: 0, x: 1, y: 0, movement: 1000, ...FRESH }],
       objects: [],
       day: 1,
       currentPlayer: 0,
+      ...NO_BATTLES,
     });
   });
 
@@ -47,16 +60,16 @@ describe("чего в записи нет — берётся начальное 
       ],
     });
     expect(state?.heroes).toEqual([
-      { id: "A", owner: 0, x: 0, y: 3, movement: 500 },
-      { id: "B", owner: 1, x: 3, y: 0, movement: 600 },
+      { id: "A", owner: 0, x: 0, y: 3, movement: 500, ...FRESH },
+      { id: "B", owner: 1, x: 3, y: 0, movement: 600, ...FRESH },
     ]);
   });
 
   it("списка героев нет — каждому игроку герой на его стартовой клетке", () => {
     for (const heroes of [undefined, [], "герои"]) {
       expect(readState({ ...FULL, heroes })?.heroes).toEqual([
-        { id: "A", owner: 0, x: 0, y: 3, movement: 1000 },
-        { id: "B", owner: 1, x: 3, y: 0, movement: 1000 },
+        { id: "A", owner: 0, x: 0, y: 3, movement: 1000, ...FRESH },
+        { id: "B", owner: 1, x: 3, y: 0, movement: 1000, ...FRESH },
       ]);
     }
   });
@@ -109,7 +122,9 @@ describe("чего в записи нет — берётся начальное 
         { id: 0, resources: NO_RESOURCES },
         { id: 1, resources: NO_RESOURCES },
       ],
+      heroes: old.heroes.map((hero) => ({ ...hero, ...FRESH })),
       objects: [],
+      ...NO_BATTLES,
     };
     expect(decodeSave(text)).toEqual({
       kind: "ok",
@@ -180,6 +195,7 @@ describe("чего игра не знает — убирается", () => {
       FULL.objects[1],
       { id: "o10", type: "mine", x: 0, y: 2, kind: "sawmill", owner: null },
       { id: "o11", type: "mine", x: 40, y: 2, kind: "sawmill", owner: null },
+      { ...FULL.objects[2], mood: "angry" },
     ],
     battle: { round: 3 },
   };

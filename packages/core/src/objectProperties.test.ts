@@ -1,6 +1,8 @@
 // Свойства из раздела «Свойства, верные всегда» спецификации 20-map-objects.md:
 // проверяются на случайных партиях. Случайность — от генератора ядра с сидом,
 // поэтому тест при каждом запуске одинаков.
+import { CREATURES } from "./battle/testkit.ts";
+import { TEST_ARMY } from "./testkit.ts";
 import { describe, expect, it } from "vitest";
 import { applyCommand } from "./commands.ts";
 import { createGame } from "./game.ts";
@@ -34,10 +36,14 @@ function randomGame(seed: number): GameState {
     }
     rows.push(row);
   }
-  const corners = [{ hero: { x: 0, y: 0 } }, { hero: { x: SIZE - 1, y: SIZE - 1 } }];
+  const corners = [
+    { hero: { x: 0, y: 0, army: TEST_ARMY } },
+    { hero: { x: SIZE - 1, y: SIZE - 1, army: TEST_ARMY } },
+  ];
   const created = createGame(
     { id: "r", name: "r", terrain: rows, players: corners, objects },
     seed,
+    CREATURES,
   );
   if (!created.ok) {
     throw new Error("случайная карта отвергнута");

@@ -112,6 +112,7 @@ describe("повтор партии", () => {
     const result = replay(openField(8), PARTY);
     const text = JSON.stringify(result);
     expect(text).not.toMatch(/\d\.\d/);
-    expect(text).not.toContain("null");
+    // JSON и обратно — без потерь: в состоянии нет ни NaN, ни бесконечности, ни пропусков.
+    expect(JSON.parse(text)).toStrictEqual(result);
   });
 });

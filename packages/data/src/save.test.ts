@@ -1,10 +1,16 @@
-import { applyCommand, createGame } from "@homamru/core";
+import { CREATURES, TEST_ARMY } from "@homamru/core/testkit";
+import { applyCommand, createGame, STATE_VERSION } from "@homamru/core";
 import type { Command, GameState } from "@homamru/core";
 import { describe, expect, it } from "vitest";
-import { buildDump, DUMP_JOURNAL_COMMANDS, parseDump } from "./dump.ts";
-import { chooseSave, decodeSave, encodeSave, sameData, verifySave } from "./save.ts";
+import { buildDump, DUMP_JOURNAL_COMMANDS } from "./dump.ts";
+import { encodeSave, sameData, verifySave } from "./save.ts";
 import type { SaveBody } from "./save.ts";
-import { withChecksumOf } from "./testkit.ts";
+import {
+  chooseTestSave as chooseSave,
+  decodeTestSave as decodeSave,
+  parseTestDump as parseDump,
+  withChecksumOf,
+} from "./testkit.ts";
 
 function newState(): GameState {
   const created = createGame(
@@ -12,9 +18,10 @@ function newState(): GameState {
       id: "t",
       name: "Проверочная",
       terrain: Array.from({ length: 8 }, () => "........"),
-      players: [{ hero: { x: 1, y: 1 } }],
+      players: [{ hero: { x: 1, y: 1, army: TEST_ARMY } }],
     },
     1,
+    CREATURES,
   );
   if (!created.ok) {
     throw new Error("карта не создалась");
@@ -98,7 +105,7 @@ describe("выбор из двух копий", () => {
   it("копия другой версии выбирается наравне с обычной — по порядковому номеру", () => {
     const json = newer
       .slice(newer.indexOf("\n") + 1)
-      .replace('"stateVersion":2', '"stateVersion":9');
+      .replace(`"stateVersion":${STATE_VERSION}`, '"stateVersion":9');
     expect(json).toContain('"stateVersion":9');
     expect(chooseSave([older, withChecksumOf(json)])).toMatchObject({
       kind: "ok",

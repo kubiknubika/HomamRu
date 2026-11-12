@@ -1,3 +1,4 @@
+import { CREATURES, TEST_ARMY } from "@homamru/core/testkit";
 import { basename } from "node:path";
 import { describe, expect, it } from "vitest";
 import type { MapDefinition } from "@homamru/core";
@@ -9,7 +10,7 @@ const MAP: MapDefinition = {
   id: "open",
   name: "Поле",
   terrain: Array.from({ length: 8 }, () => "........"),
-  players: [{ hero: { x: 0, y: 0 } }],
+  players: [{ hero: { x: 0, y: 0, army: TEST_ARMY } }],
 };
 
 function scenarioOf(changes: Partial<Scenario>): Scenario {
@@ -35,6 +36,7 @@ describe("проигрывание сценария", () => {
     const run = runScenario(
       scenarioOf({ steps: [{ move: { hero: "A", path: ["E"] } }, { endTurn: {} }] }),
       MAP,
+      CREATURES,
     );
     expect(run.ok).toBe(true);
     const text = run.lines.join("\n");
@@ -48,7 +50,7 @@ describe("проигрывание сценария", () => {
 
   it("проваливается, если ожидаемого отказа не было", () => {
     const steps = [{ move: { hero: "A", path: ["E" as const] }, expectError: "STEP_BLOCKED" }];
-    const run = runScenario(scenarioOf({ steps } as Partial<Scenario>), MAP);
+    const run = runScenario(scenarioOf({ steps } as Partial<Scenario>), MAP, CREATURES);
     expect(run.ok).toBe(false);
     expect(run.failures).toEqual(["Команда 1: ожидался отказ STEP_BLOCKED, но она принята."]);
   });
@@ -62,6 +64,7 @@ describe("проигрывание сценария", () => {
         ],
       }),
       MAP,
+      CREATURES,
     );
     expect(run.failures).toEqual([
       "Команда 1: получен отказ STEP_BLOCKED, ожидалось: EMPTY_PATH.",
@@ -76,6 +79,7 @@ describe("проигрывание сценария", () => {
         expect: { day: 3, heroes: { A: { x: 5, y: 5, movement: 1 }, B: { x: 0, y: 0 } } },
       }),
       MAP,
+      CREATURES,
     );
     expect(run.failures).toEqual([
       "Ожидался день 3, получен день 1.",
@@ -86,7 +90,7 @@ describe("проигрывание сценария", () => {
   });
 
   it("проваливается на неверной карте", () => {
-    const run = runScenario(scenarioOf({}), { ...MAP, players: [] });
+    const run = runScenario(scenarioOf({}), { ...MAP, players: [] }, CREATURES);
     expect(run.ok).toBe(false);
     expect(run.failures[0]).toContain("players");
   });

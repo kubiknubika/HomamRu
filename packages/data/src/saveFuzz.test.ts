@@ -1,8 +1,7 @@
 // Свойство из docs/mechanics/04-save.md: что бы ни лежало в записи, чтение не падает.
 import { applyCommand, createRng, nextInt, renderState } from "@homamru/core";
 import { describe, expect, it } from "vitest";
-import { readState } from "./state.ts";
-import { FULL_STATE as FULL } from "./testkit.ts";
+import { FULL_STATE as FULL, readTestState as readState } from "./testkit.ts";
 
 /** Случайно портит данные: убирает поле, подменяет значение мусором или идёт вглубь. */
 const JUNK: unknown[] = [null, -1, 1.5, "мусор", [], {}, 1e12, true];

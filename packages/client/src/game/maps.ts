@@ -2,6 +2,7 @@
 import { createGame } from "@homamru/core";
 import type { GameState } from "@homamru/core";
 import { parseMapFile } from "@homamru/data";
+import { loadCreatures } from "./content.ts";
 import largeMapText from "../../../../data/maps/test-large.yaml?raw";
 import smallMapText from "../../../../data/maps/test-small.yaml?raw";
 
@@ -31,9 +32,10 @@ export function startGame(index: number): GameState {
   if (entry === undefined) {
     throw new Error(`Карты с номером ${index} нет.`);
   }
-  const map = parseMapFile(entry.file, entry.text);
+  const creatures = loadCreatures();
+  const map = parseMapFile(entry.file, entry.text, creatures);
   const errors = map.ok ? [] : map.errors;
-  const created = map.ok ? createGame(map.value, SEED) : undefined;
+  const created = map.ok ? createGame(map.value, SEED, creatures) : undefined;
   if (created?.ok) {
     return created.state;
   }

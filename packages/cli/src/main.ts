@@ -9,7 +9,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { runAutoBattles, showAutoBattle } from "./autobattle.ts";
 import { runDump } from "./dump.ts";
-import { listScenarioFiles, loadCreatures, runScenarioFile } from "./files.ts";
+import { listScenarioFiles, loadCreatures, loadDefaults, runScenarioFile } from "./files.ts";
 import type { ScenarioRun } from "./scenario.ts";
 
 function print(text: string): void {
@@ -25,7 +25,9 @@ function playFiles(args: readonly string[]): boolean {
   let failed = 0;
   for (const file of files) {
     const isDump = file.endsWith(".json");
-    const run = isDump ? runDump(readFileSync(file, "utf8")) : runScenarioFile(file);
+    const run = isDump
+      ? runDump(readFileSync(file, "utf8"), loadDefaults())
+      : runScenarioFile(file);
     print(run.lines.join("\n"));
     print("");
     if (run.ok) {

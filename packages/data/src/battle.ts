@@ -8,7 +8,7 @@ const ID_PATTERN = /^[a-z0-9-]+$/;
 const ID_MESSAGE = "Допустимы строчные латинские буквы, цифры и дефис.";
 
 /** Файл существа. Описание полей: docs/mechanics/14-creatures.md. */
-const creatureSchema = z
+export const creatureSchema = z
   .strictObject({
     id: z.string().regex(ID_PATTERN, ID_MESSAGE),
     name: z.string().min(1),
@@ -53,17 +53,24 @@ export function parseBattleFile(file: string, text: string): ContentResult<Battl
   return parseContentFile(file, text, battleSchema);
 }
 
-const expectError = z.enum(BATTLE_REJECT_CODES).optional();
 const nothing = z.strictObject({});
 
-const stepSchema = z.union([
-  z.strictObject({ move: cellSchema, expectError }),
-  z.strictObject({ attack: z.strictObject({ target: z.string(), from: cellSchema }), expectError }),
-  z.strictObject({ shoot: z.string(), expectError }),
-  z.strictObject({ wait: nothing, expectError }),
-  z.strictObject({ defend: nothing, expectError }),
-  z.strictObject({ flee: nothing, expectError }),
-]);
+/** Шаги боя в сценарии; `expectError` — какие отказы можно ожидать. */
+export function battleStepSchemas<E extends z.ZodType>(expectError: E) {
+  return [
+    z.strictObject({ move: cellSchema, expectError }),
+    z.strictObject({
+      attack: z.strictObject({ target: z.string(), from: cellSchema }),
+      expectError,
+    }),
+    z.strictObject({ shoot: z.string(), expectError }),
+    z.strictObject({ wait: nothing, expectError }),
+    z.strictObject({ defend: nothing, expectError }),
+    z.strictObject({ flee: nothing, expectError }),
+  ] as const;
+}
+
+const stepSchema = z.union(battleStepSchemas(z.enum(BATTLE_REJECT_CODES).optional()));
 
 /** Файл сценария боя. Описание: docs/mechanics/16-battle-screen.md. */
 const battleScenarioSchema = z.strictObject({

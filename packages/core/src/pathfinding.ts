@@ -33,10 +33,11 @@ const STEPS = DIRECTIONS.flatMap((direction) => {
 
 /**
  * Клетки, куда нельзя встать: 1 — не земля или занята другим героем;
- * 2 — объект: его клетка может быть только концом пути (20-map-objects.md).
+ * 2 — объект или зона охранника: такая клетка может быть только концом пути
+ * (20-map-objects.md, 21-guards.md).
  */
 const BLOCKED = 1;
-const OBJECT = 2;
+const END_ONLY = 2;
 
 function blockedCells(state: GameState, heroId: string): Uint8Array {
   const { map } = state;
@@ -49,7 +50,12 @@ function blockedCells(state: GameState, heroId: string): Uint8Array {
     }
   }
   for (const object of state.objects) {
-    blocked[object.y * map.width + object.x] = OBJECT;
+    blocked[object.y * map.width + object.x] = END_ONLY;
+    if (object.type === "guard") {
+      for (const cell of zoneCells(map, object)) {
+        blocked[cell] ||= END_ONLY;
+      }
+    }
   }
   for (const other of state.heroes) {
     if (other.id !== heroId) {
@@ -59,21 +65,63 @@ function blockedCells(state: GameState, heroId: string): Uint8Array {
   return blocked;
 }
 
+/** Номера клеток карты вокруг клетки: её соседи по прямой и по диагонали. */
+function zoneCells(map: MapState, center: Position): number[] {
+  const cells: number[] = [];
+  for (const step of STEPS) {
+    const x = center.x + step.delta.dx;
+    const y = center.y + step.delta.dy;
+    if (x >= 0 && y >= 0 && x < map.width && y < map.height) {
+      cells.push(y * map.width + x);
+    }
+  }
+  return cells;
+}
+
 /**
- * Стоимость самого дешёвого пути от каждой клетки до цели.
+ * Клетки, которыми может кончиться путь к цели. Обычно это сама цель. Цель — охранник,
+ * а герой не рядом: путь кончается на клетке его зоны, там и начнётся бой (21-guards.md).
+ */
+function endsFor(state: GameState, blocked: Uint8Array, start: number, target: Position): number[] {
+  const { map } = state;
+  const goal = target.y * map.width + target.x;
+  const guard = state.objects.find(
+    (object) => object.type === "guard" && object.x === target.x && object.y === target.y,
+  );
+  if (guard === undefined) {
+    return [goal];
+  }
+  const zone = zoneCells(map, guard);
+  if (zone.includes(start)) {
+    return [goal];
+  }
+  // В зоне можно встать на землю и на шахту; на кучку и на другого охранника — нельзя.
+  return zone.filter(
+    (cell) =>
+      blocked[cell] !== BLOCKED &&
+      !state.objects.some(
+        (object) => object.type !== "mine" && object.y * map.width + object.x === cell,
+      ),
+  );
+}
+
+/**
+ * Стоимость самого дешёвого пути от каждой клетки до ближайшей из целей.
  * Поиск идёт от цели назад и останавливается, когда дошёл до старта.
  */
 function costsToTarget(
   map: MapState,
   blocked: Uint8Array,
   start: number,
-  target: number,
+  targets: readonly number[],
 ): Int32Array {
   const cells = map.width * map.height;
   const costs = new Int32Array(cells).fill(UNREACHED);
   const heap = new MinHeap();
-  costs[target] = 0;
-  heap.push(target);
+  for (const target of targets) {
+    costs[target] = 0;
+    heap.push(target);
+  }
   for (let entry = heap.pop(); entry !== undefined; entry = heap.pop()) {
     const cell = entry % cells;
     const cost = (entry - cell) / cells;
@@ -95,7 +143,7 @@ function costsToTarget(
       const previous = py * map.width + px;
       // Сквозь объект пути нет; но герой может стоять на шахте в начале пути.
       const closed =
-        blocked[previous] === BLOCKED || (blocked[previous] === OBJECT && previous !== start);
+        blocked[previous] === BLOCKED || (blocked[previous] === END_ONLY && previous !== start);
       if (closed || !terrainAllowsStep(map, px, py, step.delta)) {
         continue;
       }
@@ -141,11 +189,11 @@ export function findPath(state: GameState, heroId: string, target: Position): Pa
   }
   const blocked = blockedCells(state, heroId);
   const start = hero.y * map.width + hero.x;
-  const goal = target.y * map.width + target.x;
-  if (blocked[goal] === BLOCKED) {
+  if (blocked[target.y * map.width + target.x] === BLOCKED) {
     return NOT_FOUND;
   }
-  const costs = costsToTarget(map, blocked, start, goal);
+  const ends = endsFor(state, blocked, start, target);
+  const costs = costsToTarget(map, blocked, start, ends);
   const cost = costs[start] ?? UNREACHED;
   if (cost === UNREACHED) {
     return NOT_FOUND;
@@ -161,7 +209,7 @@ export function findPath(state: GameState, heroId: string, target: Position): Pa
       return (
         terrainAllowsStep(map, x, y, step.delta) &&
         blocked[cell] !== BLOCKED &&
-        (blocked[cell] !== OBJECT || cell === goal) &&
+        (blocked[cell] !== END_ONLY || ends.includes(cell)) &&
         costs[cell] === left - step.cost
       );
     });

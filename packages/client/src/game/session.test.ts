@@ -1,3 +1,4 @@
+import { CREATURES, TEST_ARMY } from "@homamru/core/testkit";
 import { createGame } from "@homamru/core";
 import type { GameEvent, GameState } from "@homamru/core";
 import { describe, expect, it } from "vitest";
@@ -10,9 +11,10 @@ function newGame(terrain?: string[]): GameState {
       id: "test",
       name: "Проверочная",
       terrain: terrain ?? Array.from({ length: 12 }, () => "............"),
-      players: [{ hero: { x: 0, y: 0 } }],
+      players: [{ hero: { x: 0, y: 0, army: TEST_ARMY } }],
     },
     1,
+    CREATURES,
   );
   if (!created.ok) {
     throw new Error(created.errors.map((error) => error.message).join("\n"));

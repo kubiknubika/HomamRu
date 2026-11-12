@@ -2,6 +2,8 @@
  * Карта приключений: местность, шаги, проверка описания карты.
  * Спецификации: docs/mechanics/01-adventure-map.md и 02-hero-movement.md.
  */
+import type { CreatureDefinition } from "./battle/types.ts";
+import { contentErrors } from "./mapContent.ts";
 import type { Direction, MapDefinition, MapState, Position } from "./types.ts";
 
 export const TERRAIN_LAND = ".";
@@ -102,7 +104,10 @@ function terrainErrors(terrain: readonly string[]): MapError[] {
 }
 
 /** Проверяет карту по смыслу. Пустой список — карта верна. */
-export function validateMap(map: MapDefinition): MapError[] {
+export function validateMap(
+  map: MapDefinition,
+  creatures: readonly CreatureDefinition[],
+): MapError[] {
   const errors = terrainErrors(map.terrain);
   if (map.players.length < 1 || map.players.length > MAX_PLAYERS) {
     errors.push({
@@ -128,7 +133,7 @@ export function validateMap(map: MapDefinition): MapError[] {
     }
     taken.add(key);
   });
-  errors.push(...objectErrors(map, taken));
+  errors.push(...objectErrors(map, taken), ...contentErrors(map, creatures));
   return errors;
 }
 

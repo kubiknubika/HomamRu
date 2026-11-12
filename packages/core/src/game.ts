@@ -1,6 +1,7 @@
 /**
  * Создание партии. Спецификация: docs/mechanics/00-state-and-commands.md.
  */
+import type { CreatureDefinition } from "./battle/types.ts";
 import { validateMap } from "./map.ts";
 import type { MapError } from "./map.ts";
 import { addResources, createObjects, NO_RESOURCES } from "./objects.ts";
@@ -22,9 +23,13 @@ export function heroIdOf(player: number): string {
   return HERO_IDS[player] ?? `H${player}`;
 }
 
-/** Создаёт партию из описания карты и сида. Неверная карта — список причин. */
-export function createGame(map: MapDefinition, seed: number): CreateGameResult {
-  const errors = validateMap(map);
+/** Создаёт партию из описания карты, сида и существ игры. Неверная карта — список причин. */
+export function createGame(
+  map: MapDefinition,
+  seed: number,
+  creatures: readonly CreatureDefinition[],
+): CreateGameResult {
+  const errors = validateMap(map, creatures);
   if (errors.length > 0) {
     return { ok: false, errors };
   }
@@ -52,10 +57,18 @@ export function createGame(map: MapDefinition, seed: number): CreateGameResult {
         x: player.hero.x,
         y: player.hero.y,
         movement: DAILY_MOVEMENT,
+        attack: player.hero.attack ?? 0,
+        defense: player.hero.defense ?? 0,
+        army: player.hero.army.map(({ creature, count }) => ({ creature, count })),
+        experience: 0,
+        level: 1,
       })),
       objects,
       day: 1,
       currentPlayer: 0,
+      creatures: creatures.map((creature) => ({ ...creature })),
+      battle: null,
+      outcome: null,
     },
   };
 }

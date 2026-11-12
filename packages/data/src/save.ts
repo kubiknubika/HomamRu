@@ -6,7 +6,9 @@
 import { replay, STATE_VERSION } from "@homamru/core";
 import type { Command, GameState } from "@homamru/core";
 import { z } from "zod";
-import { commandSchema, readState } from "./state.ts";
+import type { SaveDefaults } from "./defaults.ts";
+import { readState } from "./state.ts";
+import { commandSchema } from "./stateSchemas.ts";
 
 /**
  * Версия формата сохранения. Увеличивается при любом изменении состава записи.
@@ -80,9 +82,9 @@ export type DecodeResult =
 /**
  * Разбирает текст записи. Запись с неверной контрольной суммой не загружается никогда.
  * Запись другой версии читается: недостающее берётся начальным, незнакомое убирается
- * (04-save.md, «Сохранения других версий»).
+ * (04-save.md, «Сохранения других версий»). `defaults` — начальные значения из контента игры.
  */
-export function decodeSave(text: string): DecodeResult {
+export function decodeSave(text: string, defaults: SaveDefaults): DecodeResult {
   const split = text.indexOf("\n");
   if (split < 0) {
     return { kind: "corrupt" };
@@ -98,12 +100,12 @@ export function decodeSave(text: string): DecodeResult {
     return { kind: "corrupt" };
   }
   const parsed = recordSchema.safeParse(raw);
-  const state = parsed.success ? readState(parsed.data.state) : null;
+  const state = parsed.success ? readState(parsed.data.state, defaults) : null;
   if (!parsed.success || state === null) {
     return { kind: "corrupt" };
   }
   const { seq, gameVersion } = parsed.data;
-  const initial = readState(parsed.data.initial);
+  const initial = readState(parsed.data.initial, defaults);
   const commands = z.array(commandSchema).safeParse(parsed.data.commands);
   // История годится для повтора, только если всё прочитано как записано.
   const intact =
@@ -136,7 +138,10 @@ export type LoadResult =
  * Выбирает из двух копий целую запись с большим порядковым номером.
  * `null` — копии нет. Если копии есть, но целых нет — «испорчена».
  */
-export function chooseSave(copies: readonly [string | null, string | null]): LoadResult {
+export function chooseSave(
+  copies: readonly [string | null, string | null],
+  defaults: SaveDefaults,
+): LoadResult {
   let best: { record: SaveRecord; slot: SaveSlot } | undefined;
   let sawCorrupt = false;
   for (const slot of [0, 1] as const) {
@@ -144,7 +149,7 @@ export function chooseSave(copies: readonly [string | null, string | null]): Loa
     if (text === null) {
       continue;
     }
-    const decoded = decodeSave(text);
+    const decoded = decodeSave(text, defaults);
     if (decoded.kind === "corrupt") {
       sawCorrupt = true;
     } else if (best === undefined || decoded.record.seq > best.record.seq) {

@@ -1,10 +1,19 @@
 /**
  * Команда «переместить героя». Спецификация: docs/mechanics/02-hero-movement.md.
  */
+import { guardWatching } from "./guards.ts";
 import { deltaOf, stepCost, terrainAllowsStep } from "./map.ts";
+import { startBattle } from "./mapBattle.ts";
 import { addResources, objectAt } from "./objects.ts";
 import { reject } from "./types.ts";
-import type { CommandResult, GameEvent, GameState, MoveHeroCommand, ObjectState } from "./types.ts";
+import type {
+  CommandResult,
+  GameEvent,
+  GameState,
+  GuardState,
+  MoveHeroCommand,
+  ObjectState,
+} from "./types.ts";
 
 export function applyMoveHero(state: GameState, command: MoveHeroCommand): CommandResult {
   const hero = state.heroes.find((candidate) => candidate.id === command.heroId);
@@ -23,6 +32,8 @@ export function applyMoveHero(state: GameState, command: MoveHeroCommand): Comma
   let { x, y, movement } = hero;
   let picked: Extract<ObjectState, { type: "pile" }> | undefined;
   let captured: Extract<ObjectState, { type: "mine" }> | undefined;
+  /** Охранник, с которым этот ход начинает бой (21-guards.md). */
+  let enemy: GuardState | undefined;
   for (const [index, direction] of command.path.entries()) {
     const delta = deltaOf(direction);
     if (delta === undefined || !terrainAllowsStep(state.map, x, y, delta)) {
@@ -59,6 +70,11 @@ export function applyMoveHero(state: GameState, command: MoveHeroCommand): Comma
       picked = object;
       break;
     }
+    if (object?.type === "guard") {
+      // Нападение с соседней клетки: очки потрачены, герой остаётся на месте.
+      enemy = object;
+      break;
+    }
     events.push({
       type: "heroStepped",
       heroId: hero.id,
@@ -69,6 +85,12 @@ export function applyMoveHero(state: GameState, command: MoveHeroCommand): Comma
     });
     x = to.x;
     y = to.y;
+    enemy = guardWatching(state, x, y);
+    if (enemy !== undefined) {
+      // Шаг закончился в зоне охранника: герой останавливается, остаток пути не идёт.
+      // Шахту в этой клетке он займёт, только если победит.
+      break;
+    }
     if (object?.type === "mine" && object.owner !== hero.owner) {
       captured = object;
     }
@@ -95,14 +117,15 @@ export function applyMoveHero(state: GameState, command: MoveHeroCommand): Comma
     );
     events.push({ type: "mineCaptured", objectId: id, owner: hero.owner, previousOwner });
   }
+  const after: GameState = {
+    ...state,
+    objects,
+    players,
+    heroes: state.heroes.map((candidate) => (candidate.id === hero.id ? moved : candidate)),
+  };
   return {
     ok: true,
-    state: {
-      ...state,
-      objects,
-      players,
-      heroes: state.heroes.map((candidate) => (candidate.id === hero.id ? moved : candidate)),
-    },
+    state: enemy === undefined ? after : startBattle(after, moved, enemy, events),
     events,
   };
 }

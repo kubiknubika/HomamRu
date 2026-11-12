@@ -17,7 +17,7 @@ import type { BattleScenario, BattleScenarioStep } from "@homamru/data";
 import type { ScenarioRun } from "./scenario.ts";
 
 /** Команду отдаёт сторона, чей отряд сейчас ходит. */
-function toCommand(step: BattleScenarioStep, side: 0 | 1): BattleCommand {
+export function battleStepCommand(step: BattleScenarioStep, side: 0 | 1): BattleCommand {
   if ("move" in step) {
     return { type: "battleMove", side, to: step.move };
   }
@@ -33,7 +33,7 @@ function toCommand(step: BattleScenarioStep, side: 0 | 1): BattleCommand {
   return "defend" in step ? { type: "battleDefend", side } : { type: "battleFlee", side };
 }
 
-function describe(command: BattleCommand): string {
+export function describeBattleCommand(command: BattleCommand): string {
   switch (command.type) {
     case "battleMove":
       return `переместиться на (${command.to.col}, ${command.to.row})`;
@@ -111,9 +111,9 @@ export function runBattleScenario(
   ];
   const failures: string[] = [];
   for (const [index, step] of scenario.steps.entries()) {
-    const command = toCommand(step, activeStackOf(state)?.side ?? 0);
+    const command = battleStepCommand(step, activeStackOf(state)?.side ?? 0);
     const result = applyBattleCommand(state, command);
-    lines.push("", `Команда ${index + 1}: ${describe(command)}`);
+    lines.push("", `Команда ${index + 1}: ${describeBattleCommand(command)}`);
     if (result.ok) {
       state = result.state;
       lines.push(
