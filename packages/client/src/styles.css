@@ -696,3 +696,31 @@ body {
   border: 2px solid #fff3d6;
   background: #c8372d;
 }
+
+/* Ход противника: надпись наверху и кнопка «Пропустить» (43-opponent-screen.md). */
+.hud-opponent {
+  top: max(12px, env(safe-area-inset-top));
+  left: 50%;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 6px 8px 6px 16px;
+  border-color: #2d6fc8;
+  font-size: 16px;
+  font-weight: 600;
+  transform: translateX(-50%);
+}
+
+.hud-townless {
+  color: #ffb4a8;
+  font-weight: 600;
+}
+
+.hud-button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.legend-enemy {
+  background: #2d6fc8;
+}

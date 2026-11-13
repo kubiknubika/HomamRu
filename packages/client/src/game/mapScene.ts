@@ -10,8 +10,9 @@ import { creatureName } from "./captions.ts";
 import type { FrameMeter } from "./frameMeter.ts";
 import { cellAt, cellCenter, TILE } from "./geometry.ts";
 import { createObjectStub, objectStubKey, ZONE_ALPHA, ZONE_COLOR } from "./objectStubs.ts";
-import { activeHero } from "./session.ts";
-import type { Selection, Session } from "./session.ts";
+import type { Session } from "./session.ts";
+import { activeHero, battleSideOf, computerToMove, humanOf } from "./view.ts";
+import type { Selection } from "./view.ts";
 import {
   createHeroStub,
   createTerrainTexture,
@@ -31,6 +32,8 @@ const PATH_DEPTH = 2;
 const HERO_DEPTH = 3;
 /** Пауза между приходом героя в зону охранника и экраном боя: игрок видит, где герой встал. */
 const BATTLE_PAUSE_MS = 350;
+/** Пауза между действиями противника, которые не видны на карте (стройка, наём). */
+const OPPONENT_PAUSE_MS = 120;
 
 interface ObjectStub {
   readonly key: string;
@@ -45,6 +48,8 @@ export class MapScene extends Phaser.Scene {
   private pathGraphics: Phaser.GameObjects.Graphics | undefined;
   /** Герой идёт по клеткам: пока идёт, касания карты не принимаются. */
   private walking = false;
+  /** Следующее действие противника уже заказано: второй раз не заказывается. */
+  private stepPending = false;
 
   constructor(session: Session, frameMeter: FrameMeter) {
     super("map");
@@ -131,8 +136,12 @@ export class MapScene extends Phaser.Scene {
       onComplete: () => {
         this.walking = false;
         this.settle();
-        // Герой встал на свой город — открывается экран города.
-        this.session.heroArrived();
+        const { state } = this.session.getSnapshot();
+        const walker = state.heroes.find((hero) => hero.id === steps[0]?.heroId);
+        if (walker?.owner === humanOf(state)) {
+          // Герой игрока встал на свой город — открывается экран города.
+          this.session.heroArrived();
+        }
       },
     });
   }
@@ -143,9 +152,16 @@ export class MapScene extends Phaser.Scene {
     this.placeHeroes(state);
     this.syncObjects(state);
     this.drawSelection(selection, state);
-    if (state.battle !== null && battle === null) {
+    if (state.battle !== null && battle === null && battleSideOf(state) !== null) {
       this.time.delayedCall(BATTLE_PAUSE_MS, () => {
         this.session.enterBattle();
+      });
+    } else if (computerToMove(state) && battle === null && !this.stepPending) {
+      // Ход противника: карта показала предыдущее действие — просит следующее.
+      this.stepPending = true;
+      this.time.delayedCall(OPPONENT_PAUSE_MS, () => {
+        this.stepPending = false;
+        this.session.opponentStep();
       });
     }
   }
@@ -230,8 +246,8 @@ export class MapScene extends Phaser.Scene {
       graphics.lineBetween(target.x - arm, target.y + arm, target.x + arm, target.y - arm);
       return;
     }
-    if (selection.guard !== null) {
-      this.drawZone(graphics, selection.guard, state);
+    if (selection.fight?.kind === "guard") {
+      this.drawZone(graphics, selection.fight.guard, state);
     }
     const { steps, stepsToday } = selection.path;
     for (const [index, cell] of cellsAlong(hero, steps).entries()) {

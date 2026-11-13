@@ -64,7 +64,7 @@ const playerSchema = z.object({
   kind: z.enum(["human", "computer"]).catch(DEFAULTS.playerKind),
   eliminated: z.boolean().catch(DEFAULTS.eliminated),
   // Не больше шести: на седьмом дне игрок уже выбыл (41-victory.md).
-  townlessDays: z.int().min(0).max(6).nullable().catch(DEFAULTS.townlessDays),
+  townlessDays: z.int().min(0).max(7).nullable().catch(DEFAULTS.townlessDays),
 });
 
 export const objectSchema = z.discriminatedUnion("type", [

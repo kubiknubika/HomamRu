@@ -6,7 +6,7 @@ import { refreshTavern } from "./tavern.ts";
 import type { GameEvent, GameState, PlayerState, TownState } from "./types.ts";
 
 /** Сколько своих ходов игрок может закончить без города. Число — из Heroes 3. */
-const TOWNLESS_DAYS = 7;
+export const TOWNLESS_DAYS = 7;
 
 function hasTown(state: GameState, player: number): boolean {
   return state.objects.some((object) => object.type === "town" && object.owner === player);
@@ -40,7 +40,8 @@ function eliminate(
   const out = withPlayer(state, player, (old) => ({
     ...old,
     eliminated: true,
-    townlessDays: null,
+    // У выбывшего по сроку счётчик остаётся: по нему видна причина (43-opponent-screen.md).
+    townlessDays: reason === "townless" ? TOWNLESS_DAYS : null,
     tavern: [],
   }));
   return { ...out, heroes: out.heroes.filter((hero) => hero.owner !== player) };

@@ -29,11 +29,13 @@ const LETTER_STYLE = {
 } as const;
 
 /**
- * По чему видно, что заглушку пора перерисовать: у шахты меняется владелец,
+ * По чему видно, что заглушку пора перерисовать: у шахты и города меняется владелец,
  * остальные объекты не меняются, пока существуют.
  */
 export function objectStubKey(object: ObjectState): string {
-  return object.type === "mine" ? `mine:${object.owner ?? "-"}` : object.type;
+  return object.type === "mine" || object.type === "town"
+    ? `${object.type}:${object.owner ?? "-"}`
+    : object.type;
 }
 
 /** Кучка: маленький ромб цвета ресурса. */

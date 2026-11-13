@@ -1,0 +1,39 @@
+# Проверочная карта «с противником»: человек против компьютера
+# (docs/mechanics/43-opponent-screen.md, приёмка шага 5.3 в stage-5.md).
+id: test-opponent
+name: Проверочная карта с противником
+terrain:
+  - "..............."
+  - "..............."
+  - "..............."
+  - ".......##......"
+  - ".......##......"
+  - "..............."
+  - "..............."
+  - "..............."
+  - "..............."
+  - "..............."
+  - "..............."
+  - "..............."
+players:
+  - hero: { x: 1, y: 1, army: [{ creature: militia, count: 20 }, { creature: slinger, count: 8 }] }
+    resources: { gold: 5000, wood: 10, ore: 10 }
+  - hero:
+      { x: 13, y: 10, army: [{ creature: militia, count: 20 }, { creature: slinger, count: 8 }] }
+    kind: computer
+    resources: { gold: 5000, wood: 10, ore: 10 }
+objects:
+  - { type: town, x: 1, y: 2, owner: 0, buildings: [tavern, fort, militia-yard] }
+  - { type: town, x: 13, y: 9, owner: 1, buildings: [tavern, fort, militia-yard] }
+  - { type: pile, x: 4, y: 1, resource: gold, amount: 500 }
+  - { type: mine, x: 5, y: 3, kind: sawmill }
+  - { type: pile, x: 1, y: 6, resource: wood, amount: 6 }
+  - { type: guard, x: 3, y: 8, creature: militia, count: 12 }
+  - { type: mine, x: 2, y: 9, kind: ore-pit }
+  - { type: pile, x: 10, y: 10, resource: gold, amount: 500 }
+  - { type: mine, x: 9, y: 8, kind: sawmill }
+  - { type: pile, x: 13, y: 5, resource: wood, amount: 6 }
+  - { type: guard, x: 11, y: 3, creature: militia, count: 12 }
+  - { type: mine, x: 12, y: 2, kind: ore-pit }
+  - { type: guard, x: 7, y: 6, creature: armsman, count: 6 }
+  - { type: mine, x: 7, y: 7, kind: gold-mine }

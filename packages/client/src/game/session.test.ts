@@ -2,7 +2,8 @@ import { TEST_ARMY, CONTENT } from "@homamru/core/testkit";
 import { createGame } from "@homamru/core";
 import type { GameEvent, GameState } from "@homamru/core";
 import { describe, expect, it } from "vitest";
-import { activeHero, createSession } from "./session.ts";
+import { createSession } from "./session.ts";
+import { activeHero } from "./view.ts";
 import type { SessionSnapshot } from "./session.ts";
 
 function newGame(terrain?: string[]): GameState {
@@ -67,7 +68,7 @@ describe("управление героем", () => {
     expect(session.getSnapshot().selection).toEqual({
       target: { x: 2, y: 0 },
       path: { found: false },
-      guard: null,
+      fight: null,
     });
     session.tapCell({ x: 2, y: 0 });
     expect(heroOf(session.getSnapshot())).toMatchObject({ x: 0, y: 0, movement: 1000 });

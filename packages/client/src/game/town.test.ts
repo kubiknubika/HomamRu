@@ -1,10 +1,12 @@
 // Экран города: docs/mechanics/33-town-screen.md. Сессия, подписи, слова экрана.
 import { CONTENT } from "@homamru/core/testkit";
-import { chooseBattleCommand, createGame, townOf } from "@homamru/core";
+import { createGame, townOf } from "@homamru/core";
 import type { GameState, MapObjectDefinition, ResourceAmounts, TownState } from "@homamru/core";
 import { describe, expect, it } from "vitest";
-import { describeObject } from "./captions.ts";
-import { activeHero, createSession } from "./session.ts";
+import { describeCell } from "./captions.ts";
+import { finishBattle, go } from "./screenKit.ts";
+import { createSession } from "./session.ts";
+import { activeHero } from "./view.ts";
 import type { Session } from "./session.ts";
 import { amountsText, armyText, buildingGives, buildingStatus, recruitRows } from "./townTexts.ts";
 
@@ -42,11 +44,6 @@ function newGame(resources: ResourceAmounts = RICH, objects = [TOWN]): GameState
   return created.state;
 }
 
-function go(session: Session, x: number, y: number): void {
-  session.tapCell({ x, y });
-  session.tapCell({ x, y });
-}
-
 function townIn(session: Session): TownState {
   const town = townOf(session.getSnapshot().state, 0);
   if (town === undefined) {
@@ -76,64 +73,35 @@ function goldOf(session: Session): number {
   return session.getSnapshot().state.players[0]?.resources.gold ?? -1;
 }
 
-/** Доигрывает бой на экране: за игрока ходит тот же простой компьютер. */
-function finishBattle(session: Session): void {
-  const battle = session.getSnapshot().battle;
-  if (battle === null) {
-    return;
-  }
-  for (let turn = 0; turn < 500; turn += 1) {
-    battle.animationDone();
-    const { state } = battle.getSnapshot();
-    const command = chooseBattleCommand(state);
-    if (command === undefined) {
-      return;
-    }
-    if (command.type === "battleMove") {
-      battle.tapCell(command.to);
-      battle.tapCell(command.to);
-    } else if (command.type === "battleAttack") {
-      const target = state.stacks.find((stack) => stack.id === command.target);
-      battle.tapCell(target ?? command.from);
-      battle.tapCell(command.from);
-      battle.tapCell(command.from);
-    } else if (command.type === "battleWait") {
-      battle.wait();
-    } else {
-      battle.defend();
-    }
-  }
-}
-
 describe("открытие экрана города", () => {
   it("кнопка «Город» открывает экран из любого места карты", () => {
     const session = createSession(newGame());
-    expect(session.getSnapshot().townOpen).toBe(false);
+    expect(session.getSnapshot().townId).toBeNull();
     session.openTown();
-    expect(session.getSnapshot().townOpen).toBe(true);
+    expect(session.getSnapshot().townId).toBe("o1");
     session.closeTown();
-    expect(session.getSnapshot().townOpen).toBe(false);
+    expect(session.getSnapshot().townId).toBeNull();
   });
 
   it("герой встал на клетку города — экран открывается сам", () => {
     const session = createSession(newGame());
     go(session, 1, 1);
     session.heroArrived();
-    expect(session.getSnapshot()).toMatchObject({ townOpen: true, selection: null });
+    expect(session.getSnapshot()).toMatchObject({ townId: "o1", selection: null });
   });
 
   it("герой дошёл до другой клетки — экран не открывается", () => {
     const session = createSession(newGame());
     go(session, 2, 0);
     session.heroArrived();
-    expect(session.getSnapshot().townOpen).toBe(false);
+    expect(session.getSnapshot().townId).toBeNull();
   });
 
   it("на карте без города экрана города нет", () => {
     const session = createSession(newGame(RICH, []));
     session.openTown();
     session.build("town-hall");
-    expect(session.getSnapshot().townOpen).toBe(false);
+    expect(session.getSnapshot().townId).toBeNull();
     expect(linesOf(session)).toEqual([]);
   });
 });
@@ -232,11 +200,11 @@ describe("потеря героя при городе", () => {
 describe("слова города", () => {
   it("подпись города: чей и доход в день — с ратушей больше", () => {
     const session = createSession(newGame());
-    expect(describeObject(session.getSnapshot().state, townIn(session))).toBe(
+    expect(describeCell(session.getSnapshot().state, townIn(session))).toBe(
       "Город, ваш. В день: золото +500",
     );
     session.build("town-hall");
-    expect(describeObject(session.getSnapshot().state, townIn(session))).toBe(
+    expect(describeCell(session.getSnapshot().state, townIn(session))).toBe(
       "Город, ваш. В день: золото +1000",
     );
   });
