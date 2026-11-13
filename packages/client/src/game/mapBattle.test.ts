@@ -44,7 +44,7 @@ describe("подписи и предупреждение о бое", () => {
     });
     const fight = selection?.fight;
     expect(fight === null || fight === undefined ? "" : fightWarning(state, fight)).toBe(
-      "Ополченец, несколько (5–9) — будет бой",
+      "Несколько ополченцев (5–9) — будет бой",
     );
   });
 
@@ -65,10 +65,10 @@ describe("подписи и предупреждение о бое", () => {
       return inspected === null ? "" : describeCell(state, inspected);
     });
     expect(captions).toEqual([
-      "Охранник: Ополченец, несколько (5–9)",
+      "Охранник: несколько ополченцев (5–9)",
       "Лесопилка, ничья. В день: дерево +2",
       "Кучка: золото 700",
-      "Охранник: Сокол, полчище (250–499)",
+      "Охранник: полчище соколов (250–499)",
     ]);
     session.tapCell({ x: 1, y: 1 });
     expect(session.getSnapshot().inspected).toBeNull();

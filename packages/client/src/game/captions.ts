@@ -37,12 +37,32 @@ export function creatureName(state: GameState, creatureId: string): string {
 }
 
 /**
- * Существо, слово о численности и его границы: точного числа до боя игрок не видит,
- * а по одному слову не понять, что больше.
+ * Названия существ во множественном числе, родительный падеж: «группа ополченцев».
+ * В данных существ падежей нет; слова экрана лежат здесь, как названия шахт и ресурсов.
  */
+export const CREATURE_MANY: Readonly<Record<string, string>> = {
+  militia: "ополченцев",
+  slinger: "пращников",
+  falcon: "соколов",
+  armsman: "латников",
+};
+
+/**
+ * Отряд словами, как в Heroes 3: «группа ополченцев (10–19)». Точного числа игрок не видит,
+ * а по одному слову не понять, что больше, — поэтому рядом границы.
+ */
+function describeStack(state: GameState, stack: ArmyStack): string {
+  const { count, creature } = stack;
+  const many = CREATURE_MANY[creature];
+  const who =
+    many === undefined
+      ? `${lower(creatureName(state, creature))} — ${quantityWord(count)}`
+      : `${quantityWord(count)} ${many}`;
+  return `${who} (${quantityRange(count)})`;
+}
+
 function describeGuard(state: GameState, guard: GuardState): string {
-  const { count } = guard;
-  return `${creatureName(state, guard.creature)}, ${quantityWord(count)} (${quantityRange(count)})`;
+  return describeStack(state, guard);
 }
 
 function ownerText(state: GameState, owner: number | null): string {
@@ -52,14 +72,9 @@ function ownerText(state: GameState, owner: number | null): string {
   return owner === humanOf(state) ? "ваша" : "противника";
 }
 
-/** Армия словами, без точных чисел: «Ополченец — много (20–49); пращник — несколько (5–9)». */
+/** Армия словами, без точных чисел: «много ополченцев (20–49), несколько пращников (5–9)». */
 function armyWords(state: GameState, army: readonly ArmyStack[]): string {
-  return army
-    .map((stack) => {
-      const { count } = stack;
-      return `${lower(creatureName(state, stack.creature))} — ${quantityWord(count)} (${quantityRange(count)})`;
-    })
-    .join("; ");
+  return army.map((stack) => describeStack(state, stack)).join(", ");
 }
 
 function describeEnemyHero(state: GameState, hero: HeroState): string {
@@ -107,7 +122,8 @@ export function describeCell(state: GameState, cell: Position): string | null {
 /** Подпись к пути, который кончается боем или захватом. */
 export function fightWarning(state: GameState, fight: Fight): string {
   if (fight.kind === "guard") {
-    return `${describeGuard(state, fight.guard)} — будет бой`;
+    const guard = describeGuard(state, fight.guard);
+    return `${guard.slice(0, 1).toUpperCase()}${guard.slice(1)} — будет бой`;
   }
   if (fight.kind === "capture") {
     return "Город противника, гарнизон пуст — город будет захвачен";

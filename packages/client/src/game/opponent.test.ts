@@ -3,7 +3,8 @@ import { CONTENT } from "@homamru/core/testkit";
 import { createGame, townsOf } from "@homamru/core";
 import type { ArmyStack, Command, GameEvent, GameState, MapObjectDefinition } from "@homamru/core";
 import { describe, expect, it } from "vitest";
-import { describeCell, fightWarning } from "./captions.ts";
+import { CREATURE_MANY, describeCell, fightWarning } from "./captions.ts";
+import { loadDefaults } from "./content.ts";
 import { finishBattle, go } from "./screenKit.ts";
 import { createSession } from "./session.ts";
 import type { Session } from "./session.ts";
@@ -74,10 +75,10 @@ describe("подписи противника", () => {
   it("удержание на герое и городе противника: имя, армия и гарнизон словами", () => {
     const state = duel([HOME, { ...THEIRS, garrison: militia(12) } as MapObjectDefinition]);
     expect(describeCell(state, { x: 4, y: 0 })).toBe(
-      "Герой противника: Ратибор. Армия: ополченец — группа (10–19)",
+      "Герой противника: Ратибор. Армия: группа ополченцев (10–19)",
     );
     expect(describeCell(state, { x: 4, y: 4 })).toBe(
-      "Город противника. Гарнизон: ополченец — группа (10–19)",
+      "Город противника. Гарнизон: группа ополченцев (10–19)",
     );
     expect(describeCell(duel([THEIRS]), { x: 4, y: 4 })).toBe("Город противника. Гарнизон пуст");
     expect(describeCell(state, { x: 0, y: 4 })).toBe("Город, ваш. В день: золото +500");
@@ -86,7 +87,7 @@ describe("подписи противника", () => {
   it("герой противника в своём городе — строка о городе и строка о герое", () => {
     const state = duel([THEIRS]);
     expect(describeCell(place(state, 1, 4, 4), { x: 4, y: 4 })).toBe(
-      "Город противника. Гарнизон пуст. Герой противника: Ратибор. Армия: ополченец — группа (10–19)",
+      "Город противника. Гарнизон пуст. Герой противника: Ратибор. Армия: группа ополченцев (10–19)",
     );
   });
 
@@ -96,15 +97,21 @@ describe("подписи противника", () => {
     );
     session.tapCell({ x: 4, y: 0 });
     expect(captionOf(session)).toBe(
-      "Герой противника: Ратибор. Армия: ополченец — группа (10–19) — будет бой",
+      "Герой противника: Ратибор. Армия: группа ополченцев (10–19) — будет бой",
     );
     session.tapCell({ x: 4, y: 4 });
     expect(captionOf(session)).toBe(
-      "Город противника. Гарнизон: ополченец — горстка (1–4) — будет бой",
+      "Город противника. Гарнизон: горстка ополченцев (1–4) — будет бой",
     );
     const empty = createSession(duel([THEIRS]));
     empty.tapCell({ x: 4, y: 4 });
     expect(captionOf(empty)).toBe("Город противника, гарнизон пуст — город будет захвачен");
+  });
+});
+
+describe("слова о существах", () => {
+  it("у каждого существа игры есть название во множественном числе", () => {
+    expect(loadDefaults().creatures.filter((c) => CREATURE_MANY[c.id] === undefined)).toEqual([]);
   });
 });
 
