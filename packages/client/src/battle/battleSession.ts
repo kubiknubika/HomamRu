@@ -16,8 +16,7 @@ import type { BattleCommand, BattleEvent, BattleState, Cell, StackState } from "
 import { describeEvents } from "./battleLog.ts";
 import { routeOf } from "./battleRoute.ts";
 
-/** Игрок — нападающий, компьютер — обороняющийся. */
-export const PLAYER_SIDE = 0;
+type Side = 0 | 1;
 
 interface DamageRange {
   readonly min: number;
@@ -49,6 +48,8 @@ export interface BattleSnapshot {
   readonly history: readonly string[];
   /** Отряд, который игрок рассматривает: видны его характеристики и клетки хода. */
   readonly inspected: string | null;
+  /** Сторона игрока: 0 — он напал, 1 — напали на него. За другую ходит компьютер. */
+  readonly playerSide: Side;
 }
 
 /** Сколько последних ходов хранит журнал боя. */
@@ -92,7 +93,7 @@ function stackAt(state: BattleState, cell: Cell): StackState | undefined {
 /** Отряд игрока, которым он сейчас может управлять. */
 export function playerStack(snapshot: BattleSnapshot): StackState | undefined {
   const active = activeStackOf(snapshot.state);
-  return snapshot.locked || active?.side !== PLAYER_SIDE ? undefined : active;
+  return snapshot.locked || active?.side !== snapshot.playerSide ? undefined : active;
 }
 
 /** Выбор по первому касанию врага. */
@@ -122,7 +123,9 @@ export function attackableTargets(snapshot: BattleSnapshot): StackState[] {
     return [];
   }
   const { state } = snapshot;
-  const enemies = state.stacks.filter((stack) => stack.count > 0 && stack.side !== PLAYER_SIDE);
+  const enemies = state.stacks.filter(
+    (stack) => stack.count > 0 && stack.side !== snapshot.playerSide,
+  );
   return canShoot(state, me)
     ? enemies
     : enemies.filter((enemy) => attackCells(state, me, enemy).length > 0);
@@ -137,6 +140,7 @@ type OnBattleCommand = (command: BattleCommand) => void;
 export function createBattleSession(
   initial: BattleState,
   onCommand?: OnBattleCommand,
+  playerSide: Side = 0,
 ): BattleSession {
   let snapshot: BattleSnapshot = {
     state: initial,
@@ -145,6 +149,7 @@ export function createBattleSession(
     log: "",
     history: [],
     inspected: null,
+    playerSide,
   };
   const listeners = new Set<Listener>();
 
@@ -168,7 +173,7 @@ export function createBattleSession(
     }
     onCommand?.(command);
     const route = routeOf(snapshot.state, command);
-    const line = describeEvents(result.events, result.state);
+    const line = describeEvents(result.events, result.state, playerSide);
     const history = line === "" ? snapshot.history : [...snapshot.history, line];
     publish(
       {
@@ -187,7 +192,7 @@ export function createBattleSession(
   function tapEnemy(state: BattleState, me: StackState, enemy: StackState): void {
     const { selection } = snapshot;
     if (selection?.kind === "shoot" && selection.targetId === enemy.id) {
-      send({ type: "battleShoot", side: PLAYER_SIDE, target: enemy.id });
+      send({ type: "battleShoot", side: playerSide, target: enemy.id });
       return;
     }
     // Клетка удара уже выбрана: касание по врагу подтверждает удар с неё.
@@ -196,7 +201,7 @@ export function createBattleSession(
       selection.targetId === enemy.id &&
       selection.from !== null
     ) {
-      send({ type: "battleAttack", side: PLAYER_SIDE, target: enemy.id, from: selection.from });
+      send({ type: "battleAttack", side: playerSide, target: enemy.id, from: selection.from });
       return;
     }
     publish({ selection: selectEnemy(state, me, enemy) });
@@ -207,14 +212,14 @@ export function createBattleSession(
     if (selection?.kind === "attack" && selection.cells.some((from) => sameCell(from, cell))) {
       // Первое касание клетки удара выбирает её, второе — бьёт.
       if (selection.from !== null && sameCell(selection.from, cell)) {
-        send({ type: "battleAttack", side: PLAYER_SIDE, target: selection.targetId, from: cell });
+        send({ type: "battleAttack", side: playerSide, target: selection.targetId, from: cell });
       } else {
         publish({ selection: { ...selection, from: cell } });
       }
       return;
     }
     if (selection?.kind === "move" && sameCell(selection.cell, cell)) {
-      send({ type: "battleMove", side: PLAYER_SIDE, to: cell });
+      send({ type: "battleMove", side: playerSide, to: cell });
       return;
     }
     const reachable = [...reachableCells(state, me).values()].some((to) => sameCell(to, cell));
@@ -223,7 +228,7 @@ export function createBattleSession(
 
   function simple(type: "battleWait" | "battleDefend" | "battleFlee"): void {
     if (playerStack(snapshot) !== undefined) {
-      send({ type, side: PLAYER_SIDE });
+      send({ type, side: playerSide });
     }
   }
 
@@ -246,7 +251,7 @@ export function createBattleSession(
       }
       const { state } = snapshot;
       const target = stackAt(state, cell);
-      if (target !== undefined && target.side !== PLAYER_SIDE) {
+      if (target !== undefined && target.side !== playerSide) {
         tapEnemy(state, me, target);
       } else if (target === undefined || sameCell(target, me)) {
         // Своя клетка годится для удара с места.
@@ -273,7 +278,7 @@ export function createBattleSession(
     animationDone: () => {
       const { state } = snapshot;
       const command =
-        activeStackOf(state)?.side === PLAYER_SIDE ? undefined : chooseBattleCommand(state);
+        activeStackOf(state)?.side === playerSide ? undefined : chooseBattleCommand(state);
       if (command === undefined) {
         // Ход игрока или бой окончен.
         publish({ locked: false });

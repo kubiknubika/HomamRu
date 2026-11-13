@@ -4,7 +4,11 @@ import type { BattleEvent, BattleState, StackState } from "@homamru/core";
 
 const STRIKE_VERBS = { melee: "бьёт", retaliation: "отвечает", shot: "стреляет" } as const;
 
-function describeEvent(event: BattleEvent, nameOf: (id: string) => string): string | null {
+function describeEvent(
+  event: BattleEvent,
+  nameOf: (id: string) => string,
+  playerSide: 0 | 1,
+): string | null {
   switch (event.type) {
     case "roundStarted":
       return `Раунд ${event.round}`;
@@ -24,7 +28,7 @@ function describeEvent(event: BattleEvent, nameOf: (id: string) => string): stri
     case "moraleTurn":
       return `${nameOf(event.stackId)}: высокий боевой дух, ещё один ход`;
     case "sideFled":
-      return event.side === 0 ? "Вы бежали с поля боя" : "Противник бежал";
+      return event.side === playerSide ? "Вы бежали с поля боя" : "Противник бежал";
     case "stackTurn":
     case "stackMoved":
     case "battleEnded":
@@ -36,19 +40,23 @@ function describeEvent(event: BattleEvent, nameOf: (id: string) => string): stri
  * Строка журнала по событиям команды. Если ничего, кроме перемещения, не случилось —
  * строка о перемещении.
  */
-export function describeEvents(events: readonly BattleEvent[], state: BattleState): string {
+export function describeEvents(
+  events: readonly BattleEvent[],
+  state: BattleState,
+  playerSide: 0 | 1 = 0,
+): string {
   // В бою у сторон бывают одинаковые существа — в журнале сказано, чей отряд.
   const nameOf = (id: string): string => {
     const stack = findStack(state, id);
     return stack === undefined
       ? id
-      : `${stack.creature.name} (${stack.side === 0 ? "ваш" : "враг"})`;
+      : `${stack.creature.name} (${stack.side === playerSide ? "ваш" : "враг"})`;
   };
   const parts: string[] = [];
   // Боевой дух — в начале строки: он объясняет, почему отряд ходит снова или пропускает ход.
   const morale: string[] = [];
   for (const event of events) {
-    const text = describeEvent(event, nameOf);
+    const text = describeEvent(event, nameOf, playerSide);
     if (text !== null) {
       (event.type === "moraleTurn" || event.type === "stackFroze" ? morale : parts).push(text);
     }

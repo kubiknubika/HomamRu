@@ -1,7 +1,8 @@
-import { calendarOf, DAILY_MOVEMENT, RESOURCES, townOf } from "@homamru/core";
+import { calendarOf, DAILY_MOVEMENT, RESOURCES, townIncome, townsOf } from "@homamru/core";
 import { useState, useSyncExternalStore } from "react";
-import { describeObject, fightWarning, RESOURCE_NAMES } from "../game/captions.ts";
-import { activeHero } from "../game/session.ts";
+import { describeCell, fightWarning, RESOURCE_NAMES } from "../game/captions.ts";
+import { activeHero, computerToMove, humanOf, sameCell, townlessLeft } from "../game/view.ts";
+import { Dialog, DialogButton } from "./Dialog.tsx";
 import type { Session } from "../game/session.ts";
 import { HeroWindow } from "./HeroWindow.tsx";
 import { Legend } from "./Legend.tsx";
@@ -14,7 +15,7 @@ interface HudProps {
 
 /** Интерфейс поверх карты: ресурсы, дата, запас хода, подписи, кнопки героя и конца дня. */
 export function Hud({ session }: HudProps) {
-  const { state, selection, inspected, notice, townOpen } = useSyncExternalStore(
+  const { state, selection, inspected, notice, townId, townList } = useSyncExternalStore(
     session.subscribe,
     session.getSnapshot,
   );
@@ -22,15 +23,16 @@ export function Hud({ session }: HudProps) {
   const [legendOpen, setLegendOpen] = useState(false);
   const { month, week, weekday } = calendarOf(state.day);
   const hero = activeHero(state);
-  const town = townOf(state, state.currentPlayer);
-  const resources = state.players[state.currentPlayer]?.resources;
+  const me = humanOf(state);
+  const towns = townsOf(state, me);
+  const town = towns.find((candidate) => candidate.id === townId);
+  const resources = state.players[me]?.resources;
+  const opponentTurn = computerToMove(state);
+  const daysLeft = townlessLeft(state);
   // Подпись объекта по удержанию важнее предупреждения о бое: игрок только что её попросил.
   const caption =
-    inspected !== null
-      ? describeObject(state, inspected)
-      : selection !== null && selection.guard !== null
-        ? fightWarning(state, selection.guard)
-        : null;
+    (inspected === null ? null : describeCell(state, inspected)) ??
+    (selection !== null && selection.fight !== null ? fightWarning(state, selection.fight) : null);
 
   return (
     <>
@@ -52,10 +54,21 @@ export function Hud({ session }: HudProps) {
             Запас хода: {hero.movement} из {DAILY_MOVEMENT}
           </div>
         )}
+        {daysLeft !== null && (
+          <div className="hud-townless">Без города: осталось {daysLeft} дн.</div>
+        )}
       </div>
+      {opponentTurn && (
+        <div className="hud hud-opponent">
+          Ход противника
+          <button type="button" className="hud-button" onClick={session.skipOpponent}>
+            Пропустить
+          </button>
+        </div>
+      )}
       <div className="hud-notes">
         {caption !== null && <div className="hud hud-caption">{caption}</div>}
-        {notice !== null && !townOpen && <Messages notice={notice} />}
+        {notice !== null && town === undefined && <Messages notice={notice} />}
       </div>
       <div className="hud-actions">
         <button
@@ -67,13 +80,20 @@ export function Hud({ session }: HudProps) {
         >
           Обозначения
         </button>
-        {town !== undefined && (
-          <button type="button" className="hud hud-button" onClick={session.openTown}>
+        {towns.length > 0 && (
+          <button
+            type="button"
+            className="hud hud-button"
+            disabled={opponentTurn}
+            onClick={session.openTown}
+          >
             Город
           </button>
         )}
         {hero === undefined ? (
-          <div className="hud hud-hint">Героя нет: наймите в таверне города</div>
+          <div className="hud hud-hint">
+            {towns.length > 0 ? "Героя нет: наймите в таверне города" : "Героя нет"}
+          </div>
         ) : (
           <button
             type="button"
@@ -85,7 +105,12 @@ export function Hud({ session }: HudProps) {
             Герой
           </button>
         )}
-        <button type="button" className="hud hud-button hud-end-day" onClick={session.endTurn}>
+        <button
+          type="button"
+          className="hud hud-button hud-end-day"
+          disabled={opponentTurn}
+          onClick={session.endTurn}
+        >
           Конец дня
         </button>
       </div>
@@ -97,7 +122,25 @@ export function Hud({ session }: HudProps) {
           }}
         />
       )}
-      {townOpen && town !== undefined && <TownScreen session={session} town={town} />}
+      {town !== undefined && <TownScreen session={session} town={town} />}
+      {townList && (
+        <Dialog title="Ваши города">
+          {towns.map((candidate) => {
+            const here = hero !== undefined && sameCell(hero, candidate);
+            const label = `Клетка (${candidate.x}, ${candidate.y}); золото +${townIncome(state, candidate)} в день; ${here ? "герой здесь" : "героя нет"}`;
+            return (
+              <DialogButton
+                key={candidate.id}
+                label={label}
+                onClick={() => {
+                  session.chooseTown(candidate.id);
+                }}
+              />
+            );
+          })}
+          <DialogButton label="Закрыть" onClick={session.closeTown} />
+        </Dialog>
+      )}
       {heroOpen && hero !== undefined && (
         <HeroWindow
           state={state}

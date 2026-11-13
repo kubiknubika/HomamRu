@@ -102,3 +102,5 @@ export type {
 } from "./battle/types.ts";
 export { chooseBattleCommand } from "./battle/ai.ts";
 export { randomBattle, runAutoBattle } from "./battle/autobattle.ts";
+export { TOWNLESS_DAYS } from "./players.ts";
+export { townsOf } from "./opponentTown.ts";

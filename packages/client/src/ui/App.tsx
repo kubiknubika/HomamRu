@@ -11,6 +11,7 @@ import { loadDefaults } from "../game/content.ts";
 import { createFrameMeter } from "../game/frameMeter.ts";
 import { MAP_COUNT, mapIndexOf, mapLabel, startGame } from "../game/maps.ts";
 import { createSession } from "../game/session.ts";
+import { endingOf } from "../game/view.ts";
 import type { Session } from "../game/session.ts";
 import { createSaver } from "../save/saver.ts";
 import type { Saver } from "../save/saver.ts";
@@ -199,16 +200,13 @@ export function App({ gameParent, storage }: AppProps) {
         <BattleHud
           battle={battle}
           inGame={trial === null}
-          gameOver={trial === null && played?.state.outcome === "defeat"}
           summary={trial === null ? played?.summary : null}
           onClose={() => {
             if (trial !== null) {
               setTrial(null);
-            } else if (played?.state.outcome === null) {
-              phase.session.leaveBattle();
             } else {
-              // Партия проиграна: из окна итога — только новая игра.
-              newGame(phase.mapIndex);
+              // Если партия на этом кончилась, окно «Победа» или «Поражение» покажет карта.
+              phase.session.leaveBattle();
             }
           }}
         />
@@ -248,7 +246,7 @@ export function App({ gameParent, storage }: AppProps) {
       </div>
       <GameDialogs
         overlay={overlay}
-        defeated={played?.state.outcome === "defeat"}
+        ending={played === null ? null : endingOf(played.state)}
         mapIndex={phase.mapIndex}
         setOverlay={setOverlay}
         onNew={newGame}

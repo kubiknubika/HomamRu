@@ -1,4 +1,5 @@
 import { mapLabel } from "../game/maps.ts";
+import type { Ending } from "../game/view.ts";
 import { Dialog, DialogButton } from "./Dialog.tsx";
 import { TEXT } from "./texts.ts";
 
@@ -14,8 +15,8 @@ export const NO_OVERLAY: Overlay = { kind: "none" };
 
 interface GameDialogsProps {
   readonly overlay: Overlay;
-  /** Партия проиграна: герой потерян. */
-  readonly defeated: boolean;
+  /** Чем кончилась партия; `null` — партия идёт. */
+  readonly ending: Ending | null;
   /** Номер карты текущей партии. */
   readonly mapIndex: number;
   readonly setOverlay: (overlay: Overlay) => void;
@@ -24,9 +25,9 @@ interface GameDialogsProps {
   readonly onDump: () => void;
 }
 
-/** Окна поверх карты: меню, подтверждение новой игры, сообщение, «Поражение». */
+/** Окна поверх карты: меню, подтверждение новой игры, сообщение, «Победа» и «Поражение». */
 export function GameDialogs(props: GameDialogsProps) {
-  const { overlay, defeated, mapIndex, setOverlay, onNew, onTrial, onDump } = props;
+  const { overlay, ending, mapIndex, setOverlay, onNew, onTrial, onDump } = props;
   function close(): void {
     setOverlay(NO_OVERLAY);
   }
@@ -76,13 +77,21 @@ export function GameDialogs(props: GameDialogsProps) {
       </Dialog>
     );
   }
-  if (!defeated) {
+  if (ending === null) {
     return null;
   }
-  // Единственный выход из проигранной партии (docs/mechanics/24-map-screen.md).
+  // Единственный выход из оконченной партии (43-opponent-screen.md, «Конец партии»).
+  const reason = ending.kind === "defeat" && ending.reason === "townless";
   return (
-    <Dialog title="Поражение">
-      <div className="dialog-text">{TEXT.defeat}</div>
+    <Dialog title={ending.kind === "victory" ? "Победа" : "Поражение"}>
+      {ending.kind === "victory" ? (
+        <>
+          <div className="dialog-text">{TEXT.victory}</div>
+          <div className="dialog-text">Дней в партии: {ending.days}</div>
+        </>
+      ) : (
+        <div className="dialog-text">{reason ? TEXT.defeatTownless : TEXT.defeatNothing}</div>
+      )}
       <DialogButton
         label="Новая игра"
         onClick={() => {

@@ -1,6 +1,7 @@
 /**
  * Чтение сохранения: игроки и бой этапа 5 (docs/mechanics/40-two-players.md, 41-victory.md).
  */
+import { TOWNLESS_DAYS } from "@homamru/core";
 import type { ArmyStack, GameState, HeroState, MapBattle, ObjectState } from "@homamru/core";
 import { DEFAULTS } from "./stateSchemas.ts";
 import type { LooseState } from "./stateSchemas.ts";
@@ -42,8 +43,14 @@ export function readFate(
   const town = objects.some((object) => object.type === "town" && object.owner === id);
   const hero = heroes.some((candidate) => candidate.owner === id);
   const eliminated = saved?.eliminated === true && !town && !hero;
-  const townlessDays = town || eliminated ? null : (saved?.townlessDays ?? null);
-  return { eliminated, townlessDays };
+  const saved7 = saved?.townlessDays ?? null;
+  if (eliminated) {
+    // У выбывшего счётчик говорит только о причине: 7 — вышел срок, иначе пусто.
+    return { eliminated, townlessDays: saved7 === TOWNLESS_DAYS ? TOWNLESS_DAYS : null };
+  }
+  // У играющего счётчик меньше срока: на седьмом ходу он бы выбыл.
+  const counting = !town && saved7 !== null && saved7 < TOWNLESS_DAYS;
+  return { eliminated, townlessDays: counting ? saved7 : null };
 }
 
 /** Итог партии: победитель — только тот, кто не выбыл, и только на карте для нескольких. */

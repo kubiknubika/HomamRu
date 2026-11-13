@@ -135,7 +135,8 @@ describe("свойства, верные всегда", () => {
         const town = state.objects.some((o) => o.type === "town" && o.owner === player.id);
         const hero = state.heroes.some((candidate) => candidate.owner === player.id);
         expect(player.eliminated).toBe(!town && !hero);
-        expect(player.townlessDays === null || (!town && player.townlessDays < 7)).toBe(true);
+        const limit = player.eliminated ? 8 : 7;
+        expect(player.townlessDays === null || (!town && player.townlessDays < limit)).toBe(true);
       }
       const winner = state.players.find((player) => player.id === state.winner);
       expect(winner?.eliminated ?? false).toBe(false);

@@ -1,9 +1,9 @@
-import type { BattleSummary } from "../game/captions.ts";
+import type { BattleSummary } from "../game/messages.ts";
 import { activeStackOf, canShoot, findStack, turnQueue } from "@homamru/core";
 import type { BattleResult, BattleState } from "@homamru/core";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { describeStack, lostCount } from "../battle/battleLog.ts";
-import { PLAYER_SIDE, playerStack } from "../battle/battleSession.ts";
+import { playerStack } from "../battle/battleSession.ts";
 import type { BattleSelection, BattleSession } from "../battle/battleSession.ts";
 import { Dialog, DialogButton } from "./Dialog.tsx";
 
@@ -12,14 +12,12 @@ interface BattleHudProps {
   /** Закрывает бой и возвращает на карту. */
   readonly onClose: () => void;
   /**
-   * Итог боя внутри партии: опыт и уровни. У такого боя нельзя закрыть экран посреди боя,
-   * а после поражения остаётся одна кнопка — «Новая игра». У проверочного боя итога нет.
+   * Итог боя внутри партии: опыт и уровни. У такого боя нельзя закрыть экран посреди боя.
+   * У проверочного боя итога нет.
    */
   readonly summary?: BattleSummary | null | undefined;
   /** Бой идёт внутри партии, а не отдельно от неё. */
   readonly inGame?: boolean | undefined;
-  /** Партия проиграна: из окна итога — только новая игра. С городом партия продолжается. */
-  readonly gameOver?: boolean | undefined;
 }
 
 /** Сколько ближайших отрядов показывает очередь ходов; что не влезло по ширине — обрезается. */
@@ -58,18 +56,24 @@ function hintOf(selection: BattleSelection | null): string | null {
     : `Удар: урон ${damage}. Коснитесь оранжевой клетки или врага ещё раз.`;
 }
 
-function reasonOf(result: BattleResult): string {
-  const won = result.winner === PLAYER_SIDE;
+function reasonOf(result: BattleResult, playerSide: 0 | 1): string {
+  const won = result.winner === playerSide;
   if (result.reason === "fled") {
     return won ? "Противник бежал." : "Вы бежали с поля боя.";
   }
   return won ? "Армия противника уничтожена." : "Ваша армия уничтожена.";
 }
 
-function Losses({ state, side }: { readonly state: BattleState; readonly side: 0 | 1 }) {
+interface LossesProps {
+  readonly state: BattleState;
+  readonly side: 0 | 1;
+  readonly mine: boolean;
+}
+
+function Losses({ state, side, mine }: LossesProps) {
   return (
     <div className="dialog-text">
-      <b>{side === PLAYER_SIDE ? "Ваши потери" : "Потери противника"}</b>
+      <b>{mine ? "Ваши потери" : "Потери противника"}</b>
       {state.stacks
         .filter((stack) => stack.side === side)
         .map((stack) => (
@@ -94,13 +98,13 @@ function Rewards({ summary }: { readonly summary: BattleSummary }) {
 }
 
 export function BattleHud(props: BattleHudProps) {
-  const { battle, onClose, summary, inGame = false, gameOver = false } = props;
+  const { battle, onClose, summary, inGame = false } = props;
   const snapshot = useSyncExternalStore(battle.subscribe, battle.getSnapshot);
   const [confirmFlee, setConfirmFlee] = useState(false);
   const [journal, setJournal] = useState(false);
   const portrait = usePortrait();
-  const { state, selection, locked, log, history, inspected } = snapshot;
-  const won = state.result?.winner === PLAYER_SIDE;
+  const { state, selection, locked, log, history, inspected, playerSide } = snapshot;
+  const won = state.result?.winner === playerSide;
 
   if (portrait) {
     return (
@@ -134,7 +138,7 @@ export function BattleHud(props: BattleHudProps) {
           Раунд {state.round}
           {active !== undefined && (
             <div className="battle-turn">
-              {active.side === PLAYER_SIDE ? "Ваш ход" : "Ход врага"}
+              {active.side === playerSide ? "Ваш ход" : "Ход врага"}
             </div>
           )}
         </div>
@@ -180,7 +184,7 @@ export function BattleHud(props: BattleHudProps) {
         <button
           type="button"
           className="battle-button"
-          disabled={me === undefined || state.sides[PLAYER_SIDE].hero === null}
+          disabled={me === undefined || state.sides[playerSide].hero === null}
           onClick={() => {
             setConfirmFlee(true);
           }}
@@ -225,11 +229,14 @@ export function BattleHud(props: BattleHudProps) {
       )}
       {state.result !== null && !locked && (
         <Dialog title={won ? "Победа" : "Поражение"}>
-          <div className="dialog-text">{reasonOf(state.result)}</div>
-          <Losses state={state} side={0} />
-          <Losses state={state} side={1} />
+          <div className="dialog-text">{reasonOf(state.result, playerSide)}</div>
+          <Losses state={state} side={playerSide} mine />
+          <Losses state={state} side={playerSide === 0 ? 1 : 0} mine={false} />
+          {won && summary?.enemyHeroDefeated === true && (
+            <div className="dialog-text">Герой противника побеждён</div>
+          )}
           {won && summary !== null && summary !== undefined && <Rewards summary={summary} />}
-          <DialogButton label={gameOver ? "Новая игра" : "Закрыть"} onClick={onClose} />
+          <DialogButton label="Закрыть" onClick={onClose} />
         </Dialog>
       )}
     </>

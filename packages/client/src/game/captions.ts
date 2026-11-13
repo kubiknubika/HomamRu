@@ -2,16 +2,34 @@
  * Надписи экрана карты: подписи объектов, предупреждение о бое, короткие сообщения.
  * Спецификация: docs/mechanics/24-map-screen.md. Правил игры здесь нет — только слова.
  */
-import { MINE_INCOME, quantityRange, quantityWord, RESOURCES, townIncome } from "@homamru/core";
-import type { GameEvent, GameState, GuardState, ObjectState, Resources } from "@homamru/core";
+import {
+  MINE_INCOME,
+  objectAt,
+  quantityRange,
+  quantityWord,
+  RESOURCES,
+  townIncome,
+} from "@homamru/core";
+import type {
+  ArmyStack,
+  GameState,
+  GuardState,
+  HeroState,
+  ObjectState,
+  Position,
+  Resources,
+  TownState,
+} from "@homamru/core";
+import { humanOf } from "./view.ts";
+import type { Fight } from "./view.ts";
 
 export const RESOURCE_NAMES = { gold: "золото", wood: "дерево", ore: "руда" } as const;
-const MINE_NAMES = {
+export const MINE_NAMES = {
   sawmill: "Лесопилка",
   "ore-pit": "Рудник",
   "gold-mine": "Золотая шахта",
 } as const;
-const STAT_NAMES = { attack: "атака", defense: "защита" } as const;
+export const STAT_NAMES = { attack: "атака", defense: "защита" } as const;
 
 /** Название существа для игрока; незнакомое — как записано. */
 export function creatureName(state: GameState, creatureId: string): string {
@@ -19,23 +37,58 @@ export function creatureName(state: GameState, creatureId: string): string {
 }
 
 /**
- * Существо, слово о численности и его границы: точного числа до боя игрок не видит,
- * а по одному слову не понять, что больше.
+ * Названия существ во множественном числе, родительный падеж: «группа ополченцев».
+ * В данных существ падежей нет; слова экрана лежат здесь, как названия шахт и ресурсов.
  */
+export const CREATURE_MANY: Readonly<Record<string, string>> = {
+  militia: "ополченцев",
+  slinger: "пращников",
+  falcon: "соколов",
+  armsman: "латников",
+};
+
+/**
+ * Отряд словами, как в Heroes 3: «группа ополченцев (10–19)». Точного числа игрок не видит,
+ * а по одному слову не понять, что больше, — поэтому рядом границы.
+ */
+function describeStack(state: GameState, stack: ArmyStack): string {
+  const { count, creature } = stack;
+  const many = CREATURE_MANY[creature];
+  const who =
+    many === undefined
+      ? `${lower(creatureName(state, creature))} — ${quantityWord(count)}`
+      : `${quantityWord(count)} ${many}`;
+  return `${who} (${quantityRange(count)})`;
+}
+
 function describeGuard(state: GameState, guard: GuardState): string {
-  const { count } = guard;
-  return `${creatureName(state, guard.creature)}, ${quantityWord(count)} (${quantityRange(count)})`;
+  return describeStack(state, guard);
 }
 
 function ownerText(state: GameState, owner: number | null): string {
   if (owner === null) {
     return "ничья";
   }
-  return owner === state.currentPlayer ? "ваша" : `игрока ${owner + 1}`;
+  return owner === humanOf(state) ? "ваша" : "противника";
+}
+
+/** Армия словами, без точных чисел: «много ополченцев (20–49), несколько пращников (5–9)». */
+function armyWords(state: GameState, army: readonly ArmyStack[]): string {
+  return army.map((stack) => describeStack(state, stack)).join(", ");
+}
+
+function describeEnemyHero(state: GameState, hero: HeroState): string {
+  return `Герой противника: ${heroName(state, hero.kind)}. Армия: ${armyWords(state, hero.army)}`;
+}
+
+function describeGarrison(state: GameState, town: TownState): string {
+  return town.garrison.length === 0
+    ? "Гарнизон пуст"
+    : `Гарнизон: ${armyWords(state, town.garrison)}`;
 }
 
 /** Подпись объекта по удержанию пальца: что это, чьё, сколько даёт. */
-export function describeObject(state: GameState, object: ObjectState): string {
+function describeObject(state: GameState, object: ObjectState): string {
   if (object.type === "pile") {
     return `Кучка: ${RESOURCE_NAMES[object.resource]} ${object.amount}`;
   }
@@ -43,106 +96,60 @@ export function describeObject(state: GameState, object: ObjectState): string {
     return `Охранник: ${describeGuard(state, object)}`;
   }
   if (object.type === "town") {
-    const owner = object.owner === state.currentPlayer ? "ваш" : `игрока ${object.owner + 1}`;
-    return `Город, ${owner}. В день: золото +${townIncome(state, object)}`;
+    return object.owner === humanOf(state)
+      ? `Город, ваш. В день: золото +${townIncome(state, object)}`
+      : `Город противника. ${describeGarrison(state, object)}`;
   }
   const { resource, amount } = MINE_INCOME[object.kind];
   const owner = ownerText(state, object.owner);
   return `${MINE_NAMES[object.kind]}, ${owner}. В день: ${RESOURCE_NAMES[resource]} +${amount}`;
 }
 
-/** Подпись к пути, который заканчивается боем. */
-export function fightWarning(state: GameState, guard: GuardState): string {
-  return `${describeGuard(state, guard)} — будет бой`;
+/** Подпись клетки по удержанию пальца: объект и герой противника, если они там есть. */
+export function describeCell(state: GameState, cell: Position): string | null {
+  const me = humanOf(state);
+  const object = objectAt(state, cell.x, cell.y);
+  const enemy = state.heroes.find(
+    (hero) => hero.owner !== me && hero.x === cell.x && hero.y === cell.y,
+  );
+  const parts = [
+    object === undefined ? null : describeObject(state, object),
+    enemy === undefined ? null : describeEnemyHero(state, enemy),
+  ].filter((part) => part !== null);
+  return parts.length === 0 ? null : parts.join(". ");
+}
+
+/** Подпись к пути, который кончается боем или захватом. */
+export function fightWarning(state: GameState, fight: Fight): string {
+  if (fight.kind === "guard") {
+    const guard = describeGuard(state, fight.guard);
+    return `${guard.slice(0, 1).toUpperCase()}${guard.slice(1)} — будет бой`;
+  }
+  if (fight.kind === "capture") {
+    return "Город противника, гарнизон пуст — город будет захвачен";
+  }
+  if (fight.kind === "town") {
+    return `Город противника. ${describeGarrison(state, fight.town)} — будет бой`;
+  }
+  const garrison =
+    fight.town === null || fight.town.garrison.length === 0
+      ? ""
+      : `. ${describeGarrison(state, fight.town)}`;
+  return `${describeEnemyHero(state, fight.hero)}${garrison} — будет бой`;
 }
 
 /** Только то, чего прибыло: «дерево +2, золото +1000». */
-function incomeText(income: Resources): string {
+export function incomeText(income: Resources): string {
   return RESOURCES.filter((resource) => income[resource] > 0)
     .map((resource) => `${RESOURCE_NAMES[resource]} +${income[resource]}`)
     .join(", ");
 }
 
-function lower(text: string): string {
+export function lower(text: string): string {
   return text.toLowerCase();
 }
 
 /** Имя героя из списка героев; незнакомое — как записано. */
 export function heroName(state: GameState, kind: string): string {
   return state.heroKinds.find((hero) => hero.id === kind)?.name ?? kind;
-}
-
-/** Сообщения города: docs/mechanics/33-town-screen.md, «Сообщения». */
-function townMessage(event: GameEvent, state: GameState): string | null {
-  if (event.type === "buildingBuilt") {
-    const name = state.buildings.find((building) => building.id === event.building)?.name;
-    return `Построено: ${lower(name ?? event.building)}`;
-  }
-  if (event.type === "creaturesRecruited") {
-    return `Нанято: ${lower(creatureName(state, event.creature))} ${event.count}`;
-  }
-  if (event.type === "creaturesGrew") {
-    const town = state.objects.find((object) => object.id === event.townId);
-    const own = town?.type === "town" && town.owner === state.currentPlayer;
-    return own && event.added > 0
-      ? `Прирост: ${lower(creatureName(state, event.creature))} +${event.added}`
-      : null;
-  }
-  if (event.type === "heroHired") {
-    return `Нанят герой: ${heroName(state, event.hero)}`;
-  }
-  return null;
-}
-
-/**
- * Короткие сообщения игроку о том, что случилось по команде.
- * `state` — состояние после команды: по нему находится занятая шахта.
- */
-export function messagesOf(events: readonly GameEvent[], state: GameState): string[] {
-  const messages: string[] = [];
-  for (const event of events) {
-    if (event.type === "pilePicked") {
-      messages.push(`Подобрано: ${RESOURCE_NAMES[event.resource]} ${event.amount}`);
-    } else if (event.type === "mineCaptured") {
-      const mine = state.objects.find((object) => object.id === event.objectId);
-      const name = mine?.type === "mine" ? MINE_NAMES[mine.kind] : "Шахта";
-      messages.push(`${name} занята`);
-    } else if (event.type === "incomeReceived" && event.player === state.currentPlayer) {
-      const income = incomeText(event.income);
-      if (income !== "") {
-        messages.push(`Доход: ${income}`);
-      }
-    } else if (event.type === "levelGained") {
-      messages.push(`Новый уровень: ${STAT_NAMES[event.stat]} +1`);
-    } else {
-      const line = townMessage(event, state);
-      if (line !== null) {
-        messages.push(line);
-      }
-    }
-  }
-  return messages;
-}
-
-/** Итог боя партии для окна после боя: опыт и уровни. Собирается из событий последней команды. */
-export interface BattleSummary {
-  readonly experience: number;
-  /** Что выросло с каждым новым уровнем, по порядку. */
-  readonly levels: readonly string[];
-}
-
-export function summaryOf(events: readonly GameEvent[]): BattleSummary | null {
-  if (!events.some((event) => event.type === "battleFinished")) {
-    return null;
-  }
-  let experience = 0;
-  const levels: string[] = [];
-  for (const event of events) {
-    if (event.type === "experienceGained") {
-      experience += event.amount;
-    } else if (event.type === "levelGained") {
-      levels.push(`Уровень ${event.level}: ${STAT_NAMES[event.stat]} +1`);
-    }
-  }
-  return { experience, levels };
 }

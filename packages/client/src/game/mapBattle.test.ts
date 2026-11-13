@@ -1,11 +1,12 @@
 // Экран карты на этапе 3: docs/mechanics/24-map-screen.md.
 import { CONTENT } from "@homamru/core/testkit";
-import { chooseBattleCommand, createGame } from "@homamru/core";
+import { createGame } from "@homamru/core";
 import type { Command, GameEvent, GameState, MapObjectDefinition } from "@homamru/core";
 import { describe, expect, it } from "vitest";
-import { describeObject, fightWarning, messagesOf } from "./captions.ts";
+import { describeCell, fightWarning } from "./captions.ts";
+import { messagesOf } from "./messages.ts";
+import { finishBattle, go } from "./screenKit.ts";
 import { createSession } from "./session.ts";
-import type { Session } from "./session.ts";
 
 const OBJECTS: MapObjectDefinition[] = [
   { type: "guard", x: 4, y: 0, creature: "militia", count: 5 },
@@ -32,41 +33,6 @@ function newGame(army = [{ creature: "falcon", count: 30 }]): GameState {
   return created.state;
 }
 
-/** Два касания клетки: показать путь и пойти. */
-function go(session: Session, x: number, y: number): void {
-  session.tapCell({ x, y });
-  session.tapCell({ x, y });
-}
-
-/** Доигрывает бой на экране: за игрока ходит тот же простой компьютер. */
-function finishBattle(session: Session): void {
-  const battle = session.getSnapshot().battle;
-  if (battle === null) {
-    return;
-  }
-  for (let turn = 0; turn < 500; turn += 1) {
-    battle.animationDone();
-    const { state } = battle.getSnapshot();
-    const command = chooseBattleCommand(state);
-    if (command === undefined) {
-      return;
-    }
-    if (command.type === "battleMove") {
-      battle.tapCell(command.to);
-      battle.tapCell(command.to);
-    } else if (command.type === "battleAttack") {
-      const target = state.stacks.find((stack) => stack.id === command.target);
-      battle.tapCell(target ?? command.from);
-      battle.tapCell(command.from);
-      battle.tapCell(command.from);
-    } else if (command.type === "battleWait") {
-      battle.wait();
-    } else {
-      battle.defend();
-    }
-  }
-}
-
 describe("подписи и предупреждение о бое", () => {
   it("касание охранника: путь до соседней клетки и подпись «будет бой»", () => {
     const session = createSession(newGame());
@@ -74,20 +40,20 @@ describe("подписи и предупреждение о бое", () => {
     const { selection, state } = session.getSnapshot();
     expect(selection).toMatchObject({
       path: { found: true, steps: ["E", "E", "E"] },
-      guard: { id: "o1" },
+      fight: { kind: "guard", guard: { id: "o1" } },
     });
-    const guard = selection?.guard;
-    expect(guard === null || guard === undefined ? "" : fightWarning(state, guard)).toBe(
-      "Ополченец, несколько (5–9) — будет бой",
+    const fight = selection?.fight;
+    expect(fight === null || fight === undefined ? "" : fightWarning(state, fight)).toBe(
+      "Несколько ополченцев (5–9) — будет бой",
     );
   });
 
   it("касание клетки рядом с охранником предупреждает так же; клетка вдали — нет", () => {
     const session = createSession(newGame());
     session.tapCell({ x: 3, y: 1 });
-    expect(session.getSnapshot().selection?.guard?.id).toBe("o1");
+    expect(session.getSnapshot().selection?.fight).toMatchObject({ guard: { id: "o1" } });
     session.tapCell({ x: 2, y: 3 });
-    expect(session.getSnapshot().selection).toMatchObject({ path: { found: true }, guard: null });
+    expect(session.getSnapshot().selection).toMatchObject({ path: { found: true }, fight: null });
   });
 
   it("удержание пальца показывает подпись объекта, касание её убирает", () => {
@@ -96,13 +62,13 @@ describe("подписи и предупреждение о бое", () => {
     const captions = OBJECTS.map((object) => {
       session.inspectCell(object);
       const { inspected } = session.getSnapshot();
-      return inspected === null ? "" : describeObject(state, inspected);
+      return inspected === null ? "" : describeCell(state, inspected);
     });
     expect(captions).toEqual([
-      "Охранник: Ополченец, несколько (5–9)",
+      "Охранник: несколько ополченцев (5–9)",
       "Лесопилка, ничья. В день: дерево +2",
       "Кучка: золото 700",
-      "Охранник: Сокол, полчище (250–499)",
+      "Охранник: полчище соколов (250–499)",
     ]);
     session.tapCell({ x: 1, y: 1 });
     expect(session.getSnapshot().inspected).toBeNull();
@@ -117,7 +83,7 @@ describe("сообщения", () => {
     const session = createSession(newGame());
     const seen: string[] = [];
     session.subscribe((snapshot, events) => {
-      seen.push(...messagesOf(events, snapshot.state));
+      seen.push(...messagesOf(events, { before: snapshot.state, after: snapshot.state }));
     });
     go(session, 0, 2);
     expect(seen).toEqual(["Подобрано: золото 700"]);
@@ -131,7 +97,7 @@ describe("сообщения", () => {
       { type: "guardGrew", objectId: "o1", from: 5, to: 6 },
     ];
     // Рост охранника игроку не сообщается: точного числа он не видит.
-    expect(messagesOf(events, state)).toEqual([
+    expect(messagesOf(events, { before: state, after: state })).toEqual([
       "Лесопилка занята",
       "Доход: золото +1000, дерево +2",
       "Новый уровень: атака +1",
@@ -179,7 +145,7 @@ describe("бой внутри партии на экране", () => {
     // Бой в партии окончен, но экран боя остаётся, пока игрок не закрыл окно итога.
     expect(state.battle).toBeNull();
     expect(battle?.getSnapshot().state.result).toMatchObject({ winner: 0 });
-    expect(summary).toEqual({ experience: 60, levels: [] });
+    expect(summary).toEqual({ experience: 60, levels: [], enemyHeroDefeated: false });
     expect(state.objects.some((object) => object.id === "o1")).toBe(false);
   });
 
@@ -191,7 +157,7 @@ describe("бой внутри партии на экране", () => {
     finishBattle(session);
     const seen: string[] = [];
     session.subscribe((snapshot, events) => {
-      seen.push(...messagesOf(events, snapshot.state));
+      seen.push(...messagesOf(events, { before: snapshot.state, after: snapshot.state }));
     });
     session.leaveBattle();
     expect(session.getSnapshot().battle).toBeNull();
@@ -233,7 +199,7 @@ describe("бой внутри партии на экране", () => {
     const { state, summary } = session.getSnapshot();
     expect(state.outcome).toBe("defeat");
     expect(state.heroes).toEqual([]);
-    expect(summary).toEqual({ experience: 0, levels: [] });
+    expect(summary).toEqual({ experience: 0, levels: [], enemyHeroDefeated: false });
     session.leaveBattle();
     session.tapCell({ x: 1, y: 1 });
     session.endTurn();

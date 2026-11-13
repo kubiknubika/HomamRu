@@ -6,6 +6,7 @@ import { createGame } from "@homamru/core";
 import type { GameState } from "@homamru/core";
 import { parseMapFile } from "@homamru/data";
 import { loadDefaults } from "./content.ts";
+import duelMapText from "../../../../data/maps/test-opponent.yaml?raw";
 import firstMapText from "../../../../data/maps/four-corners.yaml?raw";
 import guardsMapText from "../../../../data/maps/test-guards.yaml?raw";
 import largeMapText from "../../../../data/maps/test-large.yaml?raw";
@@ -18,6 +19,7 @@ const SEED = 1;
 
 const MAP_FILES = [
   { file: "data/maps/four-corners.yaml", text: firstMapText, label: "Четыре края" },
+  { file: "data/maps/test-opponent.yaml", text: duelMapText, label: "с противником" },
   { file: "data/maps/test-town.yaml", text: townMapText, label: "с городом" },
   { file: "data/maps/test-town-guard.yaml", text: townGuardMapText, label: "город и охранник" },
   { file: "data/maps/test-guards.yaml", text: guardsMapText, label: "с охраной" },
