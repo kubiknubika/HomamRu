@@ -38,16 +38,16 @@ describe("очередь ходов — примеры из 11-battle-turns.md",
 describe("урон «от и до» — примеры из 13-battle-damage.md", () => {
   it("10 ополченцев бьют 10 пращников: от 22 до 33", () => {
     const { state } = startBattle(army(["militia:10"]), army(["slinger:10"]));
-    const range = damageRange(state.sides, stack(state, "a1"), stack(state, "b1"), "melee");
+    const range = damageRange(state, stack(state, "a1"), stack(state, "b1"), "melee");
     expect(range).toEqual({ min: 22, max: 33 });
   });
 
   it("20 пращников стреляют по 5 соколам: вблизи от 20 до 80, дальше 10 клеток — от 10 до 40", () => {
     const { state } = startBattle(army(["slinger:20"]), army(["falcon:5"]));
-    const far = damageRange(state.sides, stack(state, "a1"), stack(state, "b1"), "shot");
+    const far = damageRange(state, stack(state, "a1"), stack(state, "b1"), "shot");
     expect(far).toEqual({ min: 10, max: 40 });
     const near = withStacks(state, { b1: { col: 10 } });
-    expect(damageRange(near.sides, stack(near, "a1"), stack(near, "b1"), "shot")).toEqual({
+    expect(damageRange(near, stack(near, "a1"), stack(near, "b1"), "shot")).toEqual({
       min: 20,
       max: 80,
     });
@@ -55,7 +55,7 @@ describe("урон «от и до» — примеры из 13-battle-damage.md"
 
   it("7 пращников отвечают в ближнем бою вполсилы: от 3 до 14", () => {
     const { state } = startBattle(army(["slinger:7"]), army(["militia:10"]));
-    const range = damageRange(state.sides, stack(state, "a1"), stack(state, "b1"), "melee");
+    const range = damageRange(state, stack(state, "a1"), stack(state, "b1"), "melee");
     expect(range).toEqual({ min: 3, max: 14 });
   });
 });

@@ -2,12 +2,38 @@
  * Заглушки боя (догма 14): поле и отряды рисуются кодом.
  * Настоящие картинки появятся позже и будут искаться по идентификатору существа.
  */
-import type { StackState } from "@homamru/core";
+import { GATE_INNER, GATE_OUTER, gateOpen, isMoat, wallCells } from "@homamru/core";
+import type { BattleState, Cell, StackState } from "@homamru/core";
 import type * as Phaser from "phaser";
 
-export const FIELD_COLOR = 0x4f7a3a;
+const FIELD_COLOR = 0x4f7a3a;
 export const FIELD_LINE_COLOR = 0x23361a;
-export const OBSTACLE_COLOR = 0x2b2f36;
+const OBSTACLE_COLOR = 0x2b2f36;
+const WALL_COLOR = 0x8d8f96;
+const GATE_COLOR = 0x7a5230;
+const OPEN_GATE_COLOR = 0xb89468;
+const MOAT_COLOR = 0x2f5d8a;
+
+function keyOf(cell: Cell): string {
+  return `${cell.col},${cell.row}`;
+}
+
+/** Цвет клетки поля: препятствие, стена, ворота (закрытые темнее открытых), ров или трава. */
+export function fieldColors(state: BattleState): (cell: Cell) => number {
+  const colors = new Map(state.obstacles.map((cell) => [keyOf(cell), OBSTACLE_COLOR]));
+  const { siege } = state;
+  if (siege !== null) {
+    for (const cell of wallCells(siege)) {
+      colors.set(keyOf(cell), WALL_COLOR);
+    }
+    if (siege.health.gate > 0) {
+      const gate = gateOpen(siege, state.stacks) ? OPEN_GATE_COLOR : GATE_COLOR;
+      colors.set(keyOf(GATE_OUTER), gate);
+      colors.set(keyOf(GATE_INNER), gate);
+    }
+  }
+  return (cell) => colors.get(keyOf(cell)) ?? (isMoat(siege, cell) ? MOAT_COLOR : FIELD_COLOR);
+}
 
 /** Цвет и прозрачность подсветки клеток (см. battleHighlights.ts). */
 export const CELL_MARK_STYLES = {

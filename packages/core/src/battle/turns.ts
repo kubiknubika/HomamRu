@@ -2,39 +2,12 @@
  * Очерёдность ходов, раунды, боевой дух, конец боя.
  * Спецификация: docs/mechanics/11-battle-turns.md.
  */
-import { nextInt } from "../rng.ts";
-import type { RngState } from "../rng.ts";
 import { BAD_DICE } from "./damage.ts";
-import type {
-  BattleEndReason,
-  BattleEvent,
-  BattleResult,
-  BattleSide,
-  BattleSideState,
-  StackState,
-  StackTurn,
-} from "./types.ts";
-
-type Mutable<T> = { -readonly [K in keyof T]: T[K] };
-
-/** Рабочая копия состояния боя: её меняет команда, пока применяется. */
-export interface BattleDraft {
-  rng: RngState;
-  round: number;
-  readonly sides: readonly [BattleSideState, BattleSideState];
-  readonly stacks: Mutable<StackState>[];
-  activeStack: string | null;
-  lastActedSide: BattleSide;
-  result: BattleResult | null;
-  readonly events: BattleEvent[];
-}
-
-/** Жребий «N из граней»: случилось, если выпало не больше N. */
-export function rollChance(draft: BattleDraft, chances: number, dice: number): boolean {
-  const roll = nextInt(draft.rng, 1, dice);
-  draft.rng = roll.rng;
-  return roll.value <= chances;
-}
+import { rollChance } from "./draft.ts";
+import type { BattleDraft } from "./draft.ts";
+import { isMachine } from "./siege.ts";
+import { siegePhase } from "./siegeRound.ts";
+import type { BattleEndReason, BattleSide, StackState, StackTurn } from "./types.ts";
 
 /** Части раунда по порядку: кто в них ходит и с какой скорости начинают. */
 const PHASES: readonly { readonly turn: StackTurn; readonly fastestFirst: boolean }[] = [
@@ -92,7 +65,7 @@ function pickNext<S extends StackState>(draft: {
 function startRound(draft: BattleDraft): void {
   draft.round += 1;
   for (const stack of draft.stacks) {
-    stack.turn = stack.count > 0 ? "ready" : "done";
+    stack.turn = stack.count > 0 && !isMachine(stack) ? "ready" : "done";
     stack.moraleUsed = false;
     stack.retaliated = false;
   }
@@ -108,6 +81,11 @@ export function activateNext(draft: BattleDraft): void {
     let next = pickNext(draft);
     if (next === undefined) {
       startRound(draft);
+      // Осада: в начале раунда стреляют башни и катапульта.
+      siegePhase(draft);
+      if (endIfDestroyed(draft)) {
+        return;
+      }
       next = pickNext(draft);
     }
     if (next === undefined) {
@@ -148,7 +126,10 @@ export function endBattle(draft: BattleDraft, winner: BattleSide, reason: Battle
 /** Если у одной из сторон не осталось отрядов — заканчивает бой. Возвращает, закончен ли он. */
 export function endIfDestroyed(draft: BattleDraft): boolean {
   for (const side of [0, 1] as const) {
-    if (!draft.stacks.some((stack) => stack.side === side && stack.count > 0)) {
+    // Катапульта — не отряд: сторона с одной катапультой разбита.
+    if (
+      !draft.stacks.some((stack) => stack.side === side && stack.count > 0 && !isMachine(stack))
+    ) {
       endBattle(draft, side === 0 ? 1 : 0, "destroyed");
       return true;
     }

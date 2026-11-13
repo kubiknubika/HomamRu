@@ -195,6 +195,25 @@ const battleStateSchema = z.strictObject({
   rng: z.strictObject({ s: z.int() }),
   round: z.int(),
   obstacles: z.array(battleCellSchema),
+  // В записях до этапа 6 осады нет.
+  siege: z
+    .strictObject({
+      health: z.strictObject({
+        wall1: z.int().min(0),
+        wall2: z.int().min(0),
+        wall3: z.int().min(0),
+        wall4: z.int().min(0),
+        gate: z.int().min(0),
+        keep: z.int().min(0),
+        upperTower: z.int().min(0),
+        lowerTower: z.int().min(0),
+      }),
+      moat: z.boolean(),
+      keepDamage: z.int().min(0),
+      towerDamage: z.int().min(0),
+    })
+    .nullable()
+    .default(null),
   sides: z.tuple([battleSideStateSchema, battleSideStateSchema]),
   stacks: z.array(
     z.strictObject({

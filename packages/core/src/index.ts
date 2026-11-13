@@ -72,7 +72,7 @@ export type {
 export { applyBattleCommand, replayBattle } from "./battle/commands.ts";
 export type { BattleReplayResult } from "./battle/commands.ts";
 export { createBattle } from "./battle/create.ts";
-export { damageRange } from "./battle/damage.ts";
+export { damageRange, defenseOf } from "./battle/damage.ts";
 export { turnQueue } from "./battle/turns.ts";
 export type { CreateBattleResult } from "./battle/create.ts";
 export { BATTLE_HEIGHT, BATTLE_WIDTH, distance, neighbours } from "./battle/hex.ts";
@@ -86,6 +86,16 @@ export {
   walkSteps,
 } from "./battle/queries.ts";
 export { formatBattleEvent, renderBattle } from "./battle/render.ts";
+export {
+  GATE_BRIDGE,
+  GATE_INNER,
+  GATE_OUTER,
+  gateOpen,
+  isMachine,
+  isMoat,
+  wallCells,
+} from "./battle/siege.ts";
+export type { SiegeState, Tower, WallPart } from "./battle/siege.ts";
 export { BATTLE_REJECT_CODES, BATTLE_VERSION } from "./battle/types.ts";
 export type {
   ArmyDefinition,

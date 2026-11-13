@@ -103,14 +103,14 @@ function selectEnemy(
   enemy: StackState,
 ): BattleSelection | null {
   if (canShoot(state, me)) {
-    const damage = damageRange(state.sides, me, enemy, "shot");
+    const damage = damageRange(state, me, enemy, "shot");
     return { kind: "shoot", targetId: enemy.id, damage };
   }
   const cells = attackCells(state, me, enemy);
   if (cells.length === 0) {
     return null;
   }
-  const damage = damageRange(state.sides, me, enemy, "melee");
+  const damage = damageRange(state, me, enemy, "melee");
   // Клетка одна — она сразу выбрана.
   const from = cells.length === 1 ? (cells[0] ?? null) : null;
   return { kind: "attack", targetId: enemy.id, cells, from, damage };

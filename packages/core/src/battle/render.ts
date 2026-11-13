@@ -79,6 +79,23 @@ export function renderBattle(state: BattleState): string {
   return lines.join("\n");
 }
 
+const TOWER_NAMES = {
+  keep: "Главная башня",
+  upperTower: "Верхняя башня",
+  lowerTower: "Нижняя башня",
+} as const;
+
+const PART_NAMES = {
+  wall1: "участок стены 1",
+  wall2: "участок стены 2",
+  wall3: "участок стены 3",
+  wall4: "участок стены 4",
+  gate: "ворота",
+  keep: "главная башня",
+  upperTower: "верхняя башня",
+  lowerTower: "нижняя башня",
+} as const;
+
 const STRIKE_NAMES = { melee: "бьёт", retaliation: "отвечает", shot: "стреляет в" } as const;
 
 /** Событие боя одной строкой по-русски. */
@@ -104,6 +121,19 @@ export function formatBattleEvent(event: BattleEvent): string {
       return `Отряд ${event.stackId} защищается: защита +${event.bonus}`;
     case "moraleTurn":
       return `Отряд ${event.stackId} ходит ещё раз: высокий боевой дух`;
+    case "towerShot":
+      return `${TOWER_NAMES[event.tower]} стреляет в ${event.targetId}: урон ${event.damage}, убито ${event.killed}, осталось ${event.left}`;
+    case "catapultShot": {
+      const where =
+        event.hit === event.aimed
+          ? PART_NAMES[event.hit]
+          : `${PART_NAMES[event.hit]} (целилась: ${PART_NAMES[event.aimed]})`;
+      const outcome =
+        event.left === 0 && event.damage > 0 ? "разрушено" : `прочность ${event.left}`;
+      return `Катапульта попадает: ${where}, урон ${event.damage}, ${outcome}`;
+    }
+    case "moatDamage":
+      return `Отряд ${event.stackId} во рву: урон ${event.damage}, убито ${event.killed}, осталось ${event.left}`;
     case "sideFled":
       return `Бежит ${sideName(event.side)}`;
     case "battleEnded":

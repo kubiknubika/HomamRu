@@ -4,6 +4,7 @@
  */
 import { cellIndex, distance, inField } from "./hex.ts";
 import { findStack } from "./queries.ts";
+import { isMachine, wallCells, WALL_PARTS } from "./siege.ts";
 import type { BattleEvent, BattleState } from "./types.ts";
 
 /** Нарушения в состоянии боя; пустой список — всё в порядке. */
@@ -30,7 +31,23 @@ export function battleProblems(state: BattleState): string[] {
       problems.push(`${stack.id}: выстрелов ${stack.shots}`);
     }
   }
-  const sidesAlive = [0, 1].map((side) => alive.some((stack) => stack.side === side));
+  if (state.siege !== null) {
+    const walls = new Set(wallCells(state.siege).map(cellIndex));
+    for (const stack of alive) {
+      if (walls.has(cellIndex(stack))) {
+        problems.push(`${stack.id} стоит на стене`);
+      }
+    }
+    for (const part of WALL_PARTS) {
+      if (state.siege.health[part] < 0) {
+        problems.push(`прочность ${part} меньше нуля`);
+      }
+    }
+  }
+  // Катапульта — не отряд: сторона жива, пока живы её существа.
+  const sidesAlive = [0, 1].map((side) =>
+    alive.some((stack) => stack.side === side && !isMachine(stack)),
+  );
   if (state.result === null) {
     if ((findStack(state, state.activeStack ?? "")?.count ?? 0) === 0) {
       problems.push("ходит погибший или несуществующий отряд");

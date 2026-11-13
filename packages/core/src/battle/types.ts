@@ -4,9 +4,10 @@
  */
 import type { RngState } from "../rng.ts";
 import type { Cell } from "./hex.ts";
+import type { Fortification, SiegeState, Tower, WallPart } from "./siege.ts";
 
 /** Номер версии формата состояния боя. */
-export const BATTLE_VERSION = 1;
+export const BATTLE_VERSION = 2;
 
 export const MAX_STACKS = 7;
 
@@ -46,6 +47,10 @@ export interface BattleDefinition {
   readonly id: string;
   readonly name: string;
   readonly obstacles: readonly Cell[];
+  /** Осада (50-siege.md): старшее укрепление города и число его зданий без укреплений. */
+  readonly siege?:
+    | { readonly fortification: Fortification; readonly buildings: number }
+    | undefined;
   readonly attacker: ArmyDefinition;
   readonly defender: ArmyDefinition;
 }
@@ -105,6 +110,8 @@ export interface BattleState {
   readonly rng: RngState;
   readonly round: number;
   readonly obstacles: readonly Cell[];
+  /** Стена, ворота, ров и башни; `null` — бой не осада. */
+  readonly siege: SiegeState | null;
   readonly sides: readonly [BattleSideState, BattleSideState];
   readonly stacks: readonly StackState[];
   /** Отряд, чей сейчас ход; `null`, когда бой окончен. */
@@ -151,6 +158,29 @@ export type BattleEvent =
       readonly lucky: boolean;
     }
   | { readonly type: "stackDied"; readonly stackId: string }
+  | {
+      readonly type: "towerShot";
+      readonly tower: Tower;
+      readonly targetId: string;
+      readonly damage: number;
+      readonly killed: number;
+      readonly left: number;
+    }
+  | {
+      readonly type: "catapultShot";
+      /** Куда целилась и куда попала; `left` — прочность после выстрела. */
+      readonly aimed: WallPart;
+      readonly hit: WallPart;
+      readonly damage: number;
+      readonly left: number;
+    }
+  | {
+      readonly type: "moatDamage";
+      readonly stackId: string;
+      readonly damage: number;
+      readonly killed: number;
+      readonly left: number;
+    }
   | { readonly type: "stackWaits"; readonly stackId: string }
   | { readonly type: "stackDefends"; readonly stackId: string; readonly bonus: number }
   | { readonly type: "moraleTurn"; readonly stackId: string }

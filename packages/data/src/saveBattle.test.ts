@@ -104,7 +104,7 @@ describe("параметры шага 3.2: чего нет — начально�
     );
     const state = {
       ...old,
-      version: 7,
+      version: 8,
       // Города в записи нет — нет и таверны.
       players: FULL.players.map((player) => ({ ...player, tavern: [] })),
       heroes: [
@@ -206,6 +206,43 @@ describe("параметры шага 3.2: чего нет — начально�
     const state = readState({ ...FULL, creatures: [changed, "существо", { id: "x" }, inverted] });
     // Свойства существа в партии — те, с которыми она началась; незнакомое поле убрано.
     expect(state?.creatures).toEqual([{ ...militia, health: 99 }, ...CREATURES.slice(1)]);
+  });
+
+  it("осада сохраняется целиком; запись боя без осады читается как бой без стены", () => {
+    const created = createGame(
+      {
+        id: "s",
+        name: "Осада",
+        terrain: Array.from({ length: 8 }, () => "........"),
+        players: [
+          { hero: { x: 1, y: 1, army: [{ creature: "militia", count: 50 }] } },
+          { hero: { x: 6, y: 6, army: [{ creature: "militia", count: 1 }] }, kind: "computer" },
+        ],
+        objects: [
+          {
+            type: "town",
+            x: 3,
+            y: 1,
+            owner: 1,
+            buildings: ["tavern", "fort", "citadel"],
+            garrison: [{ creature: "militia", count: 5 }],
+          },
+        ],
+      },
+      3,
+      CONTENT,
+    );
+    if (!created.ok) {
+      throw new Error("Партия не создана.");
+    }
+    const entered = apply(created.state, TO_ZONE);
+    expect(entered.battle?.state.siege?.moat).toBe(true);
+    expect(readState(entered)?.battle).toEqual(entered.battle);
+    const guarded = apply(newGame([{ creature: "militia", count: 12 }], 14), TO_ZONE);
+    const { siege: _siege, ...old } = guarded.battle?.state ?? { siege: null };
+    expect(readState({ ...guarded, battle: { ...guarded.battle, state: old } })?.battle).toEqual(
+      guarded.battle,
+    );
   });
 
   it("бой, который не читается или относится к пропавшему охраннику, убирается", () => {

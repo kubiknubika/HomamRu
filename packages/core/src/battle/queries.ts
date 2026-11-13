@@ -4,7 +4,11 @@
  */
 import { BATTLE_HEIGHT, BATTLE_WIDTH, cellIndex, distance, neighbours, sameCell } from "./hex.ts";
 import type { Cell } from "./hex.ts";
-import type { BattleState, StackState } from "./types.ts";
+import { isMachine, isMoat, siegeBlocked } from "./siege.ts";
+import type { BattleSide, BattleState, StackState } from "./types.ts";
+
+/** Поле боя: что на нём стоит. Запросам хватает этого, без очереди ходов и итога. */
+export type BattleField = Pick<BattleState, "obstacles" | "siege" | "stacks">;
 
 export function isAlive(stack: StackState): boolean {
   return stack.count > 0;
@@ -19,9 +23,14 @@ export function activeStackOf(state: BattleState): StackState | undefined {
   return state.activeStack === null ? undefined : findStack(state, state.activeStack);
 }
 
-/** Номера клеток, на которые нельзя встать: препятствия и живые отряды. */
-function blockedCells(state: BattleState): Set<number> {
+/** Номера клеток, на которые отряду стороны `side` нельзя встать: препятствия, живые отряды, стена. */
+function blockedCells(state: BattleField, side: BattleSide): Set<number> {
   const blocked = new Set(state.obstacles.map(cellIndex));
+  if (state.siege !== null) {
+    for (const cell of siegeBlocked(state.siege, state.stacks, side)) {
+      blocked.add(cellIndex(cell));
+    }
+  }
   for (const stack of state.stacks) {
     if (isAlive(stack)) {
       blocked.add(cellIndex(stack));
@@ -32,12 +41,16 @@ function blockedCells(state: BattleState): Set<number> {
 
 /**
  * Клетки, куда отряд может переместиться за ход.
- * Пеший идёт по свободным клеткам; летающий садится на любую свободную в пределах скорости.
+ * Пеший идёт по свободным клеткам, во рву останавливается; летающий садится на любую свободную в пределах скорости.
  * Клетки самого отряда в ответе нет.
  */
-export function reachableCells(state: BattleState, stack: StackState): Map<number, Cell> {
-  const blocked = blockedCells(state);
+export function reachableCells(state: BattleField, stack: StackState): Map<number, Cell> {
+  const blocked = blockedCells(state, stack.side);
   const reachable = new Map<number, Cell>();
+  if (isMachine(stack)) {
+    // Катапульта не ходит.
+    return reachable;
+  }
   if (stack.creature.flying) {
     for (let row = 0; row < BATTLE_HEIGHT; row += 1) {
       for (let col = 0; col < BATTLE_WIDTH; col += 1) {
@@ -54,6 +67,10 @@ export function reachableCells(state: BattleState, stack: StackState): Map<numbe
   for (let step = 0; step < stack.creature.speed; step += 1) {
     const next: Cell[] = [];
     for (const cell of wave) {
+      // Вошедший в ров дальше не идёт; стоящий во рву с начала хода выходит свободно.
+      if (step > 0 && isMoat(state.siege, cell)) {
+        continue;
+      }
       for (const neighbour of neighbours(cell)) {
         const index = cellIndex(neighbour);
         if (!blocked.has(index) && !reachable.has(index)) {
@@ -71,8 +88,8 @@ export function reachableCells(state: BattleState, stack: StackState): Map<numbe
  * Число шагов пешком от клетки `from` до каждой свободной клетки, в обход препятствий и отрядов.
  * Клетка отряда `mover` считается свободной: это он идёт. Сама `from` может быть занята.
  */
-export function walkSteps(state: BattleState, from: Cell, mover: StackState): Map<number, number> {
-  const blocked = blockedCells(state);
+export function walkSteps(state: BattleField, from: Cell, mover: StackState): Map<number, number> {
+  const blocked = blockedCells(state, mover.side);
   blocked.delete(cellIndex(mover));
   const steps = new Map<number, number>([[cellIndex(from), 0]]);
   let wave: Cell[] = [from];
@@ -93,19 +110,19 @@ export function walkSteps(state: BattleState, from: Cell, mover: StackState): Ma
 }
 
 /** Стоит ли рядом с отрядом живой враг. */
-export function hasAdjacentEnemy(state: BattleState, stack: StackState): boolean {
+export function hasAdjacentEnemy(state: BattleField, stack: StackState): boolean {
   return state.stacks.some(
     (other) => isAlive(other) && other.side !== stack.side && distance(stack, other) === 1,
   );
 }
 
 /** Может ли отряд сейчас стрелять. */
-export function canShoot(state: BattleState, stack: StackState): boolean {
+export function canShoot(state: BattleField, stack: StackState): boolean {
   return stack.creature.shots > 0 && stack.shots > 0 && !hasAdjacentEnemy(state, stack);
 }
 
 /** Клетки, с которых отряд может ударить цель в этот ход: своя и достижимые, соседние с целью. */
-export function attackCells(state: BattleState, stack: StackState, target: StackState): Cell[] {
+export function attackCells(state: BattleField, stack: StackState, target: StackState): Cell[] {
   const reachable = reachableCells(state, stack);
   return neighbours(target).filter(
     (cell) => sameCell(cell, stack) || reachable.has(cellIndex(cell)),

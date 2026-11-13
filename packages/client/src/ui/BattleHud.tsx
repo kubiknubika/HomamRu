@@ -1,5 +1,5 @@
 import type { BattleSummary } from "../game/messages.ts";
-import { activeStackOf, canShoot, findStack, turnQueue } from "@homamru/core";
+import { activeStackOf, canShoot, findStack, isMachine, turnQueue } from "@homamru/core";
 import type { BattleResult, BattleState } from "@homamru/core";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { describeStack, lostCount } from "../battle/battleLog.ts";
@@ -75,7 +75,7 @@ function Losses({ state, side, mine }: LossesProps) {
     <div className="dialog-text">
       <b>{mine ? "Ваши потери" : "Потери противника"}</b>
       {state.stacks
-        .filter((stack) => stack.side === side)
+        .filter((stack) => stack.side === side && !isMachine(stack))
         .map((stack) => (
           <div key={stack.id}>
             {stack.creature.name}: {lostCount(state, stack)} из {stack.initialCount}

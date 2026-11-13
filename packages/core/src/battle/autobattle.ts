@@ -9,6 +9,7 @@ import { createBattle } from "./create.ts";
 import { BATTLE_HEIGHT, BATTLE_WIDTH, cellIndex } from "./hex.ts";
 import type { Cell } from "./hex.ts";
 import { battleProblems, eventProblems } from "./invariants.ts";
+import { FORTIFICATIONS } from "./siege.ts";
 import { MAX_STACKS } from "./types.ts";
 import type {
   ArmyDefinition,
@@ -63,6 +64,21 @@ export function runAutoBattle(
     state = result.state;
   }
   return { state, commands, problems };
+}
+
+const SIEGE_BUILDINGS = 8;
+
+/** Случайная осада: армии те же, что у случайного боя; укрепление и число зданий — по сиду. */
+export function randomSiege(
+  seed: number,
+  creatures: readonly CreatureDefinition[],
+): BattleDefinition {
+  const fortification = FORTIFICATIONS[seed % FORTIFICATIONS.length] ?? "fort";
+  return {
+    ...randomBattle(seed, creatures),
+    obstacles: [],
+    siege: { fortification, buildings: seed % SIEGE_BUILDINGS },
+  };
 }
 
 const MAX_COUNT = 40;

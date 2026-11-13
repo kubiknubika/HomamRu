@@ -2,6 +2,7 @@
  * Конец боя внутри партии: итог переносится на карту.
  * Спецификации: docs/mechanics/23-map-battle.md, 40-two-players.md.
  */
+import { isMachine } from "./battle/siege.ts";
 import type { BattleState } from "./battle/types.ts";
 import type { BattleOutcome, GameEvent, StackLoss } from "./events.ts";
 import { POWER_PER_CREATURE } from "./guards.ts";
@@ -28,7 +29,7 @@ function survivors(battle: BattleState, side: Side, army: readonly ArmyStack[]):
 /** Потери стороны по отрядам; бежавший теряет армию целиком. */
 function lossesOf(battle: BattleState, side: Side, fled: boolean): StackLoss[] {
   return battle.stacks
-    .filter((stack) => stack.side === side)
+    .filter((stack) => stack.side === side && !isMachine(stack))
     .toSorted((a, b) => a.slot - b.slot)
     .map((stack) => ({
       creature: stack.creature.id,
@@ -39,7 +40,7 @@ function lossesOf(battle: BattleState, side: Side, fled: boolean): StackLoss[] {
 /** Опыт за убитых: здоровье существа × число убитых, по всем отрядам стороны (22-hero.md). */
 function killExperience(battle: BattleState, side: Side): number {
   return battle.stacks
-    .filter((stack) => stack.side === side)
+    .filter((stack) => stack.side === side && !isMachine(stack))
     .reduce((sum, stack) => sum + stack.creature.health * (stack.initialCount - stack.count), 0);
 }
 

@@ -8,6 +8,7 @@ import { activeStackOf, findStack } from "./queries.ts";
 import type {
   ArmyDefinition,
   BattleCommand,
+  BattleDefinition,
   BattleEvent,
   BattleState,
   CreatureDefinition,
@@ -102,10 +103,21 @@ interface Started {
 export function startBattle(
   attacker: ArmyDefinition,
   defender: ArmyDefinition,
-  options: { readonly seed?: number; readonly obstacles?: readonly Cell[] } = {},
+  options: {
+    readonly seed?: number;
+    readonly obstacles?: readonly Cell[];
+    readonly siege?: BattleDefinition["siege"];
+  } = {},
 ): Started {
   const created = createBattle(
-    { id: "test", name: "Проверка", obstacles: options.obstacles ?? [], attacker, defender },
+    {
+      id: "test",
+      name: "Проверка",
+      obstacles: options.obstacles ?? [],
+      siege: options.siege,
+      attacker,
+      defender,
+    },
     CREATURES,
     options.seed ?? 1,
   );

@@ -14,9 +14,8 @@ import type { BattleSession, BattleSnapshot } from "./battleSession.ts";
 import {
   CELL_MARK_STYLES,
   createStackStub,
-  FIELD_COLOR,
+  fieldColors,
   FIELD_LINE_COLOR,
-  OBSTACLE_COLOR,
   RING_MARK_STYLES,
 } from "./battleStubs.ts";
 import type { StackStub } from "./battleStubs.ts";
@@ -121,12 +120,12 @@ export class BattleScene extends Phaser.Scene {
       return;
     }
     graphics.clear();
-    const obstacles = new Set(state.obstacles.map((cell) => `${cell.col},${cell.row}`));
+    const colorOf = fieldColors(state);
     graphics.lineStyle(1.5, FIELD_LINE_COLOR, 0.9);
     for (let row = 0; row < BATTLE_HEIGHT; row += 1) {
       for (let col = 0; col < BATTLE_WIDTH; col += 1) {
         const corners = cellCorners(this.layout, { col, row });
-        graphics.fillStyle(obstacles.has(`${col},${row}`) ? OBSTACLE_COLOR : FIELD_COLOR, 1);
+        graphics.fillStyle(colorOf({ col, row }), 1);
         tracePath(graphics, corners);
         graphics.fillPath();
         graphics.strokePath();
@@ -226,6 +225,7 @@ export class BattleScene extends Phaser.Scene {
     if (event === undefined) {
       this.showing = false;
       const snapshot = this.session.getSnapshot();
+      this.drawField(snapshot.state);
       this.placeStacks(snapshot.state);
       this.drawHighlights(snapshot);
       this.time.delayedCall(PAUSE_MS, () => {
