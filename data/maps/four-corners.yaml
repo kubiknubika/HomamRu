@@ -50,9 +50,21 @@ players:
         - { creature: militia, count: 20 }
         - { creature: slinger, count: 8 }
     resources: { gold: 20000, wood: 20, ore: 20 }
+  - kind: computer
+    hero:
+      x: 33
+      y: 25
+      attack: 1
+      defense: 1
+      army:
+        - { creature: militia, count: 20 }
+        - { creature: slinger, count: 8 }
+    resources: { gold: 20000, wood: 20, ore: 20 }
 objects:
   # Город игрока — рядом с началом.
   - { type: town, x: 3, y: 4, owner: 0, buildings: [tavern, fort, militia-yard] }
+  # Город противника — в дальнем, юго-восточном краю.
+  - { type: town, x: 33, y: 24, owner: 1, buildings: [tavern, fort, militia-yard] }
   # Северо-запад: начало. Всё рядом свободно, лесопилку стережёт горстка.
   - { type: pile, x: 4, y: 2, resource: gold, amount: 500 }
   - { type: pile, x: 1, y: 6, resource: wood, amount: 6 }

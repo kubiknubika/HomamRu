@@ -45,6 +45,7 @@ export function runComputerGames(
   const failures: string[] = [];
   let days = 0;
   let longestGame = 0;
+  let shortestGame = Number.POSITIVE_INFINITY;
   let longestTurn = 0;
   for (let seed = 1; seed <= count; seed += 1) {
     const played = play(map, content, seed);
@@ -58,6 +59,7 @@ export function runComputerGames(
     wins[winner] = (wins[winner] ?? 0) + 1;
     days += state.day;
     longestGame = Math.max(longestGame, state.day);
+    shortestGame = Math.min(shortestGame, state.day);
     longestTurn = Math.max(longestTurn, played.game.longestTurn);
   }
   const finished = count - failures.length;
@@ -65,7 +67,7 @@ export function runComputerGames(
   const lines = [
     `Партий двух компьютеров на карте «${map.name}»: ${count}, без победителя или с ошибкой: ${failures.length}.`,
     `Побед: ${wins.map((won, index) => `игрок ${index + 1} — ${won}`).join(", ")}.`,
-    `Дней в партии: в среднем ${average}, самое большее ${longestGame}. Команд за ход самое большее: ${longestTurn}.`,
+    `Дней в партии: от ${finished === 0 ? 0 : shortestGame} до ${longestGame}, в среднем ${average}. Команд за ход самое большее: ${longestTurn}.`,
   ];
   if (failures.length > 0) {
     lines.push("Повторить партию с ошибкой: pnpm run play --rival <сид>");

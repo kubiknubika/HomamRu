@@ -1,4 +1,4 @@
-// Карта первой версии проходима: docs/mechanics/25-first-map.md.
+// Охранники карты первой версии проходимы одним городом: docs/mechanics/25-first-map.md.
 import { createGame, townOf } from "@homamru/core";
 import type { MapDefinition } from "@homamru/core";
 import { describe, expect, it } from "vitest";
@@ -20,8 +20,18 @@ function playMap(map: MapDefinition, seed: number) {
   return walkThrough(created.state, MAX_DAYS);
 }
 
+/**
+ * Карта без противника: проходчик проверяет только охранников и хозяйство —
+ * хватает ли одного города, чтобы взять всё на карте. Город противника убран,
+ * чтобы проходчик не кончал партию его захватом.
+ */
 function loadFirstMap(): MapDefinition {
-  return loadMap(resolve(import.meta.dirname, "../../..", FILE));
+  const map = loadMap(resolve(import.meta.dirname, "../../..", FILE));
+  return {
+    ...map,
+    players: map.players.slice(0, 1),
+    objects: map.objects?.filter((object) => object.type !== "town" || object.owner === 0),
+  };
 }
 
 function play(seed: number) {
