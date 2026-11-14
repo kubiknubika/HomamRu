@@ -4,6 +4,7 @@ import type {
   BuildingDefinition,
   CreatureDefinition,
   HeroKind,
+  SpellDefinition,
   TavernRules,
 } from "@homamru/core";
 import { z } from "zod";
@@ -182,7 +183,16 @@ export function parseCreatureFile(file: string, text: string): ContentResult<Cre
 const cellSchema = z.tuple([z.int(), z.int()]).transform(([col, row]) => ({ col, row }));
 
 const armySchema = z.strictObject({
-  hero: z.strictObject({ attack: z.int().min(0), defense: z.int().min(0) }).optional(),
+  hero: z
+    .strictObject({
+      attack: z.int().min(0),
+      defense: z.int().min(0),
+      spellPower: z.int().min(0).optional(),
+      mana: z.int().min(0).optional(),
+      /** Книга со всеми заклинаниями игры: для проверочных боёв. */
+      allSpells: z.boolean().optional(),
+    })
+    .optional(),
   morale: z.int(),
   luck: z.int(),
   army: z.array(z.strictObject({ creature: z.string(), count: z.int() })),
@@ -203,8 +213,25 @@ const battleSchema = z.strictObject({
   defender: armySchema,
 });
 
-export function parseBattleFile(file: string, text: string): ContentResult<BattleDefinition> {
-  return parseContentFile(file, text, battleSchema);
+/** `spells` — заклинания игры: их получает герой, у которого в файле `allSpells: true`. */
+export function parseBattleFile(
+  file: string,
+  text: string,
+  spells: readonly SpellDefinition[] = [],
+): ContentResult<BattleDefinition> {
+  const parsed = parseContentFile(file, text, battleSchema);
+  if (!parsed.ok) {
+    return parsed;
+  }
+  const armyOf = (army: z.infer<typeof armySchema>): BattleDefinition["attacker"] => {
+    if (army.hero === undefined) {
+      return { morale: army.morale, luck: army.luck, army: army.army };
+    }
+    const { allSpells, ...hero } = army.hero;
+    return { ...army, hero: { ...hero, spells: allSpells === true ? spells : [] } };
+  };
+  const { attacker, defender, ...rest } = parsed.value;
+  return { ok: true, value: { ...rest, attacker: armyOf(attacker), defender: armyOf(defender) } };
 }
 
 const nothing = z.strictObject({});

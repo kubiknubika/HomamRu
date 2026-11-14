@@ -6,6 +6,7 @@ import { describeStack, lostCount } from "../battle/battleLog.ts";
 import { shotNote } from "../battle/battleSiege.ts";
 import { playerStack } from "../battle/battleSession.ts";
 import type { BattleSelection, BattleSession } from "../battle/battleSession.ts";
+import { BattleBook } from "./BattleBook.tsx";
 import { Dialog, DialogButton } from "./Dialog.tsx";
 
 interface BattleHudProps {
@@ -46,6 +47,11 @@ function usePortrait(): boolean {
 function hintOf(selection: BattleSelection | null, wall: string): string | null {
   if (selection === null || selection.kind === "move") {
     return null;
+  }
+  if (selection.kind === "spell") {
+    return selection.preview === null
+      ? `${selection.name}: выберите цель — отряд в зелёном или красном кольце.`
+      : `${selection.name} — ${selection.preview}. Коснитесь отряда ещё раз.`;
   }
   const { min, max } = selection.damage;
   const damage = min === max ? `${min}` : `от ${min} до ${max}`;
@@ -172,6 +178,18 @@ export function BattleHud(props: BattleHudProps) {
         >
           Журнал
         </button>
+        {selection?.kind === "spell" ? (
+          <button type="button" className="battle-button" onClick={battle.cancel}>
+            Отмена
+          </button>
+        ) : (
+          <BattleBook
+            state={state}
+            side={playerSide}
+            myTurn={me !== undefined}
+            onChoose={battle.chooseSpell}
+          />
+        )}
         <button
           type="button"
           className="battle-button"

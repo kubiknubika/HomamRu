@@ -15,6 +15,7 @@ import {
 } from "@homamru/core";
 import type { BattleCommand, BattleEvent, BattleState, Cell, StackState } from "@homamru/core";
 import { describeEvents } from "./battleLog.ts";
+import { bookButton, castPreview, spellTargets } from "./battleSpells.ts";
 import { routeOf } from "./battleRoute.ts";
 
 type Side = 0 | 1;
@@ -27,6 +28,15 @@ interface DamageRange {
 /** Что выбрал игрок первым касанием. */
 export type BattleSelection =
   | { readonly kind: "move"; readonly cell: Cell }
+  | {
+      /** Заклинание выбрано в книге; `targetId` — отряд, выбранный первым касанием. */
+      readonly kind: "spell";
+      readonly spell: string;
+      readonly name: string;
+      readonly targetId: string | null;
+      /** Что будет с выбранным отрядом: «Ополченец (враг): урон 30, погибнет 2». */
+      readonly preview: string | null;
+    }
   | { readonly kind: "shoot"; readonly targetId: string; readonly damage: DamageRange }
   | {
       readonly kind: "attack";
@@ -75,6 +85,10 @@ export interface BattleSession {
   tapCell(cell: Cell): void;
   /** Удержание пальца на клетке: показывает характеристики отряда и клетки его хода. */
   inspectCell(cell: Cell): void;
+  /** Игрок выбрал заклинание в книге: дальше касанием выбирается цель. */
+  chooseSpell(spell: string): void;
+  /** Снять выбор — заклинания или обычный. */
+  cancel(): void;
   wait(): void;
   defend(): void;
   flee(): void;
@@ -234,6 +248,26 @@ export function createBattleSession(
     publish({ selection: reachable ? { kind: "move", cell } : null });
   }
 
+  /** Касание при выбранном заклинании: отряд под ним выбирается, повторное — колдует. */
+  function tapSpell(selection: BattleSelection & { kind: "spell" }, cell: Cell): void {
+    const { state } = snapshot;
+    const spell = state.sides[playerSide].hero?.spells.find((item) => item.id === selection.spell);
+    const target = stackAt(state, cell);
+    const preview =
+      spell === undefined ||
+      target === undefined ||
+      !spellTargets(state, playerSide, spell).includes(target)
+        ? null
+        : castPreview(state, playerSide, spell, target);
+    if (target === undefined || preview === null) {
+      publish({ selection: null });
+    } else if (selection.targetId === target.id) {
+      send({ type: "battleCast", side: playerSide, spell: selection.spell, target: target.id });
+    } else {
+      publish({ selection: { ...selection, targetId: target.id, preview } });
+    }
+  }
+
   function simple(type: "battleWait" | "battleDefend" | "battleFlee"): void {
     if (playerStack(snapshot) !== undefined) {
       send({ type, side: playerSide });
@@ -257,6 +291,10 @@ export function createBattleSession(
       if (me === undefined) {
         return;
       }
+      if (snapshot.selection?.kind === "spell") {
+        tapSpell(snapshot.selection, cell);
+        return;
+      }
       const { state } = snapshot;
       const target = stackAt(state, cell);
       if (target !== undefined && target.side !== playerSide) {
@@ -274,6 +312,27 @@ export function createBattleSession(
       if (target !== undefined || note !== null) {
         publish({ inspected: target?.id ?? null, note });
       }
+    },
+    chooseSpell: (id) => {
+      const { state } = snapshot;
+      const myTurn = playerStack(snapshot) !== undefined;
+      const hero = state.sides[playerSide].hero;
+      const spell = hero?.spells.find((item) => item.id === id);
+      if (
+        spell === undefined ||
+        spell.cost > (hero?.mana ?? 0) ||
+        bookButton(state, playerSide, myTurn)?.reason !== null
+      ) {
+        return;
+      }
+      publish({
+        selection: { kind: "spell", spell: id, name: spell.name, targetId: null, preview: null },
+        inspected: null,
+        note: null,
+      });
+    },
+    cancel: () => {
+      publish({ selection: null });
     },
     wait: () => {
       simple("battleWait");
