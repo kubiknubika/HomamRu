@@ -28,6 +28,8 @@ export const spellSchema = z.strictObject({
   advancedAnyTarget: z.boolean().default(false),
   mass: z.boolean().optional(),
   protects: z.enum(SPELL_SCHOOLS).optional(),
+  cumulative: z.boolean().optional(),
+  spareMachines: z.boolean().optional(),
   counters: z.array(z.string()).default([]),
 }) satisfies z.ZodType<SpellDefinition>;
 

@@ -6,7 +6,7 @@ import { highlightsOf } from "./battleHighlights.ts";
 import { describeStack } from "./battleLog.ts";
 import { createBattleSession } from "./battleSession.ts";
 import type { BattleSession } from "./battleSession.ts";
-import { bookButton, roundsText, spellLine } from "./battleSpells.ts";
+import { bookButton, bookCircles, roundsText, spellLine, spellTargets } from "./battleSpells.ts";
 import { startTrialBattle } from "./trialBattle.ts";
 
 function trial(): BattleSession {
@@ -35,11 +35,11 @@ const marksOf = (session: BattleSession): string[] =>
   highlightsOf(session.getSnapshot()).rings.map(({ stack, mark }) => `${stack.id}:${mark}`);
 
 describe("проверочный бой с магией", () => {
-  it("у обоих героев книга с двенадцатью заклинаниями, сила магии 2 и 20 маны", () => {
+  it("у обоих героев книга с 26 заклинаниями, сила магии 2 и 60 маны", () => {
     const { state } = startTrialBattle(1);
     for (const side of state.sides) {
-      expect(side.hero).toMatchObject({ spellPower: 2, mana: 20 });
-      expect(side.hero?.spells).toHaveLength(12);
+      expect(side.hero).toMatchObject({ spellPower: 2, mana: 60 });
+      expect(side.hero?.spells).toHaveLength(26);
     }
   });
 });
@@ -63,8 +63,8 @@ describe("книга заклинаний", () => {
 
   it("кнопка «Книга»: мана на кнопке; нет героя или заклинаний — кнопки нет", () => {
     const { state } = startTrialBattle(1);
-    expect(bookButton(state, 0, true)).toEqual({ mana: 20, reason: null });
-    expect(bookButton(state, 0, false)).toEqual({ mana: 20, reason: "не ваш ход" });
+    expect(bookButton(state, 0, true)).toEqual({ mana: 60, reason: null });
+    expect(bookButton(state, 0, false)).toEqual({ mana: 60, reason: "не ваш ход" });
     const hero = state.sides[0].hero;
     const withHero = (changes: object | null): BattleState => ({
       ...state,
@@ -83,7 +83,7 @@ describe("книга заклинаний", () => {
 });
 
 describe("выбор цели: первое касание показывает, второе колдует", () => {
-  it("стрела: враги в красных кольцах, итог в строке, после второго касания мана 15", () => {
+  it("стрела: враги в красных кольцах, итог в строке, после второго касания мана 55", () => {
     const session = trial();
     const before = session.getSnapshot().state;
     session.chooseSpell("magic-arrow");
@@ -105,7 +105,7 @@ describe("выбор цели: первое касание показывает,
 
     session.tapCell(cellOf(before, "b1"));
     const after = session.getSnapshot();
-    expect(after.state.sides[0]).toMatchObject({ cast: true, hero: { mana: 15 } });
+    expect(after.state.sides[0]).toMatchObject({ cast: true, hero: { mana: 55 } });
     expect(findStack(after.state, "b1")?.count).toBe(23);
     expect(after.log).toBe("Вы колдуете «Волшебная стрела»: Ополченец (враг), урон 30, погибло 2");
     // Ход отряда не потрачен: после показа управление снова у игрока, книга закрыта до раунда.
@@ -158,5 +158,40 @@ describe("выбор цели: первое касание показывает,
       }
     }
     expect(session.getSnapshot().history.join("\n")).toContain("Противник колдует");
+  });
+});
+
+describe("заклинания кругов 2–5 в книге (67-spells-plain.md)", () => {
+  const { state } = startTrialBattle(1);
+  const hero = state.sides[0].hero;
+  const line = (id: string): string => {
+    const found = hero?.spells.find((spell) => spell.id === id);
+    return found === undefined || hero === null ? "" : spellLine(found, hero);
+  };
+
+  it("строки: урон, действие со сроком, действие до конца боя", () => {
+    expect(line("lightning-bolt")).toBe("Молния — 10 маны — урон 60");
+    expect(line("implosion")).toBe("Взрыв — 30 маны — урон 250");
+    expect(line("prayer")).toBe("Молитва — 16 маны — атака, защита и скорость +2, 2 раунда");
+    expect(line("disrupting-ray")).toBe("Разрушающий луч — 10 маны — защита −3, до конца боя");
+    expect(line("misfortune")).toBe("Неудача — 12 маны — удача −1, 2 раунда");
+  });
+
+  it("книга разбита по кругам, от первого", () => {
+    const circles = bookCircles(hero?.spells ?? []);
+    expect(circles.map((circle) => [circle.level, circle.spells.length])).toEqual([
+      [1, 12],
+      [2, 7],
+      [3, 4],
+      [4, 2],
+      [5, 1],
+    ]);
+  });
+
+  it("«Точность» ложится только на стрелка", () => {
+    const precision = hero?.spells.find((spell) => spell.id === "precision");
+    expect(precision).toBeDefined();
+    const ids = precision === undefined ? [] : spellTargets(state, 0, precision).map((s) => s.id);
+    expect(ids).toEqual(["a2"]);
   });
 });

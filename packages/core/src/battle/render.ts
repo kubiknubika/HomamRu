@@ -50,7 +50,9 @@ function stackLine(stack: StackState): string {
     parts.push("отвечал");
   }
   for (const effect of stack.effects) {
-    parts.push(`«${effect.name}» (раундов: ${effect.rounds})`);
+    const term =
+      effect.stacks === undefined ? `раундов: ${effect.rounds}` : `до конца боя, ×${effect.stacks}`;
+    parts.push(`«${effect.name}» (${term})`);
   }
   return `${title}: ${parts.join(", ")}`;
 }
@@ -144,7 +146,9 @@ function formatOutcome(outcome: SpellOutcome): string {
     case "dispel":
       return outcome.removed.length > 0 ? `снято: ${outcome.removed.join(", ")}` : "снимать нечего";
     case "effect":
-      return `действует раундов: ${outcome.rounds}${removed}`;
+      return outcome.rounds === 0
+        ? `действует до конца боя${removed}`
+        : `действует раундов: ${outcome.rounds}${removed}`;
   }
 }
 

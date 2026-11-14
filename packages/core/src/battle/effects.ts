@@ -3,7 +3,7 @@
  * Спецификация: docs/mechanics/62-battle-spells.md.
  */
 import type { SpellEffect, SpellSchool } from "../spells.ts";
-import type { StackState, StrikeKind } from "./types.ts";
+import type { BattleState, StackState, StrikeKind } from "./types.ts";
 
 type Affected = Pick<StackState, "effects">;
 
@@ -20,18 +20,40 @@ function percentOf(stack: Affected, effect: SpellEffect, school?: SpellSchool): 
 
 /** Скорость отряда с «Ускорением» и «Замедлением»; дробь отбрасывается. */
 export function speedOf(stack: Pick<StackState, "creature" | "effects">): number {
-  const raised = stack.creature.speed + sumOf(stack, "speed");
+  const raised = stack.creature.speed + sumOf(stack, "speed") + sumOf(stack, "prayer");
   return Math.floor((raised * percentOf(stack, "speedPercent")) / 100);
 }
 
-/** Прибавка к атаке: «Жажда крови» действует только в ближнем бою. */
+/**
+ * Прибавка к атаке: «Жажда крови» — только в ближнем бою, «Точность» — только при стрельбе,
+ * «Молитва» и «Слабость» — всегда.
+ */
 export function attackBonus(stack: Affected, kind: StrikeKind): number {
-  return kind === "shot" ? 0 : sumOf(stack, "meleeAttack");
+  const byKind = kind === "shot" ? sumOf(stack, "shotAttack") : sumOf(stack, "meleeAttack");
+  return byKind + sumOf(stack, "prayer") - sumOf(stack, "attackDown");
 }
 
-/** Прибавка к защите: «Каменная кожа». */
+/** Прибавка к защите: «Каменная кожа», «Молитва»; «Разрушающий луч» отнимает. */
 export function defenseBonus(stack: Affected): number {
-  return sumOf(stack, "defense");
+  return sumOf(stack, "defense") + sumOf(stack, "prayer") - sumOf(stack, "defenseDown");
+}
+
+const MAX_LUCK = 3;
+const MAX_MORALE = 3;
+
+type Sides = Pick<BattleState, "sides">;
+type Sided = Pick<StackState, "effects" | "side">;
+
+/** Удача отряда: удача стороны и заклинания; от 0 до 3 (67-spells-plain.md). */
+export function luckOf(battle: Sides, stack: Sided): number {
+  const raw = battle.sides[stack.side].luck + sumOf(stack, "luck") - sumOf(stack, "luckDown");
+  return Math.min(MAX_LUCK, Math.max(0, raw));
+}
+
+/** Боевой дух отряда: дух стороны и заклинания; от −3 до 3. */
+export function moraleOf(battle: Sides, stack: Sided): number {
+  const raw = battle.sides[stack.side].morale + sumOf(stack, "morale") - sumOf(stack, "moraleDown");
+  return Math.min(MAX_MORALE, Math.max(-MAX_MORALE, raw));
 }
 
 /**
@@ -47,9 +69,12 @@ export function fixedDamage(stack: Pick<StackState, "creature" | "effects">): nu
   return curse === undefined ? null : Math.max(1, stack.creature.damageMin - curse.value);
 }
 
-/** Какая доля урона доходит до отряда, в процентах: «Щит» ослабляет удары ближнего боя. */
+/**
+ * Какая доля урона доходит до отряда, в процентах: «Щит» ослабляет удары ближнего боя,
+ * «Воздушный щит» — выстрелы.
+ */
 export function damagePercent(target: Affected, kind: StrikeKind): number {
-  return kind === "shot" ? 100 : percentOf(target, "meleeDamagePercent");
+  return percentOf(target, kind === "shot" ? "shotDamagePercent" : "meleeDamagePercent");
 }
 
 /**

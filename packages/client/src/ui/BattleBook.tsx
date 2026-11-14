@@ -1,6 +1,6 @@
 import type { BattleState } from "@homamru/core";
 import { useState } from "react";
-import { bookButton, spellLine } from "../battle/battleSpells.ts";
+import { bookButton, bookCircles, spellLine } from "../battle/battleSpells.ts";
 import { Dialog, DialogButton } from "./Dialog.tsx";
 
 interface BattleBookProps {
@@ -40,19 +40,24 @@ export function BattleBook({ state, side, myTurn, onChoose }: BattleBookProps) {
       {open && (
         <Dialog title={`Книга заклинаний — мана ${hero.mana}`}>
           <div className="dialog-text battle-journal">
-            {hero.spells.map((spell) => (
-              <button
-                key={spell.id}
-                type="button"
-                className="spell-row"
-                disabled={spell.cost > hero.mana}
-                onClick={() => {
-                  setOpen(false);
-                  onChoose(spell.id);
-                }}
-              >
-                {spellLine(spell, hero)}
-              </button>
+            {bookCircles(hero.spells).map(({ level, spells }) => (
+              <section key={level}>
+                <div className="spell-circle">{level}-й круг</div>
+                {spells.map((spell) => (
+                  <button
+                    key={spell.id}
+                    type="button"
+                    className="spell-row"
+                    disabled={spell.cost > hero.mana}
+                    onClick={() => {
+                      setOpen(false);
+                      onChoose(spell.id);
+                    }}
+                  >
+                    {spellLine(spell, hero)}
+                  </button>
+                ))}
+              </section>
             ))}
           </div>
           <DialogButton

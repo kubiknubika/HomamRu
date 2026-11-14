@@ -132,7 +132,7 @@ export { heroChoosingSkill } from "./hero.ts";
 export type { SpellDefinition } from "./spells.ts";
 export { BOOK_PRICE, guildLevel, guildSpells, maxMana } from "./magic.ts";
 export { canTarget, castableSpells, spellTargetsOf, spellValue } from "./battle/cast.ts";
-export { attackBonus, speedOf } from "./battle/effects.ts";
+export { attackBonus, luckOf, moraleOf, speedOf } from "./battle/effects.ts";
 export { randomBattle, randomSiege, runAutoBattle } from "./battle/autobattle.ts";
 export { TOWNLESS_DAYS } from "./players.ts";
 export { townsOf } from "./opponentTown.ts";

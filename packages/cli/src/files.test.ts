@@ -1,6 +1,6 @@
 import { basename } from "node:path";
 import { describe, expect, it } from "vitest";
-import { SPELLS } from "@homamru/core/testkit";
+import { ALL_SPELLS } from "@homamru/core/testkit";
 import { checkMapFile, listMapFiles, loadDefaults } from "./files.ts";
 
 // Догма 8: все файлы данных проверяются автоматически.
@@ -19,9 +19,9 @@ describe("карты из папки data/maps", () => {
 describe("файл заклинаний data/spells.yaml", () => {
   const { spells } = loadDefaults();
 
-  it("двенадцать заклинаний первого круга; набор тестов ядра с ним совпадает", () => {
-    expect(spells).toHaveLength(12);
-    expect(spells).toEqual(SPELLS);
+  it("26 заклинаний: первый круг и первая группа кругов 2–5; набор тестов ядра — тот же", () => {
+    expect(spells).toHaveLength(26);
+    expect(spells).toEqual(ALL_SPELLS);
   });
 
   it("числа — как в Heroes 3 (60-spells.md)", () => {
@@ -45,6 +45,20 @@ describe("файл заклинаний data/spells.yaml", () => {
       ["stone-skin", 5, 0, 3, 5],
       ["haste", 6, 0, 3, 5],
       ["slow", 6, 0, 75, 5],
+      ["ice-bolt", 8, 20, 10, 0],
+      ["lightning-bolt", 10, 25, 10, 0],
+      ["protection-from-air", 7, 0, 70, 0],
+      ["precision", 8, 0, 3, 0],
+      ["weakness", 8, 0, 3, 0],
+      ["disrupting-ray", 10, 0, 3, 0],
+      ["fortune", 7, 0, 1, 0],
+      ["air-shield", 12, 0, 75, 0],
+      ["protection-from-earth", 12, 0, 70, 0],
+      ["mirth", 12, 0, 1, 0],
+      ["misfortune", 12, 0, 1, 0],
+      ["prayer", 16, 0, 2, 0],
+      ["sorrow", 16, 0, 1, 0],
+      ["implosion", 30, 75, 100, 0],
     ]);
   });
 });

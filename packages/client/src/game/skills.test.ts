@@ -244,7 +244,7 @@ describe("заклинание на все отряды на экране боя
     });
     session.tapCell(cellOf(state, "a2"));
     const after = session.getSnapshot().state;
-    expect(after.sides[0]).toMatchObject({ cast: true, hero: { mana: 16 } });
+    expect(after.sides[0]).toMatchObject({ cast: true, hero: { mana: 56 } });
     for (const id of ["a1", "a2", "a3"]) {
       expect(findStack(after, id)?.effects.map((effect) => effect.spell)).toEqual(["bless"]);
     }

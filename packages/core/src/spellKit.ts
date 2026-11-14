@@ -1,5 +1,6 @@
 /** Заклинания для тестов: те же, что в data/spells.yaml (60-spells.md). */
 import type { SpellDefinition } from "./spells.ts";
+import { PLAIN_SPELLS } from "./spellKitPlain.ts";
 
 export const SPELLS: readonly SpellDefinition[] = [
   {
@@ -210,9 +211,12 @@ export const SPELLS: readonly SpellDefinition[] = [
   },
 ];
 
+/** Все заклинания файла: первый круг и круги 2–5. */
+export const ALL_SPELLS: readonly SpellDefinition[] = [...SPELLS, ...PLAIN_SPELLS];
+
 /** Заклинание по идентификатору; нет такого — ошибка теста. */
 export function spell(id: string): SpellDefinition {
-  const found = SPELLS.find((candidate) => candidate.id === id);
+  const found = ALL_SPELLS.find((candidate) => candidate.id === id);
   if (found === undefined) {
     throw new Error(`Заклинания «${id}» нет.`);
   }
