@@ -91,9 +91,13 @@ export {
   GATE_INNER,
   GATE_OUTER,
   gateOpen,
+  hasWallPenalty,
   isMachine,
   isMoat,
+  MOAT_DAMAGE,
+  MOAT_DEFENSE,
   wallCells,
+  wallPartCell,
 } from "./battle/siege.ts";
 export type { SiegeState, Tower, WallPart } from "./battle/siege.ts";
 export { BATTLE_REJECT_CODES, BATTLE_VERSION } from "./battle/types.ts";

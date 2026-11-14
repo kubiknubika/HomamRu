@@ -1,10 +1,27 @@
 // Осада: docs/mechanics/50-siege.md.
 import { describe, expect, it } from "vitest";
+import { renderBattle } from "./render.ts";
 import { createBattle } from "./create.ts";
 import { damageRange, defenseOf } from "./damage.ts";
 import { createSiege, gateOpen, hasWallPenalty, isMachine, WALL_PARTS } from "./siege.ts";
 import { canReach, healthOf, siege, withHealth } from "./siegeKit.ts";
 import { act, army, code, CREATURES, stack, startBattle, turnOf, withStacks } from "./testkit.ts";
+
+describe("текстовый вывод осады", () => {
+  it("стена «=», ров «~», ворота «|»; разбитые ворота и пролом — обычные клетки", () => {
+    const { state } = siege("citadel");
+    const whole = withHealth(state, { wall1: 2, wall2: 2, wall3: 2, wall4: 2, gate: 2 });
+    const rows = (shown: typeof state): string[] => renderBattle(shown).split("\n").slice(3, 14);
+    expect(rows(whole)[0]).toMatch(/~ {2}= {2}\. {2}\. {2}b?/);
+    expect(rows(whole)[5]).toContain(".  |  |  .");
+    expect(rows(withHealth(whole, { gate: 0 }))[5]).not.toContain("|");
+    expect(rows(whole)[4]).toContain("~  =");
+    expect(rows(withHealth(whole, { wall2: 0 }))[4]).toContain("~  .");
+    expect(renderBattle(startBattle(army(["militia:1"]), army(["militia:1"])).state)).not.toMatch(
+      /[=~|]/,
+    );
+  });
+});
 
 describe("что даёт укрепление", () => {
   it.each([

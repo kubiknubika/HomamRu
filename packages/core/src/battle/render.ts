@@ -4,6 +4,7 @@
  */
 import { BATTLE_HEIGHT, BATTLE_WIDTH, cellIndex } from "./hex.ts";
 import { activeStackOf } from "./queries.ts";
+import { GATE_INNER, GATE_OUTER, isMoat, wallCells } from "./siege.ts";
 import type { BattleEvent, BattleSide, BattleState, StackState } from "./types.ts";
 
 const SIDE_NAMES = ["нападающий", "обороняющийся"] as const;
@@ -56,6 +57,23 @@ export function renderBattle(state: BattleState): string {
   const marks = new Map<number, string>();
   for (const cell of state.obstacles) {
     marks.set(cellIndex(cell), "#");
+  }
+  if (state.siege !== null) {
+    // Осада: «~» ров, «=» стена, «|» целые ворота (проём и створ).
+    for (let row = 0; row < BATTLE_HEIGHT; row += 1) {
+      for (let col = 0; col < BATTLE_WIDTH; col += 1) {
+        if (isMoat(state.siege, { col, row })) {
+          marks.set(cellIndex({ col, row }), "~");
+        }
+      }
+    }
+    for (const cell of wallCells(state.siege)) {
+      marks.set(cellIndex(cell), "=");
+    }
+    if (state.siege.health.gate > 0) {
+      marks.set(cellIndex(GATE_OUTER), "|");
+      marks.set(cellIndex(GATE_INNER), "|");
+    }
   }
   for (const stack of state.stacks) {
     if (stack.count > 0) {

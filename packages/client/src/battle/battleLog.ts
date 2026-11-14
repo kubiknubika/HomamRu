@@ -1,5 +1,5 @@
 /** Журнал боя для игрока: события одной команды одной строкой. */
-import { defenseOf, findStack } from "@homamru/core";
+import { defenseOf, findStack, isMachine } from "@homamru/core";
 import type { BattleEvent, BattleState, StackState } from "@homamru/core";
 
 const STRIKE_VERBS = { melee: "бьёт", retaliation: "отвечает", shot: "стреляет" } as const;
@@ -107,6 +107,9 @@ export function lostCount(state: BattleState, stack: StackState): number {
 /** Характеристики отряда одной строкой — для показа по удержанию пальца. */
 export function describeStack(state: BattleState, stack: StackState): string {
   const { creature } = stack;
+  if (isMachine(stack)) {
+    return `Катапульта: здоровье ${stack.firstHealth} из ${creature.health}, защита ${defenseOf(state, stack)}, выстрелов ${stack.shots}. Сама стреляет по стене в начале раунда. Не ходит и не отвечает на удар.`;
+  }
   const hero = state.sides[stack.side].hero;
   const attack = creature.attack + (hero?.attack ?? 0);
   const parts = [

@@ -3,6 +3,7 @@ import { activeStackOf, canShoot, findStack, isMachine, turnQueue } from "@homam
 import type { BattleResult, BattleState } from "@homamru/core";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { describeStack, lostCount } from "../battle/battleLog.ts";
+import { shotNote } from "../battle/battleSiege.ts";
 import { playerStack } from "../battle/battleSession.ts";
 import type { BattleSelection, BattleSession } from "../battle/battleSession.ts";
 import { Dialog, DialogButton } from "./Dialog.tsx";
@@ -42,14 +43,14 @@ function usePortrait(): boolean {
   return portrait;
 }
 
-function hintOf(selection: BattleSelection | null): string | null {
+function hintOf(selection: BattleSelection | null, wall: string): string | null {
   if (selection === null || selection.kind === "move") {
     return null;
   }
   const { min, max } = selection.damage;
   const damage = min === max ? `${min}` : `от ${min} до ${max}`;
   if (selection.kind === "shoot") {
-    return `Выстрел: урон ${damage}. Коснитесь врага ещё раз.`;
+    return `Выстрел: урон ${damage}.${wall} Коснитесь врага ещё раз.`;
   }
   return selection.from === null
     ? `Удар: урон ${damage}. Выберите красную клетку, откуда бить.`
@@ -103,7 +104,7 @@ export function BattleHud(props: BattleHudProps) {
   const [confirmFlee, setConfirmFlee] = useState(false);
   const [journal, setJournal] = useState(false);
   const portrait = usePortrait();
-  const { state, selection, locked, log, history, inspected, playerSide } = snapshot;
+  const { state, selection, locked, log, history, inspected, note, playerSide } = snapshot;
   const won = state.result?.winner === playerSide;
 
   if (portrait) {
@@ -126,7 +127,13 @@ export function BattleHud(props: BattleHudProps) {
       : null;
   const status =
     (inspectedStack === undefined ? null : describeStack(state, inspectedStack)) ??
-    hintOf(selection) ??
+    note ??
+    hintOf(
+      selection,
+      me !== undefined && selection?.kind === "shoot"
+        ? shotNote(state, me, selection.targetId)
+        : "",
+    ) ??
     shooterHint ??
     log;
 

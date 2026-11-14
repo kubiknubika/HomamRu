@@ -2,38 +2,27 @@
  * Заглушки боя (догма 14): поле и отряды рисуются кодом.
  * Настоящие картинки появятся позже и будут искаться по идентификатору существа.
  */
-import { GATE_INNER, GATE_OUTER, gateOpen, isMoat, wallCells } from "@homamru/core";
-import type { BattleState, Cell, StackState } from "@homamru/core";
+import type { StackState } from "@homamru/core";
 import type * as Phaser from "phaser";
 
-const FIELD_COLOR = 0x4f7a3a;
 export const FIELD_LINE_COLOR = 0x23361a;
-const OBSTACLE_COLOR = 0x2b2f36;
-const WALL_COLOR = 0x8d8f96;
-const GATE_COLOR = 0x7a5230;
-const OPEN_GATE_COLOR = 0xb89468;
-const MOAT_COLOR = 0x2f5d8a;
 
-function keyOf(cell: Cell): string {
-  return `${cell.col},${cell.row}`;
-}
+/** Цвета клеток поля по их виду (см. battleSiege.ts). Треснувший участок — стена с прочностью 1. */
+export const CELL_LOOK_COLORS = {
+  field: 0x4f7a3a,
+  obstacle: 0x2b2f36,
+  wall: 0x6f7178,
+  segment: 0x9a9ca3,
+  cracked: 0xb9a184,
+  gate: 0x7a5230,
+  gateOpen: 0xb89468,
+  moat: 0x2f5d8a,
+} as const;
 
-/** Цвет клетки поля: препятствие, стена, ворота (закрытые темнее открытых), ров или трава. */
-export function fieldColors(state: BattleState): (cell: Cell) => number {
-  const colors = new Map(state.obstacles.map((cell) => [keyOf(cell), OBSTACLE_COLOR]));
-  const { siege } = state;
-  if (siege !== null) {
-    for (const cell of wallCells(siege)) {
-      colors.set(keyOf(cell), WALL_COLOR);
-    }
-    if (siege.health.gate > 0) {
-      const gate = gateOpen(siege, state.stacks) ? OPEN_GATE_COLOR : GATE_COLOR;
-      colors.set(keyOf(GATE_OUTER), gate);
-      colors.set(keyOf(GATE_INNER), gate);
-    }
-  }
-  return (cell) => colors.get(keyOf(cell)) ?? (isMoat(siege, cell) ? MOAT_COLOR : FIELD_COLOR);
-}
+/** Башня: тёмный квадрат с зубцом цвета обороняющегося. */
+export const TOWER_COLOR = 0x3b3d44;
+export const TOWER_FLAG_COLOR = 0x2d6fc8;
+export const PROJECTILE_COLOR = 0x1c1c1c;
 
 /** Цвет и прозрачность подсветки клеток (см. battleHighlights.ts). */
 export const CELL_MARK_STYLES = {

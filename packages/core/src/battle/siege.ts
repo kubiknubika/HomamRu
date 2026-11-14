@@ -110,6 +110,16 @@ function segmentCell(part: (typeof SEGMENTS)[number]): Cell {
   return { col: WALL_COL[row] ?? 0, row };
 }
 
+/** Клетка участка стены или створа ворот; у башен клетки нет. */
+export function wallPartCell(part: WallPart): Cell | null {
+  if (part === "gate") {
+    return GATE_INNER;
+  }
+  return part === "keep" || part === "upperTower" || part === "lowerTower"
+    ? null
+    : segmentCell(part);
+}
+
 /** Внутри стен: правее стены в своём ряду. Клетка самой стены — тоже внутри. */
 export function isInside(cell: Cell): boolean {
   return cell.col >= (WALL_COL[cell.row] ?? 0);
