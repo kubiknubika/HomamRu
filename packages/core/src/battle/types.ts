@@ -3,11 +3,12 @@
  * Спецификации: docs/mechanics/10-battle-field.md … 13-battle-damage.md.
  */
 import type { RngState } from "../rng.ts";
+import type { SpellDefinition, SpellEffect, SpellSchool } from "../spells.ts";
 import type { Cell } from "./hex.ts";
 import type { Fortification, SiegeState, Tower, WallPart } from "./siege.ts";
 
 /** Номер версии формата состояния боя. */
-export const BATTLE_VERSION = 2;
+export const BATTLE_VERSION = 3;
 
 export const MAX_STACKS = 7;
 
@@ -30,13 +31,38 @@ export interface CreatureDefinition {
   readonly growth: number;
 }
 
-interface BattleHero {
+/** Герой в бою: прибавки отрядам и магия (62-battle-spells.md). */
+export interface BattleHero {
   readonly attack: number;
   readonly defense: number;
+  readonly spellPower: number;
+  readonly mana: number;
+  /** Заклинания целиком: состояние боя не зависит от файлов. У героя без книги — пусто. */
+  readonly spells: readonly SpellDefinition[];
+}
+
+/** Герой в описании боя: магию можно не называть. */
+type BattleHeroDefinition = Pick<BattleHero, "attack" | "defense"> & {
+  readonly [K in "spellPower" | "mana" | "spells"]?: BattleHero[K] | undefined;
+};
+
+/** Действие заклинания на отряде. */
+interface StackEffect {
+  /** Идентификатор заклинания. */
+  readonly spell: string;
+  readonly name: string;
+  readonly effect: SpellEffect;
+  readonly value: number;
+  /** Для защиты от школы магии. */
+  readonly school: SpellSchool | null;
+  /** Вредное: его снимает «Лечение». */
+  readonly negative: boolean;
+  /** Сколько начал раунда действие ещё переживёт. */
+  readonly rounds: number;
 }
 
 export interface ArmyDefinition {
-  readonly hero?: BattleHero | undefined;
+  readonly hero?: BattleHeroDefinition | undefined;
   readonly morale: number;
   readonly luck: number;
   readonly army: readonly { readonly creature: string; readonly count: number }[];
@@ -88,12 +114,16 @@ export interface StackState {
   readonly retaliated: boolean;
   /** Прибавка к защите от «защищаться»; 0 — не действует. */
   readonly defendBonus: number;
+  /** Действия заклинаний на отряде. */
+  readonly effects: readonly StackEffect[];
 }
 
 export interface BattleSideState {
   readonly hero: BattleHero | null;
   readonly morale: number;
   readonly luck: number;
+  /** Герой уже колдовал в этом раунде. */
+  readonly cast: boolean;
 }
 
 export type BattleEndReason = "destroyed" | "fled";
@@ -133,7 +163,27 @@ export type BattleCommand =
   | { readonly type: "battleShoot"; readonly side: BattleSide; readonly target: string }
   | { readonly type: "battleWait"; readonly side: BattleSide }
   | { readonly type: "battleDefend"; readonly side: BattleSide }
-  | { readonly type: "battleFlee"; readonly side: BattleSide };
+  | { readonly type: "battleFlee"; readonly side: BattleSide }
+  | {
+      readonly type: "battleCast";
+      readonly side: BattleSide;
+      /** Идентификатор заклинания. */
+      readonly spell: string;
+      /** Отряд-цель. */
+      readonly target: string;
+    };
+
+/** Чем кончилось заклинание. */
+export type SpellOutcome =
+  | {
+      readonly kind: "damage";
+      readonly damage: number;
+      readonly killed: number;
+      readonly left: number;
+    }
+  | { readonly kind: "heal"; readonly healed: number; readonly removed: readonly string[] }
+  | { readonly kind: "dispel"; readonly removed: readonly string[] }
+  | { readonly kind: "effect"; readonly rounds: number; readonly removed: readonly string[] };
 
 export type StrikeKind = "melee" | "retaliation" | "shot";
 
@@ -181,6 +231,21 @@ export type BattleEvent =
       readonly killed: number;
       readonly left: number;
     }
+  | {
+      readonly type: "spellCast";
+      readonly side: BattleSide;
+      readonly spell: string;
+      readonly name: string;
+      readonly targetId: string;
+      readonly manaLeft: number;
+      readonly outcome: SpellOutcome;
+    }
+  | {
+      readonly type: "effectEnded";
+      readonly stackId: string;
+      readonly spell: string;
+      readonly name: string;
+    }
   | { readonly type: "stackWaits"; readonly stackId: string }
   | { readonly type: "stackDefends"; readonly stackId: string; readonly bonus: number }
   | { readonly type: "moraleTurn"; readonly stackId: string }
@@ -200,6 +265,10 @@ export const BATTLE_REJECT_CODES = [
   "ENEMY_ADJACENT",
   "ALREADY_WAITED",
   "NO_HERO",
+  "UNKNOWN_SPELL",
+  "NOT_ENOUGH_MANA",
+  "ALREADY_CAST",
+  "BAD_SPELL_TARGET",
 ] as const;
 
 export type BattleRejectCode = (typeof BATTLE_REJECT_CODES)[number];

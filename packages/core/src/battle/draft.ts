@@ -14,12 +14,21 @@ import type {
 
 type Mutable<T> = { -readonly [K in keyof T]: T[K] };
 
+/** Сторона в рабочей копии: мана героя и отметка «колдовал» меняются. */
+type DraftSide = Mutable<Omit<BattleSideState, "hero">> & {
+  hero: Mutable<NonNullable<BattleSideState["hero"]>> | null;
+};
+
+function draftSide(side: BattleSideState): DraftSide {
+  return { ...side, hero: side.hero === null ? null : { ...side.hero } };
+}
+
 export interface BattleDraft {
   rng: RngState;
   round: number;
   readonly obstacles: BattleState["obstacles"];
   siege: SiegeState | null;
-  readonly sides: readonly [BattleSideState, BattleSideState];
+  readonly sides: [DraftSide, DraftSide];
   readonly stacks: Mutable<StackState>[];
   activeStack: string | null;
   lastActedSide: BattleSide;
@@ -33,7 +42,7 @@ export function toDraft(state: BattleState): BattleDraft {
     round: state.round,
     obstacles: state.obstacles,
     siege: state.siege,
-    sides: state.sides,
+    sides: [draftSide(state.sides[0]), draftSide(state.sides[1])],
     stacks: state.stacks.map((stack) => ({ ...stack })),
     activeStack: state.activeStack,
     lastActedSide: state.lastActedSide,

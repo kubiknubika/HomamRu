@@ -129,9 +129,29 @@ function placeArmy(
       moraleUsed: false,
       retaliated: false,
       defendBonus: 0,
+      effects: [],
     });
   }
   return stacks;
+}
+
+function sideOf(army: ArmyDefinition): BattleDraft["sides"][number] {
+  const { hero } = army;
+  return {
+    hero:
+      hero === undefined
+        ? null
+        : {
+            attack: hero.attack,
+            defense: hero.defense,
+            spellPower: hero.spellPower ?? 0,
+            mana: hero.mana ?? 0,
+            spells: [...(hero.spells ?? [])],
+          },
+    morale: army.morale,
+    luck: army.luck,
+    cast: false,
+  };
 }
 
 /** Катапульта нападающего: стоит на своём месте у края поля и в очереди ходов не участвует. */
@@ -151,6 +171,7 @@ function catapult(): StackState {
     moraleUsed: false,
     retaliated: false,
     defendBonus: 0,
+    effects: [],
   };
 }
 
@@ -184,18 +205,7 @@ export function createBattle(
     round: 1,
     obstacles: definition.obstacles.map((cell) => ({ col: cell.col, row: cell.row })),
     siege: siege === undefined ? null : createSiege(siege.fortification, siege.buildings),
-    sides: [
-      {
-        hero: definition.attacker.hero ?? null,
-        morale: definition.attacker.morale,
-        luck: definition.attacker.luck,
-      },
-      {
-        hero: definition.defender.hero ?? null,
-        morale: definition.defender.morale,
-        luck: definition.defender.luck,
-      },
-    ],
+    sides: [sideOf(definition.attacker), sideOf(definition.defender)],
     stacks: [
       ...placeArmy(0, definition.attacker, byId),
       ...placeArmy(1, definition.defender, byId),

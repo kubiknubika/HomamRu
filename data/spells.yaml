@@ -1,0 +1,117 @@
+# Заклинания (docs/mechanics/60-spells.md, 62-battle-spells.md).
+# Числа — из таблицы Heroes 3, для героя без навыка школы. chance — вес в наборе гильдии магов
+# (числа замка людей); 0 — в гильдии не бывает.
+# effect — что делает заклинание; target — на кого накладывается: enemy или ally.
+- id: magic-arrow
+  name: Волшебная стрела
+  level: 1
+  schools: [earth, water, fire, air]
+  cost: 5
+  power: 10
+  value: 10
+  chance: 30
+  effect: damage
+  target: enemy
+- id: shield
+  name: Щит
+  level: 1
+  schools: [earth]
+  cost: 5
+  value: 85
+  chance: 10
+  effect: meleeDamagePercent
+  target: ally
+- id: protection-from-fire
+  name: Защита от огня
+  level: 1
+  schools: [fire]
+  cost: 5
+  value: 70
+  chance: 3
+  effect: spellDamagePercent
+  protects: fire
+  target: ally
+- id: protection-from-water
+  name: Защита от воды
+  level: 1
+  schools: [water]
+  cost: 5
+  value: 70
+  chance: 3
+  effect: spellDamagePercent
+  protects: water
+  target: ally
+- id: dispel
+  name: Снять заклинания
+  level: 1
+  schools: [water]
+  cost: 5
+  chance: 10
+  effect: dispel
+  target: ally
+- id: cure
+  name: Лечение
+  level: 1
+  schools: [water]
+  cost: 6
+  power: 5
+  value: 10
+  chance: 10
+  effect: heal
+  target: ally
+- id: bless
+  name: Благословение
+  level: 1
+  schools: [water]
+  cost: 5
+  chance: 10
+  effect: maxDamage
+  target: ally
+  counters: [curse]
+- id: curse
+  name: Проклятие
+  level: 1
+  schools: [fire]
+  cost: 6
+  chance: 0
+  effect: minDamage
+  target: enemy
+  counters: [bless]
+- id: bloodlust
+  name: Жажда крови
+  level: 1
+  schools: [fire]
+  cost: 5
+  value: 3
+  chance: 0
+  effect: meleeAttack
+  target: ally
+- id: stone-skin
+  name: Каменная кожа
+  level: 1
+  schools: [earth]
+  cost: 5
+  value: 3
+  chance: 5
+  effect: defense
+  target: ally
+- id: haste
+  name: Ускорение
+  level: 1
+  schools: [air]
+  cost: 6
+  value: 3
+  chance: 5
+  effect: speed
+  target: ally
+  counters: [slow]
+- id: slow
+  name: Замедление
+  level: 1
+  schools: [earth]
+  cost: 6
+  value: 75
+  chance: 5
+  effect: speedPercent
+  target: enemy
+  counters: [haste]

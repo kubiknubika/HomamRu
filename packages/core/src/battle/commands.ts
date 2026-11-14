@@ -2,6 +2,7 @@
  * Применение команд боя и повтор боя.
  * Спецификация: docs/mechanics/12-battle-actions.md.
  */
+import { cast, castRefusal } from "./cast.ts";
 import { rollChance, toDraft, toState } from "./draft.ts";
 import type { BattleDraft } from "./draft.ts";
 import {
@@ -14,6 +15,7 @@ import {
   halvingsOf,
   rollBaseDamage,
 } from "./damage.ts";
+import { damagePercent, fixedDamage } from "./effects.ts";
 import { cellIndex, distance, inField, sameCell } from "./hex.ts";
 import type { Cell } from "./hex.ts";
 import { findStack, hasAdjacentEnemy, isAlive, reachableCells } from "./queries.ts";
@@ -83,15 +85,16 @@ function strike(
 ): void {
   const side = draft.sides[attacker.side];
   const lucky = side.luck > 0 && rollChance(draft, side.luck, GOOD_DICE);
-  const base = rollBaseDamage(draft.rng, attacker.creature, attacker.count);
+  const base = rollBaseDamage(draft.rng, attacker.creature, attacker.count, fixedDamage(attacker));
   draft.rng = base.rng;
 
   const damage = computeDamage(
     base.value,
-    attackOf(draft, attacker),
+    attackOf(draft, attacker, kind),
     defenseOf(draft, target),
     lucky,
     halvingsOf(draft, kind, attacker, target),
+    damagePercent(target, kind),
   );
 
   const losses = applyDamage(target.count, target.firstHealth, target.creature.health, damage);
@@ -262,6 +265,21 @@ function applyFlee(state: BattleState, active: StackState): BattleCommandResult 
   return accept(draft);
 }
 
+/** Заклинание героя: ход отряда не тратится. */
+function applyCast(
+  state: BattleState,
+  command: Extract<BattleCommand, { type: "battleCast" }>,
+): BattleCommandResult {
+  const refusal = castRefusal(state, command);
+  if (refusal !== null) {
+    return reject(refusal.code, refusal.message);
+  }
+  const draft = toDraft(state);
+  cast(draft, command);
+  endIfDestroyed(draft);
+  return accept(draft);
+}
+
 /**
  * Применяет команду боя: новое состояние и события либо отказ.
  * Переданное состояние не меняется. Отказ не тратит случайных чисел.
@@ -290,6 +308,8 @@ export function applyBattleCommand(
       return applyDefend(state, active);
     case "battleFlee":
       return applyFlee(state, active);
+    case "battleCast":
+      return applyCast(state, command);
   }
 }
 

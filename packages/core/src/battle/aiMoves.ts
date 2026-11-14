@@ -20,7 +20,7 @@ function expectedDamage(
   const { damageMin, damageMax } = attacker.creature;
   const damage = computeDamage(
     (damageMin + damageMax) * attacker.count,
-    attackOf(state, attacker),
+    attackOf(state, attacker, kind),
     defenseOf(state, target),
     false,
     halvingsOf(state, kind, attacker, target),

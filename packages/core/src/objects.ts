@@ -80,6 +80,8 @@ export function createObjects(
         builtToday: false,
         available: [],
         garrison: mergeArmy(garrison),
+        // Набор гильдии выбирается после создания объектов (61-magic.md).
+        spells: [],
       };
     }
     const { resource } = definition;

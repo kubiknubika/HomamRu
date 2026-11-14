@@ -39,6 +39,9 @@ function buildThresholds(): number[] {
   }
 }
 
+/** Что может вырасти с уровнем: шансы равные (61-magic.md). */
+const LEVEL_STATS = ["attack", "defense", "spellPower", "knowledge"] as const;
+
 /** Наибольший уровень героя. */
 export const MAX_LEVEL = LEVEL_THRESHOLDS.length;
 
@@ -58,7 +61,7 @@ export function levelOf(experience: number): number {
 
 /**
  * Даёт герою опыт и все уровни, на которые его хватило. Каждый уровень — свой бросок:
- * +1 к атаке или +1 к защите, поровну. События дописываются в список.
+ * +1 к атаке, защите, силе магии или знанию, поровну. События дописываются в список.
  */
 export function gainExperience(
   hero: HeroState,
@@ -69,16 +72,21 @@ export function gainExperience(
   const experience = Math.min(hero.experience + amount, Number.MAX_SAFE_INTEGER);
   events.push({ type: "experienceGained", heroId: hero.id, amount, total: experience });
   const target = levelOf(experience);
-  let { level, attack, defense } = hero;
+  let { level } = hero;
+  const stats = {
+    attack: hero.attack,
+    defense: hero.defense,
+    spellPower: hero.spellPower,
+    knowledge: hero.knowledge,
+  };
   let rng = initialRng;
   while (level < target) {
-    const roll = nextInt(rng, 0, 1);
+    const roll = nextInt(rng, 0, LEVEL_STATS.length - 1);
     ({ rng } = roll);
     level += 1;
-    const stat = roll.value === 0 ? "attack" : "defense";
-    attack += stat === "attack" ? 1 : 0;
-    defense += stat === "defense" ? 1 : 0;
+    const stat = LEVEL_STATS[roll.value] ?? "attack";
+    stats[stat] += 1;
     events.push({ type: "levelGained", heroId: hero.id, level, stat });
   }
-  return { hero: { ...hero, experience, level, attack, defense }, rng };
+  return { hero: { ...hero, experience, level, ...stats }, rng };
 }

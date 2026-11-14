@@ -2,6 +2,7 @@
  * Свойства боя, верные всегда (разделы «Свойства, верные всегда» документов 10–13).
  * Проверяются в автобоях после каждой команды.
  */
+import { speedOf } from "./effects.ts";
 import { cellIndex, distance, inField } from "./hex.ts";
 import { findStack } from "./queries.ts";
 import { isMachine, wallCells, WALL_PARTS } from "./siege.ts";
@@ -30,6 +31,16 @@ export function battleProblems(state: BattleState): string[] {
     if (stack.shots < 0 || stack.shots > stack.creature.shots) {
       problems.push(`${stack.id}: выстрелов ${stack.shots}`);
     }
+    // Действия заклинаний: срок от раунда, одно заклинание — одно действие (62-battle-spells.md).
+    if (stack.effects.some((effect) => effect.rounds < 1)) {
+      problems.push(`${stack.id}: действие заклинания с истёкшим сроком`);
+    }
+    if (new Set(stack.effects.map((effect) => effect.spell)).size !== stack.effects.length) {
+      problems.push(`${stack.id}: одно заклинание действует дважды`);
+    }
+  }
+  if (state.sides.some((side) => (side.hero?.mana ?? 0) < 0)) {
+    problems.push("мана героя меньше нуля");
   }
   if (state.siege !== null) {
     const walls = new Set(wallCells(state.siege).map(cellIndex));
@@ -75,7 +86,7 @@ export function eventProblems(before: BattleState, events: readonly BattleEvent[
   for (const event of events) {
     if (event.type === "stackMoved") {
       const stack = findStack(before, event.stackId);
-      if (stack === undefined || distance(event.from, event.to) > stack.creature.speed) {
+      if (stack === undefined || distance(event.from, event.to) > speedOf(stack)) {
         problems.push(`${event.stackId} прошёл дальше своей скорости`);
       }
     }

@@ -7,7 +7,7 @@ import { createBattle } from "./battle/create.ts";
 import { BATTLE_HEIGHT, cellIndex } from "./battle/hex.ts";
 import type { Cell } from "./battle/hex.ts";
 import { FORTIFICATIONS } from "./battle/siege.ts";
-import type { BattleCommand, BattleDefinition } from "./battle/types.ts";
+import type { BattleCommand, BattleDefinition, BattleHero } from "./battle/types.ts";
 import { mergeArmy } from "./army.ts";
 import type { GameEvent } from "./events.ts";
 import { ARMY_LUCK, ARMY_MORALE } from "./hero.ts";
@@ -61,6 +61,17 @@ interface Defender {
 }
 
 /** Собирает обороняющегося; гарнизон города перед боем переходит к герою, который в нём стоит. */
+/** Герой в бою: его прибавки и магия; заклинания есть только у героя с книгой (62-battle-spells.md). */
+function battleHero(state: GameState, hero: HeroState): BattleHero {
+  return {
+    attack: hero.attack,
+    defense: hero.defense,
+    spellPower: hero.spellPower,
+    mana: hero.mana,
+    spells: hero.book ? state.spells.filter((spell) => hero.spells.includes(spell.id)) : [],
+  };
+}
+
 function defenderOf(state: GameState, target: BattleTarget, events: GameEvent[]): Defender {
   if ("guard" in target) {
     const { id, creature, count } = target.guard;
@@ -128,15 +139,13 @@ export function startBattle(
       obstacles: siege === undefined ? obstacles : [],
       ...(siege === undefined ? {} : { siege }),
       attacker: {
-        hero: { attack: hero.attack, defense: hero.defense },
+        hero: battleHero(state, hero),
         morale: ARMY_MORALE,
         luck: ARMY_LUCK,
         army: hero.army,
       },
       defender: {
-        ...(defender.hero === undefined
-          ? {}
-          : { hero: { attack: defender.hero.attack, defense: defender.hero.defense } }),
+        ...(defender.hero === undefined ? {} : { hero: battleHero(state, defender.hero) }),
         morale: ARMY_MORALE,
         luck: ARMY_LUCK,
         army: defender.army,

@@ -68,6 +68,8 @@ function playerOf(event: GameEvent, { before, after }: MessageContext): number |
     case "heroHired":
       return townOwner(event.townId);
     case "levelGained":
+    case "bookBought":
+    case "spellsLearned":
       return heroOwner(event.heroId);
     default:
       return null;
@@ -112,6 +114,14 @@ function ownMessage(event: GameEvent, state: GameState): string | null {
     }
     case "levelGained":
       return `Новый уровень: ${STAT_NAMES[event.stat]} +1`;
+    case "bookBought":
+      return `Куплена книга заклинаний: золото −${event.cost}`;
+    case "spellsLearned": {
+      const names = event.spells.map(
+        (id) => state.spells.find((spell) => spell.id === id)?.name ?? id,
+      );
+      return `Выучены заклинания: ${names.join(", ")}`;
+    }
     case "townCaptured":
       return "Город захвачен";
     case "townlessCountdown":

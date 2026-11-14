@@ -1,6 +1,7 @@
 /**
  * Текст города и его событий. Спецификации: docs/mechanics/30-town.md, 31-recruitment.md.
  */
+import { guildSpells } from "./magic.ts";
 import type { GameEvent } from "./events.ts";
 import type { TavernOffer } from "./tavernTypes.ts";
 import { RESOURCES } from "./types.ts";
@@ -32,10 +33,14 @@ export function formatTown(state: GameState, town: TownState): string[] {
     (id) => state.buildings.find((building) => building.id === id)?.name.toLowerCase() ?? id,
   );
   const built = names.length === 0 ? "построек нет" : names.join(", ");
+  const spells = guildSpells(state, town).map(
+    (id) => state.spells.find((spell) => spell.id === id)?.name ?? id,
+  );
   return [
     `Город ${town.id} (${town.x}, ${town.y}), игрок ${town.owner + 1}: ${built}. Сегодня строили: ${town.builtToday ? "да" : "нет"}.`,
     `  Ждут найма: ${armyText(state, town.available)}.`,
     `  Гарнизон: ${armyText(state, town.garrison)}.`,
+    ...(spells.length === 0 ? [] : [`  Гильдия магов: ${spells.join(", ")}.`]),
   ];
 }
 

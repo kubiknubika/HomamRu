@@ -1,0 +1,31 @@
+name: Заклинания в бою — стрела, одно заклинание в раунд, мана после боя
+map: test-magic
+seed: 1
+steps:
+  - cast: { spell: magic-arrow, target: b1 }
+    expectError: NO_BATTLE
+  - move: { hero: A, path: [E, E, E] }
+  # Сила магии 3: «Волшебная стрела» бьёт на 10 × 3 + 10 = 40 — три ополченца из пятнадцати.
+  - cast: { spell: magic-arrow, target: b1 }
+  - cast: { spell: bless, target: a1 }
+    expectError: ALREADY_CAST
+  - defend: {}
+  # Ходит охранник: у него героя нет, колдовать некому.
+  - cast: { spell: bless, target: a1 }
+    expectError: NO_HERO
+  - defend: {}
+  # Второй раунд: снова можно. «Благословение» — на свой отряд, на чужой нельзя.
+  - cast: { spell: bless, target: b1 }
+    expectError: BAD_SPELL_TARGET
+  - cast: { spell: slow, target: b1 }
+    expectError: UNKNOWN_SPELL
+  - cast: { spell: bless, target: a1 }
+  - fight: {}
+expect:
+  battle: false
+  outcome: none
+  heroes:
+    # Мана: 20 − 5 − 5. Опыт: 15 ополченцев × 12 здоровья.
+    A: { experience: 180, mana: 10, book: true, spells: [magic-arrow, bless] }
+  objects:
+    o1: absent

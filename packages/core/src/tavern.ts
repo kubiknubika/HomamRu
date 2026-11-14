@@ -2,6 +2,7 @@
  * Таверна и наём героя. Спецификация: docs/mechanics/32-hero-hire.md.
  */
 import { DAILY_MOVEMENT, heroIdOf } from "./heroIds.ts";
+import { maxMana } from "./magic.ts";
 import { nextInt } from "./rng.ts";
 import type { RngState } from "./rng.ts";
 import type { HireHeroCommand, TavernOffer } from "./tavernTypes.ts";
@@ -120,6 +121,11 @@ export function applyHireHero(state: GameState, command: HireHeroCommand): Comma
     movement: DAILY_MOVEMENT,
     attack: kind.attack,
     defense: kind.defense,
+    spellPower: kind.spellPower,
+    knowledge: kind.knowledge,
+    mana: maxMana(kind),
+    book: false,
+    spells: [],
     army: offer.army,
     experience: 0,
     level: 1,

@@ -33,8 +33,13 @@ describe("начало боя", () => {
     const { state } = inBattle(["militia:20", "slinger:10", "falcon:5"], 15);
     const battle = state.battle?.state;
     expect(battle?.sides).toEqual([
-      { hero: { attack: 2, defense: 1 }, morale: 1, luck: 0 },
-      { hero: null, morale: 1, luck: 0 },
+      {
+        hero: { attack: 2, defense: 1, spellPower: 1, mana: 10, spells: [] },
+        morale: 1,
+        luck: 0,
+        cast: false,
+      },
+      { hero: null, morale: 1, luck: 0, cast: false },
     ]);
     expect(battle?.stacks.map((stack) => [stack.id, stack.creature.id, stack.count])).toEqual([
       ["a1", "militia", 20],
@@ -203,8 +208,9 @@ describe("конец боя", () => {
     const { state: after, events } = playBattleOut(state);
     const hero = after.heroes[0];
     expect(hero).toMatchObject({ experience: 2400, level: 3 });
-    // Начальные атака 2 и защита 1, плюс по единице за каждый из двух уровней.
-    expect((hero?.attack ?? 0) + (hero?.defense ?? 0)).toBe(5);
+    // Начальные атака 2, защита 1, сила магии 1 и знание 1, плюс по единице за каждый из двух уровней — к одной из четырёх.
+    const stats = [hero?.attack, hero?.defense, hero?.spellPower, hero?.knowledge];
+    expect(stats.reduce<number>((sum, value) => sum + (value ?? 0), 0)).toBe(7);
     expect(events.filter((event) => event.type !== "battle").map((event) => event.type)).toEqual([
       "battleFinished",
       "guardDefeated",

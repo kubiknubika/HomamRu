@@ -3,6 +3,7 @@
  */
 import { DAILY_MOVEMENT } from "./heroIds.ts";
 import { growGuards } from "./guards.ts";
+import { restoreMana } from "./magic.ts";
 import { giveIncome } from "./objects.ts";
 import { countTownlessDay, firstPlayer, nextPlayerAfter } from "./players.ts";
 import { refreshTavern } from "./tavern.ts";
@@ -49,9 +50,11 @@ export function applyEndTurn(initial: GameState, command: EndTurnCommand): Comma
     currentPlayer: first,
     heroes: state.heroes.map((hero) => ({ ...hero, movement: DAILY_MOVEMENT })),
   };
+  // Мана: +1 за ночь, в своём городе с гильдией — вся (61-magic.md).
+  const rested = restoreMana(started);
   // Первый день недели, начиная со второй: растут охранники (21-guards.md).
   const newWeek = calendarOf(day).weekday === 1;
-  const guarded = newWeek ? growGuards(started, events) : started;
+  const guarded = newWeek ? growGuards(rested, events) : rested;
   // В городах снова можно строить; в начале недели жилища дают прирост (31-recruitment.md).
   let grown = startTownDay(guarded, newWeek, events);
   // В начале недели в тавернах новые герои (32-hero-hire.md).

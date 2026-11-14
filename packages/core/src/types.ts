@@ -16,10 +16,12 @@ import type {
   CreatureDefinition,
 } from "./battle/types.ts";
 import type { GameEvent } from "./events.ts";
+import type { BuyBookCommand } from "./magic.ts";
+import type { SpellDefinition } from "./spells.ts";
 import type { RngState } from "./rng.ts";
 
 /** Номер версии формата состояния. Увеличивается при любом изменении формата. */
-export const STATE_VERSION = 8;
+export const STATE_VERSION = 9;
 
 /** Направления шага в порядке из спецификации перемещения. */
 export const DIRECTIONS = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"] as const;
@@ -86,6 +88,8 @@ export interface BuildingDefinition {
   readonly tavern?: boolean | undefined;
   /** Жилище: идентификатор существа, которое здесь нанимают (31-recruitment.md). */
   readonly dwelling?: string | undefined;
+  /** Гильдия магов: её уровень (61-magic.md). */
+  readonly mageGuild?: number | undefined;
 }
 
 /** Отряд армии: вид существ и их число. */
@@ -102,6 +106,14 @@ interface HeroDefinition extends Position {
   readonly attack?: number | undefined;
   /** По умолчанию — как у героя из списка. */
   readonly defense?: number | undefined;
+  /** По умолчанию — как у героя из списка. */
+  readonly spellPower?: number | undefined;
+  /** По умолчанию — как у героя из списка. */
+  readonly knowledge?: number | undefined;
+  /** Книга заклинаний с начала партии; по умолчанию её нет (61-magic.md). */
+  readonly book?: boolean | undefined;
+  /** Заклинания, которые герой знает с начала. */
+  readonly spells?: readonly string[] | undefined;
   readonly army: readonly ArmyStack[];
 }
 
@@ -199,6 +211,8 @@ export interface TownState {
   /** Сколько существ каждого вида ждёт найма. */
   readonly available: readonly ArmyStack[];
   readonly garrison: readonly ArmyStack[];
+  /** Набор гильдии магов на все круги, выбран в начале партии; виден по мере постройки (61-magic.md). */
+  readonly spells: readonly string[];
 }
 
 export type ObjectState = PileState | MineState | GuardState | TownState;
@@ -217,6 +231,15 @@ export interface HeroState {
   readonly movement: number;
   readonly attack: number;
   readonly defense: number;
+  /** Сила магии: урон и срок действия заклинаний (61-magic.md). */
+  readonly spellPower: number;
+  /** Знание: запас маны — знание × 10. */
+  readonly knowledge: number;
+  readonly mana: number;
+  /** Есть ли книга заклинаний: без неё не выучить и не колдовать. */
+  readonly book: boolean;
+  /** Выученные заклинания. */
+  readonly spells: readonly string[];
   /** От 1 до 7 отрядов; порядок задаёт места на поле боя. */
   readonly army: readonly ArmyStack[];
   readonly experience: number;
@@ -257,6 +280,8 @@ export interface GameState {
   readonly buildings: readonly BuildingDefinition[];
   /** Герои игры: из них выбираются герои таверны. */
   readonly heroKinds: readonly HeroKind[];
+  /** Заклинания игры целиком: состояние не зависит от файлов. */
+  readonly spells: readonly SpellDefinition[];
   /** Правила таверны: цена героя и его случайная армия. */
   readonly tavern: TavernRules;
   /** Настройки компьютерного игрока: перевес для нападения и порядок стройки. */
@@ -317,6 +342,7 @@ export type Command =
   | EndTurnCommand
   | TownCommand
   | HireHeroCommand
+  | BuyBookCommand
   | BattleCommand;
 
 /** Коды отказа. Общие — в 00-state-and-commands.md, остальные — в документах команд. */
@@ -347,6 +373,8 @@ export const REJECT_CODES = [
   "HERO_EXISTS",
   "BAD_OFFER",
   "CANNOT_FLEE",
+  "NO_GUILD",
+  "BOOK_EXISTS",
 ] as const;
 /** Отказ команды партии: свой код или код отказа команды боя (12-battle-actions.md). */
 export type RejectCode = (typeof REJECT_CODES)[number] | BattleRejectCode;

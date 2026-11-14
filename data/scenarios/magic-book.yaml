@@ -1,0 +1,31 @@
+name: Гильдия магов и книга заклинаний — герой покупает книгу и выучивает заклинания
+map: test-town
+seed: 1
+steps:
+  # Гильдии ещё нет.
+  - buyBook: { town: o1 }
+    expectError: NO_GUILD
+  - build: { town: o1, building: mage-guild }
+  # Гильдия есть, но герой стоит рядом с городом, а не в нём.
+  - buyBook: { town: o1 }
+    expectError: HERO_NOT_IN_TOWN
+  - move: { hero: A, path: [SE] }
+  - buyBook: { town: o1 }
+  - buyBook: { town: o1 }
+    expectError: BOOK_EXISTS
+  - endTurn: {}
+expect:
+  day: 2
+  # 20000 − 2000 за гильдию − 500 за книгу + 500 дохода.
+  resources:
+    - { gold: 18000, wood: 15, ore: 15 }
+  heroes:
+    # Набор гильдии при этом сиде; герой выучил его целиком.
+    A:
+      {
+        x: 2,
+        y: 2,
+        book: true,
+        mana: 10,
+        spells: [magic-arrow, protection-from-fire, protection-from-water, cure, stone-skin],
+      }

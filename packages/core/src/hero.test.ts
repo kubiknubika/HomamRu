@@ -11,6 +11,12 @@ const THRESHOLDS = [
   34_140, 40_567, 48_279, 57_533, 68_637, 81_961,
 ];
 
+const STATS = ["attack", "defense", "spellPower", "knowledge"] as const;
+
+function statSum(hero: HeroState): number {
+  return hero.attack + hero.defense + hero.spellPower + hero.knowledge;
+}
+
 function freshHero(): HeroState {
   const [hero] = gameWith(OPEN_FIELD, []).heroes;
   if (hero === undefined) {
@@ -56,7 +62,8 @@ describe("получение опыта", () => {
     // 3200 — порог четвёртого уровня: три уровня сразу.
     const gained = gainExperience(freshHero(), 3200, createRng(5), events);
     expect(gained.hero.level).toBe(4);
-    expect(gained.hero.attack + gained.hero.defense).toBe(3);
+    // У свежего героя сила магии 1 и знание 1; три уровня — ещё три единицы.
+    expect(statSum(gained.hero)).toBe(5);
     expect(events.map((event) => event.type)).toEqual([
       "experienceGained",
       "levelGained",
@@ -66,8 +73,9 @@ describe("получение опыта", () => {
     expect(events.slice(1)).toMatchObject([{ level: 2 }, { level: 3 }, { level: 4 }]);
   });
 
-  it("свойство: уровень соответствует опыту, атака плюс защита растут на уровень − 1", () => {
-    let attackUps = 0;
+  it("свойство: уровень соответствует опыту, четыре характеристики в сумме растут на уровень − 1", () => {
+    const ups = { attack: 0, defense: 0, spellPower: 0, knowledge: 0 };
+    const fresh = freshHero();
     let levels = 0;
     for (let seed = 1; seed <= 200; seed += 1) {
       let hero = freshHero();
@@ -77,14 +85,26 @@ describe("получение опыта", () => {
         ({ hero, rng } = gainExperience(hero, amount, rng, []));
         expect(hero.experience).toBe(before + amount);
         expect(hero.level).toBe(levelOf(hero.experience));
-        expect(hero.attack + hero.defense).toBe(hero.level - 1);
+        expect(statSum(hero)).toBe(hero.level + 1);
       }
-      attackUps += hero.attack;
+      for (const stat of STATS) {
+        ups[stat] += hero[stat] - fresh[stat];
+      }
       levels += hero.level - 1;
     }
-    // Атака и защита выпадают поровну: доля атаки близка к половине.
-    expect(attackUps / levels).toBeGreaterThan(0.45);
-    expect(attackUps / levels).toBeLessThan(0.55);
+    // Четыре характеристики выпадают поровну: доля каждой близка к четверти.
+    for (const stat of STATS) {
+      expect(ups[stat] / levels).toBeGreaterThan(0.21);
+      expect(ups[stat] / levels).toBeLessThan(0.29);
+    }
+  });
+
+  it("рост знания не добавляет маны сам: мана прежняя, растёт только её предел", () => {
+    let hero = freshHero();
+    let rng = createRng(3);
+    ({ hero, rng } = gainExperience(hero, 60_000, rng, []));
+    expect(hero.knowledge).toBeGreaterThan(1);
+    expect(hero.mana).toBe(10);
   });
 
   it("один и тот же генератор — одни и те же прибавки", () => {

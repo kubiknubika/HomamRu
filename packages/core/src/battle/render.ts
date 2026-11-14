@@ -5,7 +5,7 @@
 import { BATTLE_HEIGHT, BATTLE_WIDTH, cellIndex } from "./hex.ts";
 import { activeStackOf } from "./queries.ts";
 import { GATE_INNER, GATE_OUTER, isMoat, wallCells } from "./siege.ts";
-import type { BattleEvent, BattleSide, BattleState, StackState } from "./types.ts";
+import type { BattleEvent, BattleSide, BattleState, SpellOutcome, StackState } from "./types.ts";
 
 const SIDE_NAMES = ["нападающий", "обороняющийся"] as const;
 const CELL_WIDTH = 3;
@@ -49,7 +49,22 @@ function stackLine(stack: StackState): string {
   if (stack.retaliated) {
     parts.push("отвечал");
   }
+  for (const effect of stack.effects) {
+    parts.push(`«${effect.name}» (раундов: ${effect.rounds})`);
+  }
   return `${title}: ${parts.join(", ")}`;
+}
+
+/** Мана и заклинания героев; у кого заклинаний нет, о том строки нет. */
+function magicLines(state: BattleState): string[] {
+  return state.sides.flatMap((side, index) => {
+    if (side.hero === null || side.hero.spells.length === 0) {
+      return [];
+    }
+    const names = side.hero.spells.map((spell) => `${spell.name} (${spell.cost})`).join(", ");
+    const cast = side.cast ? "; в этом раунде уже колдовал" : "";
+    return [`Герой (${SIDE_NAMES[index] ?? ""}): мана ${side.hero.mana}; ${names}${cast}.`];
+  });
 }
 
 /** Печатает бой: заголовок, поле, список отрядов. Чётные ряды сдвинуты вправо. */
@@ -80,7 +95,7 @@ export function renderBattle(state: BattleState): string {
       marks.set(cellIndex(stack), stack.id);
     }
   }
-  const lines = [headerOf(state), ""];
+  const lines = [headerOf(state), ...magicLines(state), ""];
   let numbers = "     ";
   for (let col = 0; col < BATTLE_WIDTH; col += 1) {
     numbers += String(col).padStart(CELL_WIDTH);
@@ -115,6 +130,23 @@ const PART_NAMES = {
 } as const;
 
 const STRIKE_NAMES = { melee: "бьёт", retaliation: "отвечает", shot: "стреляет в" } as const;
+
+function formatOutcome(outcome: SpellOutcome): string {
+  const removed =
+    "removed" in outcome && outcome.removed.length > 0
+      ? `, снято: ${outcome.removed.join(", ")}`
+      : "";
+  switch (outcome.kind) {
+    case "damage":
+      return `урон ${outcome.damage}, убито ${outcome.killed}, осталось ${outcome.left}`;
+    case "heal":
+      return `вылечено ${outcome.healed}${removed}`;
+    case "dispel":
+      return outcome.removed.length > 0 ? `снято: ${outcome.removed.join(", ")}` : "снимать нечего";
+    case "effect":
+      return `действует раундов: ${outcome.rounds}${removed}`;
+  }
+}
 
 /** Событие боя одной строкой по-русски. */
 export function formatBattleEvent(event: BattleEvent): string {
@@ -152,6 +184,10 @@ export function formatBattleEvent(event: BattleEvent): string {
     }
     case "moatDamage":
       return `Отряд ${event.stackId} во рву: урон ${event.damage}, убито ${event.killed}, осталось ${event.left}`;
+    case "spellCast":
+      return `Герой (${sideName(event.side)}) колдует «${event.name}» на ${event.targetId}: ${formatOutcome(event.outcome)}; маны осталось ${event.manaLeft}`;
+    case "effectEnded":
+      return `Отряд ${event.stackId}: «${event.name}» больше не действует`;
     case "sideFled":
       return `Бежит ${sideName(event.side)}`;
     case "battleEnded":

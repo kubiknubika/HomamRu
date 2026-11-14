@@ -54,6 +54,21 @@ function describeEvent(
     }
     case "moatDamage":
       return `${nameOf(event.stackId)} во рву: урон ${event.damage}, погибло ${event.killed}`;
+    case "spellCast": {
+      const who = event.side === playerSide ? "Вы колдуете" : "Противник колдует";
+      const { outcome } = event;
+      const what =
+        outcome.kind === "damage"
+          ? `урон ${outcome.damage}, погибло ${outcome.killed}`
+          : outcome.kind === "heal"
+            ? `вылечено ${outcome.healed}`
+            : outcome.kind === "dispel"
+              ? "заклинания сняты"
+              : `действует раундов: ${outcome.rounds}`;
+      return `${who} «${event.name}»: ${nameOf(event.targetId)}, ${what}`;
+    }
+    case "effectEnded":
+      return `${nameOf(event.stackId)}: «${event.name}» больше не действует`;
     case "sideFled":
       return event.side === playerSide ? "Вы бежали с поля боя" : "Противник бежал";
     case "stackTurn":

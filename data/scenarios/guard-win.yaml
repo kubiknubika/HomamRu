@@ -18,7 +18,7 @@ expect:
   outcome: none
   heroes:
     # 15 ополченцев × 12 здоровья = 180 опыта (таблица в 22-hero.md).
-    A: { x: 3, y: 1, experience: 180, level: 1, skills: 2 }
+    A: { x: 3, y: 1, experience: 180, level: 1, skills: 4 }
   objects:
     o1: absent
     o2: { owner: 0 }

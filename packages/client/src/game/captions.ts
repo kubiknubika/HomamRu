@@ -29,7 +29,12 @@ export const MINE_NAMES = {
   "ore-pit": "Рудник",
   "gold-mine": "Золотая шахта",
 } as const;
-export const STAT_NAMES = { attack: "атака", defense: "защита" } as const;
+export const STAT_NAMES = {
+  attack: "атака",
+  defense: "защита",
+  spellPower: "сила магии",
+  knowledge: "знание",
+} as const;
 
 /** Название существа для игрока; незнакомое — как записано. */
 export function creatureName(state: GameState, creatureId: string): string {

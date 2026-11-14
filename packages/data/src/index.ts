@@ -1,5 +1,6 @@
 export { parseMapFile } from "./map.ts";
 export { parseDefaultsFile } from "./defaults.ts";
+export { parseSpellsFile } from "./spells.ts";
 export type { SaveDefaults } from "./defaults.ts";
 export { parseContentFile } from "./parse.ts";
 export type { ContentError, ContentResult } from "./parse.ts";

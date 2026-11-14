@@ -2,6 +2,7 @@
  * Герои с именами и таверна: типы. Спецификация: docs/mechanics/32-hero-hire.md.
  */
 import type { CreatureDefinition } from "./battle/types.ts";
+import type { SpellDefinition } from "./spells.ts";
 import type { ArmyStack } from "./types.ts";
 import type { BuildingDefinition } from "./types.ts";
 
@@ -11,6 +12,8 @@ export interface HeroKind {
   readonly name: string;
   readonly attack: number;
   readonly defense: number;
+  readonly spellPower: number;
+  readonly knowledge: number;
 }
 
 /** Отряд в армии героя таверны: он есть, если бросок 1–100 не больше `chance`. */
@@ -48,6 +51,7 @@ export interface GameContent {
   readonly creatures: readonly CreatureDefinition[];
   readonly buildings: readonly BuildingDefinition[];
   readonly heroes: readonly HeroKind[];
+  readonly spells: readonly SpellDefinition[];
   readonly tavern: TavernRules;
   readonly opponent: OpponentRules;
 }

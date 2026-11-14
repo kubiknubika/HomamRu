@@ -60,6 +60,9 @@ export const heroKindSchema = z.strictObject({
   name: z.string().min(1),
   attack: z.int().min(0),
   defense: z.int().min(0),
+  // В записях до этапа 7 магии нет: у каждого героя по единице (61-magic.md).
+  spellPower: z.int().min(0).default(1),
+  knowledge: z.int().min(0).default(1),
 }) satisfies z.ZodType<HeroKind>;
 
 /** Настройки компьютерного игрока (42-opponent.md). */
@@ -127,6 +130,7 @@ export const buildingSchema = z.strictObject({
   growthPercent: z.int().min(1).optional(),
   tavern: z.boolean().optional(),
   dwelling: z.string().optional(),
+  mageGuild: z.int().min(1).max(5).optional(),
 }) satisfies z.ZodType<BuildingDefinition>;
 
 /**
@@ -214,6 +218,11 @@ export function battleStepSchemas<E extends z.ZodType>(expectError: E) {
       expectError,
     }),
     z.strictObject({ shoot: z.string(), expectError }),
+    // Заклинание героя стороны, чей отряд ходит (62-battle-spells.md).
+    z.strictObject({
+      cast: z.strictObject({ spell: z.string(), target: z.string() }),
+      expectError,
+    }),
     z.strictObject({ wait: nothing, expectError }),
     z.strictObject({ defend: nothing, expectError }),
     z.strictObject({ flee: nothing, expectError }),
