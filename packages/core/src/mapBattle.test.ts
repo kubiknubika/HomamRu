@@ -34,7 +34,7 @@ describe("начало боя", () => {
     const battle = state.battle?.state;
     expect(battle?.sides).toEqual([
       {
-        hero: { attack: 2, defense: 1, spellPower: 1, mana: 10, spells: [] },
+        hero: { attack: 2, defense: 1, spellPower: 1, mana: 10, sorcery: 0, spells: [] },
         morale: 1,
         luck: 0,
         cast: false,
@@ -217,6 +217,7 @@ describe("конец боя", () => {
       "experienceGained",
       "levelGained",
       "levelGained",
+      "skillsOffered",
     ]);
   });
 

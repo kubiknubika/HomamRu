@@ -34,12 +34,17 @@ export function defenseBonus(stack: Affected): number {
   return sumOf(stack, "defense");
 }
 
-/** «Благословение» — урон всегда наибольший, «Проклятие» — наименьший; иначе `null`. */
-export function fixedDamage(stack: Affected): "max" | "min" | null {
-  if (stack.effects.some((item) => item.effect === "maxDamage")) {
-    return "max";
+/**
+ * Урон одного существа без броска: «Благословение» — наибольший (с навыком школы +1),
+ * «Проклятие» — наименьший (с навыком −1, но не меньше 1); иначе `null`.
+ */
+export function fixedDamage(stack: Pick<StackState, "creature" | "effects">): number | null {
+  const bless = stack.effects.find((item) => item.effect === "maxDamage");
+  if (bless !== undefined) {
+    return stack.creature.damageMax + bless.value;
   }
-  return stack.effects.some((item) => item.effect === "minDamage") ? "min" : null;
+  const curse = stack.effects.find((item) => item.effect === "minDamage");
+  return curse === undefined ? null : Math.max(1, stack.creature.damageMin - curse.value);
 }
 
 /** Какая доля урона доходит до отряда, в процентах: «Щит» ослабляет удары ближнего боя. */

@@ -2,116 +2,155 @@
 # Числа — из таблицы Heroes 3, для героя без навыка школы. chance — вес в наборе гильдии магов
 # (числа замка людей); 0 — в гильдии не бывает.
 # effect — что делает заклинание; target — на кого накладывается: enemy или ally.
+# С навыком школы (docs/mechanics/65-hero-skills.md): skilledCost — цена; values — число value
+# на базовом, продвинутом и экспертном уровне; expertMass — на экспертном ложится на все
+# подходящие отряды; advancedAnyTarget — с продвинутого ложится и на чужой отряд.
 - id: magic-arrow
   name: Волшебная стрела
   level: 1
   schools: [earth, water, fire, air]
   cost: 5
+  skilledCost: 4
   power: 10
   value: 10
   chance: 30
   effect: damage
   target: enemy
+  values: [10, 20, 30]
 - id: shield
   name: Щит
   level: 1
   schools: [earth]
   cost: 5
+  skilledCost: 4
   value: 85
   chance: 10
   effect: meleeDamagePercent
   target: ally
+  values: [85, 70, 70]
+  expertMass: true
 - id: protection-from-fire
   name: Защита от огня
   level: 1
   schools: [fire]
   cost: 5
+  skilledCost: 4
   value: 70
   chance: 3
   effect: spellDamagePercent
   protects: fire
   target: ally
+  values: [70, 50, 50]
+  expertMass: true
 - id: protection-from-water
   name: Защита от воды
   level: 1
   schools: [water]
   cost: 5
+  skilledCost: 4
   value: 70
   chance: 3
   effect: spellDamagePercent
   protects: water
   target: ally
+  values: [70, 50, 50]
+  expertMass: true
 - id: dispel
   name: Снять заклинания
   level: 1
   schools: [water]
   cost: 5
+  skilledCost: 4
   chance: 10
   effect: dispel
   target: ally
+  values: [0, 0, 0]
+  expertMass: true
+  advancedAnyTarget: true
 - id: cure
   name: Лечение
   level: 1
   schools: [water]
   cost: 6
+  skilledCost: 5
   power: 5
   value: 10
   chance: 10
   effect: heal
   target: ally
+  values: [10, 20, 30]
+  expertMass: true
 - id: bless
   name: Благословение
   level: 1
   schools: [water]
   cost: 5
+  skilledCost: 4
   chance: 10
   effect: maxDamage
   target: ally
+  values: [0, 1, 1]
+  expertMass: true
   counters: [curse]
 - id: curse
   name: Проклятие
   level: 1
   schools: [fire]
   cost: 6
+  skilledCost: 5
   chance: 0
   effect: minDamage
   target: enemy
+  values: [0, 1, 1]
+  expertMass: true
   counters: [bless]
 - id: bloodlust
   name: Жажда крови
   level: 1
   schools: [fire]
   cost: 5
+  skilledCost: 4
   value: 3
   chance: 0
   effect: meleeAttack
   target: ally
+  values: [3, 6, 6]
+  expertMass: true
 - id: stone-skin
   name: Каменная кожа
   level: 1
   schools: [earth]
   cost: 5
+  skilledCost: 4
   value: 3
   chance: 5
   effect: defense
   target: ally
+  values: [3, 6, 6]
+  expertMass: true
 - id: haste
   name: Ускорение
   level: 1
   schools: [air]
   cost: 6
+  skilledCost: 5
   value: 3
   chance: 5
   effect: speed
   target: ally
+  values: [3, 5, 5]
+  expertMass: true
   counters: [slow]
 - id: slow
   name: Замедление
   level: 1
   schools: [earth]
   cost: 6
+  skilledCost: 5
   value: 75
   chance: 5
   effect: speedPercent
   target: enemy
+  values: [75, 50, 50]
+  expertMass: true
   counters: [haste]

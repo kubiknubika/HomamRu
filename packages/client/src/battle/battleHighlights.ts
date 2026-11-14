@@ -66,7 +66,10 @@ export function highlightsOf(snapshot: BattleSnapshot): Highlights {
     const targets = spell === undefined ? [] : spellTargets(state, snapshot.playerSide, spell);
     for (const stack of targets) {
       const mark = stack.side === snapshot.playerSide ? "spellAlly" : "spellEnemy";
-      rings.push({ stack, mark: stack.id === selection.targetId ? "target" : mark });
+      // Заклинание «на всех»: выбраны сразу все его цели.
+      const chosen =
+        spell?.mass === true ? selection.targetId !== null : stack.id === selection.targetId;
+      rings.push({ stack, mark: chosen ? "target" : mark });
     }
     return { cells: [], rings };
   }

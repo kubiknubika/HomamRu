@@ -104,7 +104,7 @@ describe("параметры шага 3.2: чего нет — начально�
     );
     const state = {
       ...old,
-      version: 9,
+      version: 10,
       // Города в записи нет — нет и таверны.
       players: FULL.players.map((player) => ({ ...player, tavern: [] })),
       heroes: [
@@ -119,6 +119,9 @@ describe("параметры шага 3.2: чего нет — начально�
           mana: 10,
           book: false,
           spells: [],
+          skills: [],
+          skillOffer: [],
+          skillsOwed: 0,
           army: [{ creature: "militia", count: 10 }],
           experience: 0,
           level: 1,

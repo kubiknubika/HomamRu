@@ -51,7 +51,7 @@ export function BattleBook({ state, side, myTurn, onChoose }: BattleBookProps) {
                   onChoose(spell.id);
                 }}
               >
-                {spellLine(spell, hero.spellPower)}
+                {spellLine(spell, hero)}
               </button>
             ))}
           </div>

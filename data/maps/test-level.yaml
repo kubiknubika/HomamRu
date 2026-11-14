@@ -1,0 +1,25 @@
+# Проверочная карта нового уровня (docs/mechanics/65-hero-skills.md).
+# Сильный герой побеждает охранника и получает сразу второй уровень: 100 ополченцев × 12 = 1200 опыта.
+id: test-level
+name: Проверочная карта нового уровня
+terrain:
+  - "........"
+  - "........"
+  - "........"
+  - "........"
+  - "........"
+  - "........"
+  - "........"
+  - "........"
+players:
+  - hero:
+      x: 0
+      y: 0
+      attack: 1
+      defense: 1
+      skills:
+        - { id: mysticism, level: 1 }
+      army:
+        - { creature: falcon, count: 400 }
+objects:
+  - { type: guard, x: 4, y: 0, creature: militia, count: 100 }

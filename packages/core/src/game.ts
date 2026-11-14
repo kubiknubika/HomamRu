@@ -20,14 +20,21 @@ type HeroOnMap = MapDefinition["players"][number]["hero"];
 function magicOf(
   hero: HeroOnMap,
   kind: HeroKind | undefined,
-): Pick<HeroState, "spellPower" | "knowledge" | "mana" | "book" | "spells"> {
+): Pick<
+  HeroState,
+  "spellPower" | "knowledge" | "mana" | "book" | "spells" | "skills" | "skillOffer" | "skillsOwed"
+> {
   const knowledge = hero.knowledge ?? kind?.knowledge ?? 0;
+  const skills = [...(hero.skills ?? [])];
   return {
     spellPower: hero.spellPower ?? kind?.spellPower ?? 0,
     knowledge,
-    mana: maxMana({ knowledge }),
+    mana: maxMana({ knowledge, skills }),
     book: hero.book ?? false,
     spells: [...(hero.spells ?? [])],
+    skills,
+    skillOffer: [],
+    skillsOwed: 0,
   };
 }
 

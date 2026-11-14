@@ -42,6 +42,18 @@ function checkHero(hero: HeroState, want: HeroWant): string[] {
   if (want.book !== undefined && want.book !== hero.book) {
     failures.push(`Герой ${hero.id}: ожидалась книга заклинаний — ${want.book ? "есть" : "нет"}.`);
   }
+  const learned = hero.skills.map((skill) => `${skill.id} ${skill.level}`).join(", ") || "пусто";
+  if (want.learned !== undefined && (want.learned.join(", ") || "пусто") !== learned) {
+    failures.push(
+      `Герой ${hero.id}: ожидались навыки ${want.learned.join(", ") || "пусто"}, получены ${learned}.`,
+    );
+  }
+  const offered = hero.skillOffer.join(", ") || "пусто";
+  if (want.offered !== undefined && (want.offered.join(", ") || "пусто") !== offered) {
+    failures.push(
+      `Герой ${hero.id}: ожидалось предложение навыков ${want.offered.join(", ") || "пусто"}, получено ${offered}.`,
+    );
+  }
   const known = hero.spells.join(", ") || "пусто";
   if (want.spells !== undefined && (want.spells.join(", ") || "пусто") !== known) {
     failures.push(

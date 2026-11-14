@@ -2,6 +2,7 @@
  * Магия героя на карте: мана, книга заклинаний, гильдия магов.
  * Спецификация: docs/mechanics/61-magic.md.
  */
+import { intelligencePercent, learnableLevel, manaPerDay } from "./skills.ts";
 import { rollGuildSpells } from "./spells.ts";
 import { pay } from "./town.ts";
 import { reject } from "./types.ts";
@@ -9,12 +10,9 @@ import type { CommandResult, GameEvent, GameState, HeroState, TownState } from "
 
 /** Маны на единицу знания. Число — из Heroes 3. */
 const MANA_PER_KNOWLEDGE = 10;
-/** Сколько маны возвращается за ночь вне города с гильдией. */
-const MANA_PER_DAY = 1;
+const PERCENT = 100;
 /** Цена книги заклинаний, золото. Число — из Heroes 3. */
 export const BOOK_PRICE = 500;
-/** Без навыка «Мудрость» герой учит заклинания не выше этого круга. */
-const MAX_LEARNABLE_LEVEL = 2;
 
 export interface BuyBookCommand {
   readonly type: "buyBook";
@@ -22,9 +20,10 @@ export interface BuyBookCommand {
   readonly townId: string;
 }
 
-/** Наибольший запас маны героя. */
-export function maxMana(hero: Pick<HeroState, "knowledge">): number {
-  return hero.knowledge * MANA_PER_KNOWLEDGE;
+/** Наибольший запас маны героя: знание × 10, с «Интеллектом» больше; дробь отбрасывается. */
+export function maxMana(hero: Pick<HeroState, "knowledge" | "skills">): number {
+  const base = hero.knowledge * MANA_PER_KNOWLEDGE;
+  return Math.floor((base * (PERCENT + intelligencePercent(hero))) / PERCENT);
 }
 
 /** Уровень гильдии магов в городе; 0 — гильдии нет. */
@@ -57,7 +56,8 @@ function townUnder(state: GameState, hero: HeroState): TownState | undefined {
 }
 
 /**
- * Начало дня: герой в своём городе с гильдией получает всю ману, остальные — по единице.
+ * Начало дня: герой в своём городе с гильдией получает всю ману, остальные — по единице
+ * (с «Мистицизмом» — по 2, 3 или 4).
  * Мана сверх запаса не пропадает и не растёт.
  */
 export function restoreMana(state: GameState): GameState {
@@ -65,7 +65,7 @@ export function restoreMana(state: GameState): GameState {
     const town = townUnder(state, hero);
     const full = town !== undefined && guildLevel(state, town) > 0;
     const limit = maxMana(hero);
-    const mana = full ? limit : Math.min(hero.mana + MANA_PER_DAY, limit);
+    const mana = full ? limit : Math.min(hero.mana + manaPerDay(hero), limit);
     return { ...hero, mana: Math.max(hero.mana, mana) };
   });
   return { ...state, heroes };
@@ -97,7 +97,7 @@ export function learnSpells(state: GameState, events: GameEvent[]): GameState {
 export function learnableSpells(state: GameState, hero: HeroState, town: TownState): string[] {
   return guildSpells(state, town).filter((id) => {
     const level = state.spells.find((spell) => spell.id === id)?.level ?? Infinity;
-    return level <= MAX_LEARNABLE_LEVEL && !hero.spells.includes(id);
+    return level <= learnableLevel(hero) && !hero.spells.includes(id);
   });
 }
 

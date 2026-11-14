@@ -17,11 +17,12 @@ import type {
 } from "./battle/types.ts";
 import type { GameEvent } from "./events.ts";
 import type { BuyBookCommand } from "./magic.ts";
+import type { HeroSkill, SkillId } from "./skills.ts";
 import type { SpellDefinition } from "./spells.ts";
 import type { RngState } from "./rng.ts";
 
 /** Номер версии формата состояния. Увеличивается при любом изменении формата. */
-export const STATE_VERSION = 9;
+export const STATE_VERSION = 10;
 
 /** Направления шага в порядке из спецификации перемещения. */
 export const DIRECTIONS = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"] as const;
@@ -114,6 +115,8 @@ interface HeroDefinition extends Position {
   readonly book?: boolean | undefined;
   /** Заклинания, которые герой знает с начала. */
   readonly spells?: readonly string[] | undefined;
+  /** Навыки, которые герой знает с начала (65-hero-skills.md). */
+  readonly skills?: readonly HeroSkill[] | undefined;
   readonly army: readonly ArmyStack[];
 }
 
@@ -240,6 +243,12 @@ export interface HeroState {
   readonly book: boolean;
   /** Выученные заклинания. */
   readonly spells: readonly string[];
+  /** Навыки героя, до восьми (65-hero-skills.md). */
+  readonly skills: readonly HeroSkill[];
+  /** Навыки, из которых игрок сейчас выбирает один; пусто — выбирать нечего. */
+  readonly skillOffer: readonly SkillId[];
+  /** Сколько ещё выборов навыка ждёт героя после нынешнего: уровней получено несколько. */
+  readonly skillsOwed: number;
   /** От 1 до 7 отрядов; порядок задаёт места на поле боя. */
   readonly army: readonly ArmyStack[];
   readonly experience: number;
@@ -334,6 +343,14 @@ interface TransferCommand {
   readonly count: number;
 }
 
+/** Выбор одного из навыков, предложенных герою с новым уровнем (65-hero-skills.md). */
+export interface ChooseSkillCommand {
+  readonly type: "chooseSkill";
+  readonly player: number;
+  readonly heroId: string;
+  readonly skill: SkillId;
+}
+
 export type TownCommand = BuildCommand | RecruitCommand | TransferCommand;
 
 /** Команды карты, города и боя: бой — часть партии. */
@@ -343,11 +360,15 @@ export type Command =
   | TownCommand
   | HireHeroCommand
   | BuyBookCommand
+  | ChooseSkillCommand
   | BattleCommand;
 
 /** Коды отказа. Общие — в 00-state-and-commands.md, остальные — в документах команд. */
 export const REJECT_CODES = [
   "NOT_YOUR_TURN",
+  "SKILL_CHOICE_PENDING",
+  "NO_SKILL_OFFER",
+  "SKILL_NOT_OFFERED",
   "UNKNOWN_PLAYER",
   "UNKNOWN_COMMAND",
   "UNKNOWN_HERO",

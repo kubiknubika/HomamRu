@@ -1,4 +1,4 @@
-import { MINE_KINDS, RESOURCES, validateMap } from "@homamru/core";
+import { MAX_SKILLS, MINE_KINDS, RESOURCES, SKILL_IDS, validateMap } from "@homamru/core";
 import type { GameContent, MapDefinition } from "@homamru/core";
 import { z } from "zod";
 import { parseContentFile } from "./parse.ts";
@@ -45,6 +45,16 @@ const heroSchema = z.strictObject({
   knowledge: z.int().min(0).optional(),
   book: z.boolean().optional(),
   spells: z.array(z.string()).optional(),
+  /** Навыки героя с начала партии (65-hero-skills.md). */
+  skills: z
+    .array(
+      z.strictObject({
+        id: z.enum(SKILL_IDS),
+        level: z.union([z.literal(1), z.literal(2), z.literal(3)]),
+      }),
+    )
+    .max(MAX_SKILLS)
+    .optional(),
   army: z.array(armyStackSchema),
 });
 

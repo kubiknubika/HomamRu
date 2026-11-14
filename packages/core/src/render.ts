@@ -4,6 +4,7 @@
  */
 import { DAILY_MOVEMENT, heroIdOf } from "./game.ts";
 import { maxMana } from "./magic.ts";
+import { formatSkills, SKILL_NAMES } from "./skills.ts";
 import { renderBattle } from "./battle/render.ts";
 import { quantityWord } from "./guards.ts";
 import { MINE_INCOME } from "./objects.ts";
@@ -72,7 +73,13 @@ function formatHero(state: GameState, hero: HeroState): string {
   const name = hero.name === "" ? "" : ` (${hero.name})`;
   const spells = hero.spells.map((id) => state.spells.find((spell) => spell.id === id)?.name ?? id);
   const book = hero.book ? `книга: ${spells.join(", ") || "пусто"}` : "книги нет";
-  return `Герой ${hero.id}${name}: уровень ${hero.level}, опыт ${hero.experience}, атака ${hero.attack}, защита ${hero.defense}, сила магии ${hero.spellPower}, знание ${hero.knowledge}, мана ${hero.mana} из ${maxMana(hero)}, ${book}; армия: ${formatArmy(state, hero.army)}.`;
+  const skills =
+    hero.skills.length === 0 ? "навыков нет" : `навыки: ${formatSkills(hero.skills).join(", ")}`;
+  const offer =
+    hero.skillOffer.length === 0
+      ? ""
+      : ` Выбирает навык: ${hero.skillOffer.map((id) => SKILL_NAMES[id]).join(" или ")}.`;
+  return `Герой ${hero.id}${name}: уровень ${hero.level}, опыт ${hero.experience}, атака ${hero.attack}, защита ${hero.defense}, сила магии ${hero.spellPower}, знание ${hero.knowledge}, мана ${hero.mana} из ${maxMana(hero)}, ${book}; ${skills}; армия: ${formatArmy(state, hero.army)}.${offer}`;
 }
 
 function formatObject(state: GameState, object: ObjectState): string {

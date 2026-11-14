@@ -28,12 +28,11 @@ export function rollBaseDamage(
   rng: RngState,
   creature: CreatureDefinition,
   count: number,
-  fixed: "max" | "min" | null = null,
+  fixed: number | null = null,
 ): RngResult<number> {
   if (fixed !== null) {
-    // «Благословение» и «Проклятие»: бросков нет.
-    const each = fixed === "max" ? creature.damageMax : creature.damageMin;
-    return { value: baseDamageOf(each * Math.min(count, MAX_ROLLS), count), rng };
+    // «Благословение» и «Проклятие»: бросков нет, урон существа задан.
+    return { value: baseDamageOf(fixed * Math.min(count, MAX_ROLLS), count), rng };
   }
   let current = rng;
   let sum = 0;
@@ -149,7 +148,7 @@ export function damageRange(
       percent,
     );
   return {
-    min: of(fixed === "max" ? damageMax : damageMin),
-    max: of(fixed === "min" ? damageMin : damageMax),
+    min: of(fixed ?? damageMin),
+    max: of(fixed ?? damageMax),
   };
 }

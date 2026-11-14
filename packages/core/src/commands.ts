@@ -2,6 +2,7 @@
  * Применение команд и повтор партии.
  * Спецификация: docs/mechanics/00-state-and-commands.md.
  */
+import { applyChooseSkill, heroChoosingSkill } from "./hero.ts";
 import { applyBuyBook, learnSpells } from "./magic.ts";
 import { applyMapBattleCommand } from "./mapBattle.ts";
 import { applyMoveHero } from "./movement.ts";
@@ -10,9 +11,16 @@ import { applyHireHero } from "./tavern.ts";
 import { applyTownCommand } from "./town.ts";
 import { reject } from "./types.ts";
 import type { BattleCommand } from "./battle/types.ts";
-import type { Command, CommandRejected, CommandResult, GameEvent, GameState } from "./types.ts";
+import type {
+  ChooseSkillCommand,
+  Command,
+  CommandRejected,
+  CommandResult,
+  GameEvent,
+  GameState,
+} from "./types.ts";
 
-type MapCommand = Exclude<Command, BattleCommand>;
+type MapCommand = Exclude<Command, BattleCommand | ChooseSkillCommand>;
 
 const MAP_COMMANDS: ReadonlySet<string> = new Set([
   "moveHero",
@@ -22,6 +30,7 @@ const MAP_COMMANDS: ReadonlySet<string> = new Set([
   "transfer",
   "hireHero",
   "buyBook",
+  "chooseSkill",
 ]);
 const BATTLE_COMMANDS: ReadonlySet<string> = new Set([
   "battleMove",
@@ -52,7 +61,8 @@ export function applyCommand(state: GameState, command: Command): CommandResult 
     command.type !== "recruit" &&
     command.type !== "transfer" &&
     command.type !== "hireHero" &&
-    command.type !== "buyBook"
+    command.type !== "buyBook" &&
+    command.type !== "chooseSkill"
   ) {
     return learned(applyMapBattleCommand(state, command));
   }
@@ -62,8 +72,15 @@ export function applyCommand(state: GameState, command: Command): CommandResult 
   if (!state.players.some((player) => player.id === command.player)) {
     return reject("UNKNOWN_PLAYER", `Игрока с номером ${command.player} нет.`);
   }
+  if (command.type === "chooseSkill") {
+    // Навык выбирают и в чужой ход: уровень мог прийти за победу в обороне.
+    return applyChooseSkill(state, command);
+  }
   if (command.player !== state.currentPlayer) {
     return reject("NOT_YOUR_TURN", `Сейчас ход игрока ${state.currentPlayer + 1}.`);
+  }
+  if (heroChoosingSkill(state, command.player) !== undefined) {
+    return reject("SKILL_CHOICE_PENDING", "Сначала выберите навык герою.");
   }
   return learned(applyMapCommand(state, command));
 }

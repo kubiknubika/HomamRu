@@ -1,10 +1,18 @@
-import { calendarOf, DAILY_MOVEMENT, RESOURCES, townIncome, townsOf } from "@homamru/core";
+import {
+  calendarOf,
+  DAILY_MOVEMENT,
+  heroChoosingSkill,
+  RESOURCES,
+  townIncome,
+  townsOf,
+} from "@homamru/core";
 import { useState, useSyncExternalStore } from "react";
 import { describeCell, fightWarning, RESOURCE_NAMES } from "../game/captions.ts";
 import { activeHero, computerToMove, humanOf, sameCell, townlessLeft } from "../game/view.ts";
 import { Dialog, DialogButton } from "./Dialog.tsx";
 import type { Session } from "../game/session.ts";
 import { HeroWindow } from "./HeroWindow.tsx";
+import { LevelWindow } from "./LevelWindow.tsx";
 import { Legend } from "./Legend.tsx";
 import { Messages } from "./Messages.tsx";
 import { TownScreen } from "./TownScreen.tsx";
@@ -24,6 +32,7 @@ export function Hud({ session }: HudProps) {
   const { month, week, weekday } = calendarOf(state.day);
   const hero = activeHero(state);
   const me = humanOf(state);
+  const choosing = heroChoosingSkill(state, me);
   const towns = townsOf(state, me);
   const town = towns.find((candidate) => candidate.id === townId);
   const resources = state.players[me]?.resources;
@@ -141,6 +150,7 @@ export function Hud({ session }: HudProps) {
           <DialogButton label="Закрыть" onClick={session.closeTown} />
         </Dialog>
       )}
+      {choosing !== undefined && <LevelWindow session={session} hero={choosing} />}
       {heroOpen && hero !== undefined && (
         <HeroWindow
           state={state}

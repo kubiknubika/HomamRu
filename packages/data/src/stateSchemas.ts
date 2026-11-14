@@ -15,7 +15,7 @@ import {
 import type { BattleState, Command } from "@homamru/core";
 import { z } from "zod";
 import { savedCreatureSchema } from "./battle.ts";
-import { spellSchema } from "./spells.ts";
+import { battleHeroSchema, chooseSkillSchema, spellSchema } from "./spells.ts";
 
 /**
  * Начальные значения параметров состояния — те, что вписываются, когда в записи их нет.
@@ -155,6 +155,10 @@ export const heroSchema = z.object({
   mana: z.int().min(0).optional().catch(undefined),
   book: z.boolean().catch(DEFAULTS.heroBook),
   spells: z.unknown().optional(),
+  // Навыков нет в записях до версии 10 — герой без навыков.
+  skills: z.unknown().optional(),
+  skillOffer: z.unknown().optional(),
+  skillsOwed: z.unknown().optional(),
   experience: z.int().min(0).catch(DEFAULTS.heroExperience),
   army: z.array(z.unknown()).catch([]),
 });
@@ -203,15 +207,7 @@ const battleSideSchema = z.union([z.literal(0), z.literal(1)]);
 
 const battleSideStateSchema = z.strictObject({
   // В записях до этапа 7 магии в бою нет.
-  hero: z
-    .strictObject({
-      attack: z.int(),
-      defense: z.int(),
-      spellPower: z.int().min(0).default(0),
-      mana: z.int().min(0).default(0),
-      spells: z.array(spellSchema).default([]),
-    })
-    .nullable(),
+  hero: battleHeroSchema.nullable(),
   morale: z.int(),
   luck: z.int(),
   cast: z.boolean().default(false),
@@ -324,6 +320,7 @@ export const commandSchema = z.discriminatedUnion("type", [
     count: z.number(),
   }),
   z.strictObject({ type: z.literal("buyBook"), player: z.int(), townId: z.string() }),
+  chooseSkillSchema,
   z.strictObject({
     type: z.literal("battleCast"),
     side: battleSideSchema,

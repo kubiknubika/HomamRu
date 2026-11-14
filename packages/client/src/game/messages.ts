@@ -2,6 +2,7 @@
  * Короткие сообщения о случившемся на карте и итог боя: слова по событиям ядра.
  * Спецификации: docs/mechanics/24-map-screen.md, 33-town-screen.md, 43-opponent-screen.md.
  */
+import { formatSkills } from "@homamru/core";
 import type { GameEvent, GameState } from "@homamru/core";
 import {
   creatureName,
@@ -68,6 +69,7 @@ function playerOf(event: GameEvent, { before, after }: MessageContext): number |
     case "heroHired":
       return townOwner(event.townId);
     case "levelGained":
+    case "skillLearned":
     case "bookBought":
     case "spellsLearned":
       return heroOwner(event.heroId);
@@ -114,6 +116,8 @@ function ownMessage(event: GameEvent, state: GameState): string | null {
     }
     case "levelGained":
       return `Новый уровень: ${STAT_NAMES[event.stat]} +1`;
+    case "skillLearned":
+      return `Навык: ${formatSkills([{ id: event.skill, level: event.level }])[0] ?? ""}`;
     case "bookBought":
       return `Куплена книга заклинаний: золото −${event.cost}`;
     case "spellsLearned": {

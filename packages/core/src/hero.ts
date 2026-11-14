@@ -4,7 +4,9 @@
 import type { GameEvent } from "./events.ts";
 import { nextInt } from "./rng.ts";
 import type { RngState } from "./rng.ts";
-import type { HeroState } from "./types.ts";
+import { rollSkillOffer, withSkill } from "./skills.ts";
+import { reject } from "./types.ts";
+import type { ChooseSkillCommand, CommandResult, GameState, HeroState } from "./types.ts";
 
 /** Боевой дух и удача армии героя и охранника. */
 export const ARMY_MORALE = 1;
@@ -88,5 +90,62 @@ export function gainExperience(
     stats[stat] += 1;
     events.push({ type: "levelGained", heroId: hero.id, level, stat });
   }
-  return { hero: { ...hero, experience, level, ...stats }, rng };
+  const owed = hero.skillsOwed + (level - hero.level);
+  return offerSkills({ ...hero, experience, level, ...stats, skillsOwed: owed }, rng, events);
+}
+
+/**
+ * Если герою положен выбор навыка и нынешнего предложения нет — бросает новое.
+ * Предлагать нечего — оставшиеся выборы сгорают.
+ */
+function offerSkills(
+  hero: HeroState,
+  initial: RngState,
+  events: GameEvent[],
+): { hero: HeroState; rng: RngState } {
+  if (hero.skillOffer.length > 0 || hero.skillsOwed === 0) {
+    return { hero, rng: initial };
+  }
+  const { offer, rng } = rollSkillOffer(hero.skills, initial);
+  if (offer.length === 0) {
+    return { hero: { ...hero, skillsOwed: 0 }, rng };
+  }
+  events.push({ type: "skillsOffered", heroId: hero.id, skills: offer });
+  return { hero: { ...hero, skillOffer: offer, skillsOwed: hero.skillsOwed - 1 }, rng };
+}
+
+/** Герой игрока, которому сейчас нужно выбрать навык. */
+export function heroChoosingSkill(state: GameState, player: number): HeroState | undefined {
+  return state.heroes.find((hero) => hero.owner === player && hero.skillOffer.length > 0);
+}
+
+/** Выбор навыка: герой получает его, а если уровней было несколько — следующее предложение. */
+export function applyChooseSkill(state: GameState, command: ChooseSkillCommand): CommandResult {
+  const hero = state.heroes.find((candidate) => candidate.id === command.heroId);
+  if (hero === undefined) {
+    return reject("UNKNOWN_HERO", `Героя «${command.heroId}» нет.`);
+  }
+  if (hero.owner !== command.player) {
+    return reject("NOT_OWNER", "Это чужой герой.");
+  }
+  if (hero.skillOffer.length === 0) {
+    return reject("NO_SKILL_OFFER", "Герою сейчас не из чего выбирать навык.");
+  }
+  if (!hero.skillOffer.includes(command.skill)) {
+    return reject("SKILL_NOT_OFFERED", `Навык «${command.skill}» герою не предложен.`);
+  }
+  const skills = withSkill(hero.skills, command.skill);
+  const events: GameEvent[] = [
+    {
+      type: "skillLearned",
+      heroId: hero.id,
+      skill: command.skill,
+      level: skills.find((skill) => skill.id === command.skill)?.level ?? 1,
+    },
+  ];
+  const next = offerSkills({ ...hero, skills, skillOffer: [] }, state.rng, events);
+  const heroes = state.heroes.map((candidate) =>
+    candidate.id === hero.id ? next.hero : candidate,
+  );
+  return { ok: true, state: { ...state, heroes, rng: next.rng }, events };
 }

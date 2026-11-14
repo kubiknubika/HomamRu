@@ -1,6 +1,7 @@
 /**
  * События партии. Описание: docs/mechanics/00-state-and-commands.md и документы механик.
  */
+import type { SkillId, SkillLevel } from "./skills.ts";
 import type { TavernOffer } from "./tavernTypes.ts";
 import type { ArmyStack } from "./types.ts";
 import type { BattleEvent } from "./battle/types.ts";
@@ -174,6 +175,19 @@ export type GameEvent =
       readonly type: "tavernChanged";
       readonly player: number;
       readonly offers: readonly TavernOffer[];
+    }
+  | {
+      /** Герою предложены навыки: игрок выбирает один (65-hero-skills.md). */
+      readonly type: "skillsOffered";
+      readonly heroId: string;
+      readonly skills: readonly SkillId[];
+    }
+  | {
+      readonly type: "skillLearned";
+      readonly heroId: string;
+      readonly skill: SkillId;
+      /** Уровень навыка после выбора: 1 — базовый, 3 — экспертный. */
+      readonly level: SkillLevel;
     }
   | {
       readonly type: "levelGained";
