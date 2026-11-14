@@ -45,7 +45,7 @@ describe("волшебная стрела", () => {
     [2, 30],
     [10, 110],
   ])("сила магии %i — урон %i", (power, damage) => {
-    expect(spellValue(spell("magic-arrow"), power)).toBe(damage);
+    expect(spellValue(spell("magic-arrow"), { spellPower: power, sorcery: 0 })).toBe(damage);
   });
 
   it("урон ровно в здоровье отряда убивает его; последний отряд — бой окончен", () => {

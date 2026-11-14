@@ -28,7 +28,10 @@ export const SPELL_EFFECTS = [
 ] as const;
 export type SpellEffect = (typeof SPELL_EFFECTS)[number];
 
-/** Заклинание: то же, что в файле заклинаний. Числа — для героя без навыка школы. */
+/**
+ * Заклинание: то же, что в файле заклинаний. `cost` и `value` — для героя без навыка школы;
+ * числа с навыком — `skilledCost` и `values` (65-hero-skills.md).
+ */
 export interface SpellDefinition {
   readonly id: string;
   readonly name: string;
@@ -37,19 +40,49 @@ export interface SpellDefinition {
   readonly schools: readonly SpellSchool[];
   /** Цена в мане. */
   readonly cost: number;
+  /** Цена в мане с навыком школы любого уровня. */
+  readonly skilledCost: number;
   /** Множитель силы магии героя: у урона и лечения. */
   readonly power: number;
   /** Прибавка к урону и лечению либо величина действия. */
   readonly value: number;
+  /** То же число на базовом, продвинутом и экспертном уровне навыка школы. */
+  readonly values: readonly [number, number, number];
+  /** На экспертном уровне ложится на все подходящие отряды. */
+  readonly expertMass: boolean;
+  /** С продвинутого уровня ложится на любой отряд, и на чужой («Снять заклинания»). */
+  readonly advancedAnyTarget: boolean;
+  /**
+   * Ложится на все подходящие отряды. В файле заклинаний этого поля нет: его ставит
+   * `spellAtMastery`, когда герой входит в бой.
+   */
+  readonly mass?: boolean | undefined;
   /** Вес при выборе набора гильдии; 0 — в гильдии не бывает. */
   readonly chance: number;
   readonly effect: SpellEffect;
-  /** На кого накладывается: на чужой отряд или на свой. */
-  readonly target: "enemy" | "ally";
+  /** На кого накладывается: на чужой отряд, на свой или на любой. */
+  readonly target: "enemy" | "ally" | "any";
   /** Для `spellDamagePercent`: от какой школы защищает. */
   readonly protects?: SpellSchool | undefined;
   /** Заклинания, действие которых это заклинание снимает. */
   readonly counters: readonly string[];
+}
+
+/**
+ * Заклинание таким, каким его колдует герой с уровнем школы `mastery` (0 — без навыка):
+ * цена, число и цели уже с учётом навыка. Таким оно хранится в состоянии боя.
+ */
+export function spellAtMastery(spell: SpellDefinition, mastery: number): SpellDefinition {
+  if (mastery <= 0) {
+    return { ...spell, mass: false };
+  }
+  return {
+    ...spell,
+    cost: spell.skilledCost,
+    value: spell.values[Math.min(mastery, spell.values.length) - 1] ?? spell.value,
+    mass: mastery >= 3 && spell.expertMass,
+    target: mastery >= 2 && spell.advancedAnyTarget ? "any" : spell.target,
+  };
 }
 
 /** Наибольший круг заклинаний. */

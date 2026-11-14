@@ -1,6 +1,6 @@
-import { experienceForLevel, MAX_LEVEL, maxMana } from "@homamru/core";
+import { experienceForLevel, formatSkills, MAX_LEVEL, maxMana } from "@homamru/core";
 import type { GameState, HeroState } from "@homamru/core";
-import { spellLine } from "../battle/battleSpells.ts";
+import { heroSpellLine } from "../battle/battleSpells.ts";
 import { creatureName, heroName } from "../game/captions.ts";
 import { Dialog, DialogButton } from "./Dialog.tsx";
 
@@ -11,8 +11,8 @@ interface HeroWindowProps {
 }
 
 /**
- * Окно героя: уровень, опыт, характеристики, мана, книга, армия
- * (docs/mechanics/24-map-screen.md, 64-magic-screen.md).
+ * Окно героя: уровень, опыт, характеристики, мана, навыки, книга, армия
+ * (docs/mechanics/24-map-screen.md, 64-magic-screen.md, 65-hero-skills.md).
  */
 export function HeroWindow({ state, hero, onClose }: HeroWindowProps) {
   const next = hero.level >= MAX_LEVEL ? undefined : experienceForLevel(hero.level + 1);
@@ -31,6 +31,13 @@ export function HeroWindow({ state, hero, onClose }: HeroWindowProps) {
           Мана: {hero.mana} из {maxMana(hero)}
         </div>
       </div>
+      <div className="dialog-text">
+        <b>Навыки</b>
+        {hero.skills.length === 0 && <div>Навыков нет</div>}
+        {formatSkills(hero.skills).map((line) => (
+          <div key={line}>{line}</div>
+        ))}
+      </div>
       <div className="dialog-text battle-journal">
         <b>Книга заклинаний</b>
         {!hero.book && <div>Книги нет</div>}
@@ -38,7 +45,7 @@ export function HeroWindow({ state, hero, onClose }: HeroWindowProps) {
         {hero.book &&
           state.spells
             .filter((spell) => hero.spells.includes(spell.id))
-            .map((spell) => <div key={spell.id}>{spellLine(spell, hero.spellPower)}</div>)}
+            .map((spell) => <div key={spell.id}>{heroSpellLine(spell, hero)}</div>)}
       </div>
       <div className="dialog-text">
         <b>Армия</b>

@@ -8,7 +8,7 @@ import type { Cell } from "./hex.ts";
 import type { Fortification, SiegeState, Tower, WallPart } from "./siege.ts";
 
 /** Номер версии формата состояния боя. */
-export const BATTLE_VERSION = 3;
+export const BATTLE_VERSION = 4;
 
 export const MAX_STACKS = 7;
 
@@ -37,13 +37,15 @@ export interface BattleHero {
   readonly defense: number;
   readonly spellPower: number;
   readonly mana: number;
+  /** «Волшебство»: на сколько процентов больше урон заклинаний. */
+  readonly sorcery: number;
   /** Заклинания целиком: состояние боя не зависит от файлов. У героя без книги — пусто. */
   readonly spells: readonly SpellDefinition[];
 }
 
 /** Герой в описании боя: магию можно не называть. */
 type BattleHeroDefinition = Pick<BattleHero, "attack" | "defense"> & {
-  readonly [K in "spellPower" | "mana" | "spells"]?: BattleHero[K] | undefined;
+  readonly [K in "spellPower" | "mana" | "sorcery" | "spells"]?: BattleHero[K] | undefined;
 };
 
 /** Действие заклинания на отряде. */

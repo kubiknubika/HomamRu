@@ -8,6 +8,7 @@ import { spellDamagePercent } from "./effects.ts";
 import { isMachine } from "./siege.ts";
 import type {
   BattleCommand,
+  BattleHero,
   BattleRejectCode,
   BattleSide,
   BattleState,
@@ -19,9 +20,25 @@ type CastCommand = Extract<BattleCommand, { type: "battleCast" }>;
 type DraftStack = BattleDraft["stacks"][number];
 type Refusal = { readonly code: BattleRejectCode; readonly message: string };
 
-/** Урон или лечение заклинания: множитель × сила магии + прибавка. */
-export function spellValue(spell: SpellDefinition, spellPower: number): number {
-  return spell.power * spellPower + spell.value;
+type Caster = Pick<BattleHero, "spellPower" | "sorcery">;
+
+/**
+ * Урон или лечение заклинания: множитель × сила магии + прибавка.
+ * Урон с «Волшебством» больше на его проценты; дробь отбрасывается.
+ */
+export function spellValue(spell: SpellDefinition, hero: Caster): number {
+  const raw = spell.power * hero.spellPower + spell.value;
+  return spell.effect === "damage" ? Math.floor((raw * (100 + hero.sorcery)) / 100) : raw;
+}
+
+/** Отряды, на которые ляжет заклинание, наколдованное на `target`: у заклинания «на всех» — все подходящие. */
+export function spellTargetsOf<T extends StackState>(
+  stacks: readonly T[],
+  spell: SpellDefinition,
+  side: BattleSide,
+  target: T,
+): T[] {
+  return spell.mass === true ? stacks.filter((stack) => canTarget(spell, side, stack)) : [target];
 }
 
 /** Может ли заклинание лечь на этот отряд: свой или чужой, живой, не машина (кроме урона). */
@@ -31,6 +48,9 @@ export function canTarget(spell: SpellDefinition, side: BattleSide, target: Stac
   }
   if (isMachine(target) && spell.effect !== "damage") {
     return false;
+  }
+  if (spell.target === "any") {
+    return true;
   }
   return spell.target === "ally" ? target.side === side : target.side !== side;
 }
@@ -77,11 +97,17 @@ function remove(target: DraftStack, drop: (effect: StackState["effects"][number]
   return removed;
 }
 
-function resolve(spell: SpellDefinition, spellPower: number, target: DraftStack): SpellOutcome {
+function resolve(
+  spell: SpellDefinition,
+  hero: Caster,
+  side: BattleSide,
+  target: DraftStack,
+): SpellOutcome {
   const { health } = target.creature;
+  const { spellPower } = hero;
   switch (spell.effect) {
     case "damage": {
-      const raw = spellValue(spell, spellPower);
+      const raw = spellValue(spell, hero);
       const damage = Math.floor((raw * spellDamagePercent(target, spell.schools)) / 100);
       const losses = applyDamage(target.count, target.firstHealth, health, damage);
       target.count = losses.count;
@@ -90,7 +116,7 @@ function resolve(spell: SpellDefinition, spellPower: number, target: DraftStack)
     }
     case "heal": {
       // Лечит только раненое существо: погибших не возвращает.
-      const healed = Math.min(spellValue(spell, spellPower), health - target.firstHealth);
+      const healed = Math.min(spellValue(spell, hero), health - target.firstHealth);
       target.firstHealth += healed;
       return { kind: "heal", healed, removed: remove(target, (effect) => effect.negative) };
     }
@@ -110,7 +136,7 @@ function resolve(spell: SpellDefinition, spellPower: number, target: DraftStack)
           effect: spell.effect,
           value: spell.value,
           school: spell.protects ?? null,
-          negative: spell.target === "enemy",
+          negative: target.side !== side,
           rounds,
         },
       ];
@@ -130,19 +156,22 @@ export function cast(draft: BattleDraft, command: CastCommand): void {
   }
   hero.mana -= spell.cost;
   side.cast = true;
-  const outcome = resolve(spell, hero.spellPower, target);
-  draft.events.push({
-    type: "spellCast",
-    side: command.side,
-    spell: spell.id,
-    name: spell.name,
-    targetId: target.id,
-    manaLeft: hero.mana,
-    outcome,
-  });
-  if (target.count === 0) {
-    target.turn = "done";
-    draft.events.push({ type: "stackDied", stackId: target.id });
+  // Заклинание «на всех» — по событию на каждый отряд, в порядке армий.
+  for (const stack of spellTargetsOf(draft.stacks, spell, command.side, target)) {
+    const outcome = resolve(spell, hero, command.side, stack);
+    draft.events.push({
+      type: "spellCast",
+      side: command.side,
+      spell: spell.id,
+      name: spell.name,
+      targetId: stack.id,
+      manaLeft: hero.mana,
+      outcome,
+    });
+    if (stack.count === 0) {
+      stack.turn = "done";
+      draft.events.push({ type: "stackDied", stackId: stack.id });
+    }
   }
 }
 

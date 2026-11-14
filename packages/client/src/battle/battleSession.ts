@@ -15,7 +15,7 @@ import {
 } from "@homamru/core";
 import type { BattleCommand, BattleEvent, BattleState, Cell, StackState } from "@homamru/core";
 import { describeEvents } from "./battleLog.ts";
-import { bookButton, castPreview, spellTargets } from "./battleSpells.ts";
+import { bookButton, massChoice, targetPreview } from "./battleSpells.ts";
 import { routeOf } from "./battleRoute.ts";
 
 type Side = 0 | 1;
@@ -254,14 +254,14 @@ export function createBattleSession(
     const spell = state.sides[playerSide].hero?.spells.find((item) => item.id === selection.spell);
     const target = stackAt(state, cell);
     const preview =
-      spell === undefined ||
-      target === undefined ||
-      !spellTargets(state, playerSide, spell).includes(target)
+      spell === undefined || target === undefined
         ? null
-        : castPreview(state, playerSide, spell, target);
+        : targetPreview(state, playerSide, spell, target);
+    // У заклинания «на всех» цель выбрана с самого начала: касание любой цели колдует.
+    const again = spell?.mass === true ? selection.targetId !== null : undefined;
     if (target === undefined || preview === null) {
       publish({ selection: null });
-    } else if (selection.targetId === target.id) {
+    } else if (again ?? selection.targetId === target.id) {
       send({ type: "battleCast", side: playerSide, spell: selection.spell, target: target.id });
     } else {
       publish({ selection: { ...selection, targetId: target.id, preview } });
@@ -325,8 +325,9 @@ export function createBattleSession(
       ) {
         return;
       }
+      const chosen = massChoice(state, playerSide, spell);
       publish({
-        selection: { kind: "spell", spell: id, name: spell.name, targetId: null, preview: null },
+        selection: { kind: "spell", spell: id, name: spell.name, ...chosen },
         inspected: null,
         note: null,
       });

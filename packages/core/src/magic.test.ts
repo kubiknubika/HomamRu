@@ -213,8 +213,8 @@ describe("выучивание", () => {
 
 describe("мана", () => {
   it("запас — знание × 10; новый герой начинает с полной маной", () => {
-    expect(maxMana({ knowledge: 0 })).toBe(0);
-    expect(maxMana({ knowledge: 7 })).toBe(70);
+    expect(maxMana({ knowledge: 0, skills: [] })).toBe(0);
+    expect(maxMana({ knowledge: 7, skills: [] })).toBe(70);
     expect(hero(townGame(GUILD))).toMatchObject({ knowledge: 1, mana: 10 });
   });
 

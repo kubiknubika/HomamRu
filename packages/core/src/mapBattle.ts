@@ -2,6 +2,8 @@
  * Бой внутри партии: начало, команды, итог.
  * Спецификации: docs/mechanics/23-map-battle.md, 40-two-players.md.
  */
+import { masteryOf, sorceryPercent } from "./skills.ts";
+import { spellAtMastery } from "./spells.ts";
 import { applyBattleCommand } from "./battle/commands.ts";
 import { createBattle } from "./battle/create.ts";
 import { BATTLE_HEIGHT, cellIndex } from "./battle/hex.ts";
@@ -68,7 +70,13 @@ function battleHero(state: GameState, hero: HeroState): BattleHero {
     defense: hero.defense,
     spellPower: hero.spellPower,
     mana: hero.mana,
-    spells: hero.book ? state.spells.filter((spell) => hero.spells.includes(spell.id)) : [],
+    sorcery: sorceryPercent(hero),
+    // Заклинания — уже с навыками школ героя: цена, сила, цели (65-hero-skills.md).
+    spells: hero.book
+      ? state.spells
+          .filter((spell) => hero.spells.includes(spell.id))
+          .map((spell) => spellAtMastery(spell, masteryOf(hero, spell)))
+      : [],
   };
 }
 

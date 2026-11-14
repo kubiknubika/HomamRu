@@ -3,6 +3,7 @@
  * Спецификации: docs/mechanics/21-guards.md, 22-hero.md, 23-map-battle.md,
  * 40-two-players.md, 41-victory.md.
  */
+import { formatSkills, SKILL_NAMES } from "./skills.ts";
 import { formatBattleEvent } from "./battle/render.ts";
 import type { GameEvent } from "./events.ts";
 
@@ -19,6 +20,8 @@ type Stage3Event = Extract<
       | "gameOver"
       | "experienceGained"
       | "levelGained"
+      | "skillsOffered"
+      | "skillLearned"
       | "bookBought"
       | "spellsLearned"
       | "garrisonJoined"
@@ -91,5 +94,9 @@ export function formatBattleSideEvent(event: Stage3Event): string {
       return `Герой ${event.heroId} выучил в городе ${event.townId}: ${event.spells.join(", ")}`;
     case "levelGained":
       return `Герой ${event.heroId} получил уровень ${event.level}: ${STAT_NAMES[event.stat]} +1`;
+    case "skillsOffered":
+      return `Герою ${event.heroId} предложены навыки: ${event.skills.map((id) => SKILL_NAMES[id]).join(" или ")}`;
+    case "skillLearned":
+      return `Герой ${event.heroId} получил навык: ${formatSkills([{ id: event.skill, level: event.level }])[0] ?? ""}`;
   }
 }

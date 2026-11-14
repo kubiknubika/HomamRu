@@ -1,5 +1,5 @@
 /** Партия на экране: что видят сцена и интерфейс и что они могут попросить. */
-import type { GameEvent, GameState, Position } from "@homamru/core";
+import type { GameEvent, GameState, Position, SkillId } from "@homamru/core";
 import type { BattleSession } from "../battle/battleSession.ts";
 import type { BattleSummary } from "./messages.ts";
 import type { Selection } from "./view.ts";
@@ -22,6 +22,17 @@ export interface SessionSnapshot {
   readonly townId: string | null;
   /** Открыт список своих городов: их больше одного, игрок выбирает. */
   readonly townList: boolean;
+  /**
+   * Уровни, полученные героями за этот запуск игры: окно нового уровня берёт отсюда,
+   * какая характеристика выросла. В партии, поднятой из записи, списка нет.
+   */
+  readonly levelUps: readonly LevelUp[];
+}
+
+export interface LevelUp {
+  readonly heroId: string;
+  readonly level: number;
+  readonly stat: "attack" | "defense" | "spellPower" | "knowledge";
 }
 
 export interface Notice {
@@ -55,6 +66,8 @@ export interface Session {
   transfer(from: "garrison" | "hero", creature: string, count: number): void;
   /** Купить книгу заклинаний герою, стоящему в открытом городе. */
   buyBook(): void;
+  /** Выбрать навык герою игрока, которому навыки предложены (65-hero-skills.md). */
+  chooseSkill(skill: SkillId): void;
   /** Нанять героя таверны с номером 0 или 1. */
   hireHero(offer: number): void;
   /** Игрок закрыл окно итога боя: экран возвращается к карте. */

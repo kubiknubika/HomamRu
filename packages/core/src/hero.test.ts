@@ -69,8 +69,12 @@ describe("получение опыта", () => {
       "levelGained",
       "levelGained",
       "levelGained",
+      // Навыки предлагаются по одному выбору за раз: остальные два ждут.
+      "skillsOffered",
     ]);
-    expect(events.slice(1)).toMatchObject([{ level: 2 }, { level: 3 }, { level: 4 }]);
+    expect(gained.hero.skillOffer).toHaveLength(2);
+    expect(gained.hero.skillsOwed).toBe(2);
+    expect(events.slice(1, 4)).toMatchObject([{ level: 2 }, { level: 3 }, { level: 4 }]);
   });
 
   it("свойство: уровень соответствует опыту, четыре характеристики в сумме растут на уровень − 1", () => {

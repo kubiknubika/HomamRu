@@ -47,7 +47,7 @@ describe("проверочный бой с магией", () => {
 describe("книга заклинаний", () => {
   it("строки книги — с силой магии героя", () => {
     const { state } = startTrialBattle(1);
-    const line = (id: string) => spellLine(spellOf(state, id), 2);
+    const line = (id: string) => spellLine(spellOf(state, id), { spellPower: 2, sorcery: 0 });
     expect(line("magic-arrow")).toBe("Волшебная стрела — 5 маны — урон 30");
     expect(line("bless")).toBe("Благословение — 5 маны — наибольший урон, 2 раунда");
     expect(line("slow")).toBe("Замедление — 6 маны — скорость × 75 %, 2 раунда");

@@ -1,4 +1,4 @@
-import { BATTLE_REJECT_CODES, MAX_STACKS } from "@homamru/core";
+import { BATTLE_REJECT_CODES, MAX_STACKS, spellAtMastery } from "@homamru/core";
 import type {
   BattleDefinition,
   BuildingDefinition,
@@ -189,8 +189,12 @@ const armySchema = z.strictObject({
       defense: z.int().min(0),
       spellPower: z.int().min(0).optional(),
       mana: z.int().min(0).optional(),
+      /** «Волшебство»: на сколько процентов больше урон заклинаний. */
+      sorcery: z.int().min(0).optional(),
       /** Книга со всеми заклинаниями игры: для проверочных боёв. */
       allSpells: z.boolean().optional(),
+      /** Уровень всех школ магии героя, 0–3: с ним колдуются заклинания книги. */
+      mastery: z.int().min(0).max(3).optional(),
     })
     .optional(),
   morale: z.int(),
@@ -227,8 +231,9 @@ export function parseBattleFile(
     if (army.hero === undefined) {
       return { morale: army.morale, luck: army.luck, army: army.army };
     }
-    const { allSpells, ...hero } = army.hero;
-    return { ...army, hero: { ...hero, spells: allSpells === true ? spells : [] } };
+    const { allSpells, mastery = 0, ...hero } = army.hero;
+    const book = spells.map((spell) => spellAtMastery(spell, mastery));
+    return { ...army, hero: { ...hero, spells: allSpells === true ? book : [] } };
   };
   const { attacker, defender, ...rest } = parsed.value;
   return { ok: true, value: { ...rest, attacker: armyOf(attacker), defender: armyOf(defender) } };

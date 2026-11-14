@@ -5,7 +5,7 @@
  * Спецификации: docs/mechanics/02-hero-movement.md («Как игрок управляет героем»),
  * 24-map-screen.md, 43-opponent-screen.md.
  */
-import { applyCommand, computerCommand, townsOf } from "@homamru/core";
+import { applyCommand, computerCommand, heroChoosingSkill, townsOf } from "@homamru/core";
 import type { BattleEvent, Command, GameEvent, GameState, TownState } from "@homamru/core";
 import { createBattleSession } from "../battle/battleSession.ts";
 import { describeCell } from "./captions.ts";
@@ -33,6 +33,7 @@ export function createSession(initial: GameState, onAccepted?: OnAccepted): Sess
     notice: null,
     townId: null,
     townList: false,
+    levelUps: [],
   };
   /** События команды, закончившей бой: карта узнаёт о них, когда игрок вернулся на неё. */
   let opening: BattleEvent[] = [];
@@ -65,6 +66,14 @@ export function createSession(initial: GameState, onAccepted?: OnAccepted): Sess
       return null;
     }
     onAccepted?.(command, result.state);
+    const levelUps = result.events.flatMap((event) =>
+      event.type === "levelGained"
+        ? [{ heroId: event.heroId, level: event.level, stat: event.stat }]
+        : [],
+    );
+    if (levelUps.length > 0) {
+      snapshot = { ...snapshot, levelUps: [...snapshot.levelUps, ...levelUps] };
+    }
     if (snapshot.state.battle === null && result.state.battle !== null) {
       // Начало боя: выстрелы башен и катапульты до первого хода покажет экран боя.
       opening = result.events.flatMap((event) => (event.type === "battle" ? [event.event] : []));
@@ -235,6 +244,15 @@ export function createSession(initial: GameState, onAccepted?: OnAccepted): Sess
     },
     buyBook: () => {
       sendTown((base) => ({ type: "buyBook", ...base }));
+    },
+    chooseSkill: (skill) => {
+      // Выбирают и в ход противника: уровень мог прийти за победу в обороне.
+      const { state, battle } = snapshot;
+      const player = humanOf(state);
+      const hero = heroChoosingSkill(state, player);
+      if (hero !== undefined && battle === null) {
+        send({ type: "chooseSkill", player, heroId: hero.id, skill });
+      }
     },
     hireHero: (offer) => {
       sendTown((base) => ({ type: "hireHero", ...base, offer }));

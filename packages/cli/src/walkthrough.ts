@@ -4,7 +4,7 @@
  * если армия достаточно сильна, иначе — в город за пополнением. В городе строит и нанимает.
  * Бои ведёт простой компьютер за обе стороны. Игрок-человек играет не хуже.
  */
-import { applyCommand, findPath, playBattleOut, townOf } from "@homamru/core";
+import { applyCommand, findPath, heroChoosingSkill, playBattleOut, townOf } from "@homamru/core";
 import type {
   Command,
   GameState,
@@ -123,6 +123,17 @@ export function walkThrough(initial: GameState, maxDays: number): Walkthrough {
 
   let defeats = 0;
   while (state.outcome === null && state.day <= maxDays && unfinished(state)) {
+    // Новый уровень: проходчик берёт первое предложение, как компьютер (65-hero-skills.md).
+    const choosing = heroChoosingSkill(state, state.currentPlayer);
+    const skill = choosing?.skillOffer[0];
+    if (choosing !== undefined && skill !== undefined) {
+      const player = state.currentPlayer;
+      if (!send({ type: "chooseSkill", player, heroId: choosing.id, skill })) {
+        break;
+      }
+      journal.push(`день ${state.day}: взят навык ${skill}`);
+      continue;
+    }
     const order = townCommand(state);
     if (order !== undefined && send(order)) {
       if (order.type === "build") {

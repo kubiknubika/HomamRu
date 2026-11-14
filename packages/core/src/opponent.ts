@@ -5,6 +5,7 @@
  */
 import { guardBattleCommand } from "./battleAuto.ts";
 import { guardWatching } from "./guards.ts";
+import { heroChoosingSkill } from "./hero.ts";
 import { BOOK_PRICE, learnableSpells } from "./magic.ts";
 import { accepted, armyValue, townCommand, townsOf } from "./opponentTown.ts";
 import { findPath } from "./pathfinding.ts";
@@ -216,11 +217,27 @@ function heroCommand(state: GameState, hero: HeroState): Command | undefined {
 }
 
 /**
+ * Выбор навыка за игрока: всегда первое предложение — повышение взятого навыка,
+ * а если его нет — первый из новых (65-hero-skills.md). `undefined` — выбирать нечего.
+ */
+function skillChoice(state: GameState, player: number): Command | undefined {
+  const hero = heroChoosingSkill(state, player);
+  const skill = hero?.skillOffer[0];
+  return hero === undefined || skill === undefined
+    ? undefined
+    : { type: "chooseSkill", player, heroId: hero.id, skill };
+}
+
+/**
  * Следующая команда на карте за игрока, чей сейчас ход, — кем бы он ни был.
  * Сначала города, потом герой; когда делать нечего — «закончить ход».
  */
 export function chooseMapCommand(state: GameState): Command {
   const player = state.currentPlayer;
+  const choice = skillChoice(state, player);
+  if (choice !== undefined) {
+    return choice;
+  }
   const hero = state.heroes.find((candidate) => candidate.owner === player);
   const command = townCommand(state) ?? (hero === undefined ? undefined : heroCommand(state, hero));
   return command ?? { type: "endTurn", player };
@@ -237,6 +254,13 @@ export function computerCommand(state: GameState): Command | undefined {
   }
   if (state.battle !== null) {
     return guardBattleCommand(state);
+  }
+  // Навык компьютер выбирает сразу, и в чужой ход: уровень мог прийти за победу в обороне.
+  for (const player of state.players) {
+    const choice = player.kind === "computer" ? skillChoice(state, player.id) : undefined;
+    if (choice !== undefined) {
+      return choice;
+    }
   }
   const current = state.players.find((player) => player.id === state.currentPlayer);
   return current?.kind === "computer" ? chooseMapCommand(state) : undefined;

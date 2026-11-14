@@ -146,6 +146,7 @@ function sideOf(army: ArmyDefinition): BattleDraft["sides"][number] {
             defense: hero.defense,
             spellPower: hero.spellPower ?? 0,
             mana: hero.mana ?? 0,
+            sorcery: hero.sorcery ?? 0,
             spells: [...(hero.spells ?? [])],
           },
     morale: army.morale,

@@ -3,11 +3,11 @@
  * Спецификация: docs/mechanics/63-opponent-magic.md.
  */
 import type { SpellDefinition, SpellEffect } from "../spells.ts";
-import { canTarget, castableSpells, spellValue } from "./cast.ts";
+import { canTarget, castableSpells, spellTargetsOf, spellValue } from "./cast.ts";
 import { spellDamagePercent } from "./effects.ts";
 import { hasAdjacentEnemy, isAlive } from "./queries.ts";
 import { isMachine } from "./siege.ts";
-import type { BattleCommand, BattleSide, BattleState, StackState } from "./types.ts";
+import type { BattleCommand, BattleHero, BattleSide, BattleState, StackState } from "./types.ts";
 
 /**
  * Польза считается в целых числах: одно очко здоровья — 80 единиц.
@@ -35,6 +35,11 @@ function spreadOf(stack: StackState): number {
   return ((damageMax - damageMin) * stack.count * HEALTH) / 2;
 }
 
+/** Сколько урона отряда отнимает «Проклятие» с навыком сверх наименьшего: урон не меньше 1. */
+function curseExtra(stack: StackState, value: number): number {
+  return Math.min(value, Math.max(0, stack.creature.damageMin - 1)) * stack.count;
+}
+
 function isMelee(stack: StackState): boolean {
   return stack.shots === 0;
 }
@@ -60,8 +65,9 @@ interface Scene {
 function worthOf(scene: Scene, stack: StackState, effect: Effect): number {
   const rounds = roundsOf(effect.rounds);
   const kinds: Partial<Record<SpellEffect, () => number>> = {
-    maxDamage: () => spreadOf(stack) * rounds,
-    minDamage: () => spreadOf(stack) * rounds,
+    // С навыком школы — ещё единица урона на существо (65-hero-skills.md).
+    maxDamage: () => (spreadOf(stack) + effect.value * stack.count * HEALTH) * rounds,
+    minDamage: () => (spreadOf(stack) + curseExtra(stack, effect.value) * HEALTH) * rounds,
     meleeAttack: () =>
       isMelee(stack) ? (strikeOf(stack) * effect.value * ATTACK_POINT * rounds) / PERCENT : 0,
     defense: () =>
@@ -93,7 +99,7 @@ function spellThreat(state: BattleState, side: BattleSide, spell: SpellDefinitio
       (item) =>
         item.effect === "damage" && item.cost <= hero.mana && item.schools.includes(protects),
     )
-    .map((item) => spellValue(item, hero.spellPower));
+    .map((item) => spellValue(item, hero));
   return Math.max(0, ...damages);
 }
 
@@ -101,33 +107,43 @@ function healthOf(stack: StackState): number {
   return (stack.count - 1) * stack.creature.health + stack.firstHealth;
 }
 
-/** Польза заклинания на цели; 0 — колдовать незачем. */
+/**
+ * Польза заклинания на одном отряде; 0 — колдовать незачем. Меньше нуля бывает только
+ * у «Снять заклинания» на всех: с отряда снимется больше хорошего, чем плохого.
+ */
 function benefit(
   scene: Scene,
   side: BattleSide,
-  spellPower: number,
+  hero: BattleHero,
   spell: SpellDefinition,
   target: StackState,
 ): number {
+  const { spellPower } = hero;
   const harmful = target.effects.filter((effect) => effect.negative);
+  const helpful = target.effects.filter((effect) => !effect.negative);
   const sum = (effects: readonly Effect[]): number =>
     effects.reduce((total, effect) => total + worthOf(scene, target, effect), 0);
   switch (spell.effect) {
     case "damage": {
-      const raw = spellValue(spell, spellPower);
+      const raw = spellValue(spell, hero);
       const damage = Math.floor((raw * spellDamagePercent(target, spell.schools)) / PERCENT);
       return Math.min(damage, healthOf(target)) * HEALTH;
     }
     case "heal": {
-      const healed = Math.min(
-        spellValue(spell, spellPower),
-        target.creature.health - target.firstHealth,
-      );
+      const healed = Math.min(spellValue(spell, hero), target.creature.health - target.firstHealth);
       return healed * HEALTH + sum(harmful);
     }
-    case "dispel":
-      // Только когда на отряде одно вредное: полезное снимать жалко.
-      return harmful.length === target.effects.length ? sum(harmful) : 0;
+    case "dispel": {
+      // Со своего снимается вредное (в плюс) и полезное (в минус); с чужого — наоборот.
+      const own = target.side === side;
+      const gain = own ? sum(harmful) - sum(helpful) : sum(helpful) - sum(harmful);
+      if (spell.mass === true) {
+        return gain;
+      }
+      // На один отряд — только когда снимать с него одно «нужное»: остальное жалко.
+      const lost = own ? helpful : harmful;
+      return lost.length === 0 ? gain : 0;
+    }
     default: {
       if (target.effects.some((effect) => effect.spell === spell.id)) {
         return 0;
@@ -167,11 +183,13 @@ export function chooseCast(state: BattleState, side: BattleSide): BattleCommand 
   };
   let best: { spell: SpellDefinition; target: string; worth: number } | undefined;
   for (const spell of castableSpells(state, side)) {
-    for (const target of alive) {
-      if (!canTarget(spell, side, target)) {
-        continue;
-      }
-      const worth = benefit(scene, side, hero.spellPower, spell, target);
+    // Заклинание «на всех» считается один раз: его польза — сумма по всем отрядам.
+    const targets = alive.filter((stack) => canTarget(spell, side, stack));
+    for (const target of spell.mass === true ? targets.slice(0, 1) : targets) {
+      const worth = spellTargetsOf(alive, spell, side, target).reduce(
+        (total, stack) => total + benefit(scene, side, hero, spell, stack),
+        0,
+      );
       if (
         worth > 0 &&
         (best === undefined ||

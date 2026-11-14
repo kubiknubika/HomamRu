@@ -32,6 +32,9 @@ const FRESH_HERO = {
   mana: 10,
   book: false,
   spells: [],
+  skills: [],
+  skillOffer: [],
+  skillsOwed: 0,
   army: TEST_ARMY,
   experience: 0,
   level: 1,
@@ -135,7 +138,7 @@ describe("создание партии", () => {
     expect(createGame(mapOf({ players }), 42, CONTENT)).toEqual({
       ok: true,
       state: {
-        version: 9,
+        version: 10,
         rng: { s: 42 },
         map: {
           id: "test",
