@@ -4,7 +4,8 @@
  */
 import type { SpellDefinition, SpellEffect } from "../spells.ts";
 import { canTarget, castableSpells, spellTargetsOf, spellValue } from "./cast.ts";
-import { spellDamagePercent } from "./effects.ts";
+import { GOOD_DICE } from "./damage.ts";
+import { luckOf, moraleOf, spellDamagePercent } from "./effects.ts";
 import { hasAdjacentEnemy, isAlive } from "./queries.ts";
 import { isMachine } from "./siege.ts";
 import type { BattleCommand, BattleHero, BattleSide, BattleState, StackState } from "./types.ts";
@@ -21,7 +22,12 @@ const PERCENT = 100;
 const ATTACK_POINT = 5;
 const DEFENSE_POINT_X2 = 5;
 
-type Effect = Pick<StackState["effects"][number], "effect" | "value" | "rounds">;
+type Effect = Pick<StackState["effects"][number], "effect" | "value" | "rounds" | "stacks">;
+
+/** На сколько изменится число (удача, боевой дух), если прибавить `delta`: с учётом пределов. */
+function gained(current: number, delta: number, floor: number): number {
+  return Math.min(3, Math.max(floor, current + delta)) - current;
+}
 
 /** Средний урон удара отряда, в единицах пользы; поправки на атаку и защиту нет — цель неизвестна. */
 function strikeOf(stack: StackState): number {
@@ -63,7 +69,12 @@ interface Scene {
  * для вредного — сколько отнимает. Таблица — в 63-opponent-magic.md.
  */
 function worthOf(scene: Scene, stack: StackState, effect: Effect): number {
-  const rounds = roundsOf(effect.rounds);
+  // Действие до конца боя считается на те же три раунда вперёд.
+  const rounds = effect.stacks === undefined ? roundsOf(effect.rounds) : MAX_ROUNDS;
+  const foes = scene.foesOf(stack);
+  const strike = strikeOf(stack);
+  const attackWorth = (strike * effect.value * ATTACK_POINT * rounds) / PERCENT;
+  const defenseWorth = (strongest(foes) * effect.value * DEFENSE_POINT_X2 * rounds) / (2 * PERCENT);
   const kinds: Partial<Record<SpellEffect, () => number>> = {
     // С навыком школы — ещё единица урона на существо (65-hero-skills.md).
     maxDamage: () => (spreadOf(stack) + effect.value * stack.count * HEALTH) * rounds,
@@ -78,6 +89,21 @@ function worthOf(scene: Scene, stack: StackState, effect: Effect): number {
     speed: () => (approaching(scene.state, stack) ? strikeOf(stack) / 2 : 0),
     speedPercent: () => (approaching(scene.state, stack) ? strikeOf(stack) / 2 : 0),
     spellDamagePercent: () => 0,
+    shotAttack: () => (isMelee(stack) ? 0 : attackWorth),
+    attackDown: () => attackWorth,
+    defenseDown: () => defenseWorth,
+    shotDamagePercent: () =>
+      (strongest(foes.filter((foe) => !isMelee(foe))) * (PERCENT - effect.value) * rounds) /
+      PERCENT,
+    prayer: () => attackWorth + defenseWorth + (approaching(scene.state, stack) ? strike / 2 : 0),
+    // Удача удваивает удар, боевой дух даёт ещё один: шанс — «N из 24».
+    luck: () => (strike * gained(luckOf(scene.state, stack), effect.value, 0) * rounds) / GOOD_DICE,
+    luckDown: () =>
+      (strike * gained(luckOf(scene.state, stack), -effect.value, 0) * -rounds) / GOOD_DICE,
+    morale: () =>
+      (strike * gained(moraleOf(scene.state, stack), effect.value, -3) * rounds) / GOOD_DICE,
+    moraleDown: () =>
+      (strike * gained(moraleOf(scene.state, stack), -effect.value, -3) * -rounds) / GOOD_DICE,
   };
   return Math.floor(kinds[effect.effect]?.() ?? 0);
 }
@@ -145,7 +171,7 @@ function benefit(
       return lost.length === 0 ? gain : 0;
     }
     default: {
-      if (target.effects.some((effect) => effect.spell === spell.id)) {
+      if (spell.cumulative !== true && target.effects.some((effect) => effect.spell === spell.id)) {
         return 0;
       }
       const countered = target.effects.filter((effect) => spell.counters.includes(effect.spell));
@@ -161,6 +187,7 @@ function benefit(
               effect: spell.effect,
               value: spell.value,
               rounds: spellPower,
+              stacks: spell.cumulative === true ? 1 : undefined,
             });
       return own + sum(countered);
     }

@@ -44,6 +44,15 @@ const LASTING: Partial<Record<SpellDefinition["effect"], (value: number) => stri
   speed: (value) => `скорость +${value}`,
   speedPercent: (value) => `скорость × ${value} %`,
   spellDamagePercent: (value) => `урон от заклинаний этой школы × ${value} %`,
+  shotAttack: (value) => `атака при стрельбе +${value}`,
+  attackDown: (value) => `атака −${value}`,
+  defenseDown: (value) => `защита −${value}`,
+  shotDamagePercent: (value) => `урон от стрельбы × ${value} %`,
+  prayer: (value) => `атака, защита и скорость +${value}`,
+  luck: (value) => `удача +${value}`,
+  luckDown: (value) => `удача −${value}`,
+  morale: (value) => `боевой дух +${value}`,
+  moraleDown: (value) => `боевой дух −${value}`,
 };
 
 /** Что сделает заклинание на одном отряде: «урон 30», «наибольший урон, 2 раунда». */
@@ -59,7 +68,9 @@ function spellEffectText(spell: SpellDefinition, hero: Caster): string {
   }
   const what = LASTING[spell.effect]?.(spell.value) ?? spell.effect;
   // Срок действия — сила магии, но не меньше раунда (62-battle-spells.md).
-  return `${what}, ${roundsText(Math.max(1, hero.spellPower))}`;
+  const term =
+    spell.cumulative === true ? "до конца боя" : roundsText(Math.max(1, hero.spellPower));
+  return `${what}, ${term}`;
 }
 
 const MASS_TEXT = {
@@ -93,6 +104,17 @@ export function heroSpellLine(
     spellPower: hero.spellPower,
     sorcery: sorceryPercent(hero),
   });
+}
+
+/** Книга по кругам, от первого: внутри круга — в порядке книги. */
+export function bookCircles(
+  spells: readonly SpellDefinition[],
+): { readonly level: number; readonly spells: SpellDefinition[] }[] {
+  const levels = [...new Set(spells.map((spell) => spell.level))].toSorted((a, b) => a - b);
+  return levels.map((level) => ({
+    level,
+    spells: spells.filter((spell) => spell.level === level),
+  }));
 }
 
 export interface BookButton {
@@ -213,9 +235,17 @@ export function massChoice(
   return { targetId: preview === null ? null : (first?.id ?? null), preview };
 }
 
-/** Заклинания на отряде одной строкой: «Благословение (2), Замедление (1)»; пусто — `null`. */
+/**
+ * Заклинания на отряде одной строкой: «Благословение (2), Замедление (1)»; пусто — `null`.
+ * У действия до конца боя вместо раундов — «∞» и число наложений: «Разрушающий луч (∞ ×2)».
+ */
 export function effectsText(stack: StackState): string | null {
   return stack.effects.length === 0
     ? null
-    : stack.effects.map((effect) => `${effect.name} (${effect.rounds})`).join(", ");
+    : stack.effects
+        .map((effect) => {
+          const many = (effect.stacks ?? 1) > 1 ? ` ×${effect.stacks}` : "";
+          return `${effect.name} (${effect.stacks === undefined ? effect.rounds : `∞${many}`})`;
+        })
+        .join(", ");
 }

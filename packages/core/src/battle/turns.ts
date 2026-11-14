@@ -6,7 +6,7 @@ import { startSpellRound } from "./cast.ts";
 import { BAD_DICE } from "./damage.ts";
 import { rollChance } from "./draft.ts";
 import type { BattleDraft } from "./draft.ts";
-import { speedOf } from "./effects.ts";
+import { moraleOf, speedOf } from "./effects.ts";
 import { isMachine } from "./siege.ts";
 import { siegePhase } from "./siegeRound.ts";
 import type { BattleEndReason, BattleSide, StackState, StackTurn } from "./types.ts";
@@ -99,7 +99,7 @@ export function activateNext(draft: BattleDraft): void {
     draft.lastActedSide = next.side;
     // Прибавка от «защищаться» действует до начала следующего хода отряда.
     next.defendBonus = 0;
-    const morale = draft.sides[next.side].morale;
+    const morale = moraleOf(draft, next);
     // Оцепенение проверяется один раз за раунд — когда отряд ходит в основной части.
     if (next.turn === "ready" && morale < 0 && rollChance(draft, -morale, BAD_DICE)) {
       next.turn = "done";

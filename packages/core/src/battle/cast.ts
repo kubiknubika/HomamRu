@@ -46,7 +46,11 @@ export function canTarget(spell: SpellDefinition, side: BattleSide, target: Stac
   if (target.count === 0) {
     return false;
   }
-  if (isMachine(target) && spell.effect !== "damage") {
+  if (isMachine(target) && (spell.effect !== "damage" || spell.spareMachines === true)) {
+    return false;
+  }
+  // «Точность» — только тем, у кого выстрелы от природы.
+  if (spell.effect === "shotAttack" && target.creature.shots === 0) {
     return false;
   }
   if (spell.target === "any") {
@@ -127,19 +131,25 @@ function resolve(
       // Срок — сила магии, но не меньше раунда: при силе 0 действие держится до конца раунда.
       const rounds = Math.max(1, spellPower);
       const removed = remove(target, (effect) => spell.counters.includes(effect.spell));
+      const old = target.effects.find((effect) => effect.spell === spell.id);
       remove(target, (effect) => effect.spell === spell.id);
-      target.effects = [
-        ...target.effects,
-        {
-          spell: spell.id,
-          name: spell.name,
-          effect: spell.effect,
-          value: spell.value,
-          school: spell.protects ?? null,
-          negative: target.side !== side,
-          rounds,
-        },
-      ];
+      const added = {
+        spell: spell.id,
+        name: spell.name,
+        effect: spell.effect,
+        value: spell.value,
+        school: spell.protects ?? null,
+        negative: target.side !== side,
+        rounds,
+      };
+      if (spell.cumulative === true) {
+        // До конца боя; новое наложение прибавляется к прежним.
+        const stacks = (old?.stacks ?? 0) + 1;
+        const value = (old?.value ?? 0) + spell.value;
+        target.effects = [...target.effects, { ...added, value, rounds: 1, stacks }];
+        return { kind: "effect", rounds: 0, removed };
+      }
+      target.effects = [...target.effects, added];
       return { kind: "effect", rounds, removed };
     }
   }
@@ -182,7 +192,7 @@ export function startSpellRound(draft: BattleDraft): void {
   }
   for (const stack of draft.stacks) {
     for (const effect of stack.effects) {
-      if (effect.rounds <= 1 && stack.count > 0) {
+      if (effect.rounds <= 1 && effect.stacks === undefined && stack.count > 0) {
         draft.events.push({
           type: "effectEnded",
           stackId: stack.id,
@@ -192,7 +202,9 @@ export function startSpellRound(draft: BattleDraft): void {
       }
     }
     stack.effects = stack.effects
-      .filter((effect) => effect.rounds > 1)
-      .map((effect) => ({ ...effect, rounds: effect.rounds - 1 }));
+      .filter((effect) => effect.rounds > 1 || effect.stacks !== undefined)
+      .map((effect) =>
+        effect.stacks === undefined ? { ...effect, rounds: effect.rounds - 1 } : effect,
+      );
   }
 }

@@ -15,7 +15,7 @@ import {
   halvingsOf,
   rollBaseDamage,
 } from "./damage.ts";
-import { damagePercent, fixedDamage } from "./effects.ts";
+import { damagePercent, fixedDamage, luckOf, moraleOf } from "./effects.ts";
 import { cellIndex, distance, inField, sameCell } from "./hex.ts";
 import type { Cell } from "./hex.ts";
 import { findStack, hasAdjacentEnemy, isAlive, reachableCells } from "./queries.ts";
@@ -83,8 +83,8 @@ function strike(
   target: DraftStack,
   kind: StrikeKind,
 ): void {
-  const side = draft.sides[attacker.side];
-  const lucky = side.luck > 0 && rollChance(draft, side.luck, GOOD_DICE);
+  const luck = luckOf(draft, attacker);
+  const lucky = luck > 0 && rollChance(draft, luck, GOOD_DICE);
   const base = rollBaseDamage(draft.rng, attacker.creature, attacker.count, fixedDamage(attacker));
   draft.rng = base.rng;
 
@@ -124,7 +124,7 @@ function finishAction(draft: BattleDraft, stack: DraftStack): void {
   if (endIfDestroyed(draft)) {
     return;
   }
-  const morale = draft.sides[stack.side].morale;
+  const morale = moraleOf(draft, stack);
   if (stack.count > 0 && !stack.moraleUsed && morale > 0 && rollChance(draft, morale, GOOD_DICE)) {
     // Второй ход: отряд остаётся активным. Третьего хода в этом раунде не будет.
     stack.moraleUsed = true;

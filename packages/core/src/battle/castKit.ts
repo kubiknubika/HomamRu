@@ -1,12 +1,12 @@
 /** Помощники тестов заклинаний в бою. В игре не используются. */
-import { spell, SPELLS } from "../spellKit.ts";
+import { ALL_SPELLS, spell, SPELLS } from "../spellKit.ts";
 import { applyBattleCommand } from "./commands.ts";
 import { army, startBattle, turnOf, withStacks } from "./testkit.ts";
 import type { BattleEvent, BattleSide, BattleState } from "./types.ts";
 
 /** Герой без атаки и защиты, знающий все двенадцать заклинаний. */
-export function mage(spellPower: number, mana = 100) {
-  return { attack: 0, defense: 0, spellPower, mana, spells: SPELLS };
+export function mage(spellPower: number, mana = 100, spells = SPELLS) {
+  return { attack: 0, defense: 0, spellPower, mana, spells };
 }
 
 /**
@@ -17,6 +17,14 @@ export function magicBattle(spellPower = 2, mana = 100): BattleState {
   return startBattle(
     army(["militia:20", "slinger:10"], { hero: mage(spellPower, mana) }),
     army(["militia:20"], { hero: mage(1) }),
+  ).state;
+}
+
+/** Тот же бой, но у героев вся книга, с кругами 2–5 (67-spells-plain.md). */
+export function plainBattle(spellPower = 2, mana = 100): BattleState {
+  return startBattle(
+    army(["militia:20", "slinger:10"], { hero: mage(spellPower, mana, ALL_SPELLS) }),
+    army(["militia:20", "slinger:10"], { hero: mage(1, 100, ALL_SPELLS) }),
   ).state;
 }
 

@@ -59,8 +59,10 @@ interface StackEffect {
   readonly school: SpellSchool | null;
   /** Вредное: его снимает «Лечение». */
   readonly negative: boolean;
-  /** Сколько начал раунда действие ещё переживёт. */
+  /** Сколько начал раунда действие ещё переживёт. У действия до конца боя не убывает. */
   readonly rounds: number;
+  /** Только у действия до конца боя: сколько раз наложено («Разрушающий луч»). */
+  readonly stacks?: number | undefined;
 }
 
 export interface ArmyDefinition {
@@ -185,7 +187,12 @@ export type SpellOutcome =
     }
   | { readonly kind: "heal"; readonly healed: number; readonly removed: readonly string[] }
   | { readonly kind: "dispel"; readonly removed: readonly string[] }
-  | { readonly kind: "effect"; readonly rounds: number; readonly removed: readonly string[] };
+  | {
+      readonly kind: "effect";
+      /** 0 — до конца боя. */
+      readonly rounds: number;
+      readonly removed: readonly string[];
+    };
 
 export type StrikeKind = "melee" | "retaliation" | "shot";
 

@@ -1,5 +1,13 @@
 /** Журнал боя для игрока: события одной команды одной строкой. */
-import { attackBonus, defenseOf, findStack, isMachine, speedOf } from "@homamru/core";
+import {
+  attackBonus,
+  defenseOf,
+  findStack,
+  isMachine,
+  luckOf,
+  moraleOf,
+  speedOf,
+} from "@homamru/core";
 import type { BattleEvent, BattleState, StackState } from "@homamru/core";
 import { effectsText } from "./battleSpells.ts";
 
@@ -65,7 +73,9 @@ function describeEvent(
             ? `вылечено ${outcome.healed}`
             : outcome.kind === "dispel"
               ? "заклинания сняты"
-              : `действует раундов: ${outcome.rounds}`;
+              : outcome.rounds === 0
+                ? "действует до конца боя"
+                : `действует раундов: ${outcome.rounds}`;
       return `${who} «${event.name}»: ${nameOf(event.targetId)}, ${what}`;
     }
     case "effectEnded":
@@ -128,11 +138,12 @@ export function describeStack(state: BattleState, stack: StackState): string {
   }
   const hero = state.sides[stack.side].hero;
   const attack = creature.attack + (hero?.attack ?? 0);
-  // «Жажда крови» прибавляет атаку только в ближнем бою.
-  const melee = attackBonus(stack, "melee");
+  // «Жажда крови» прибавляет атаку только в ближнем бою, «Точность» — только при стрельбе.
+  const shot = attack + attackBonus(stack, "shot");
+  const melee = attack + attackBonus(stack, "melee");
   const parts = [
     `${creature.name}: ${stack.count} из ${stack.initialCount}`,
-    melee === 0 ? `атака ${attack}` : `атака ${attack} (в ближнем бою ${attack + melee})`,
+    melee === shot ? `атака ${shot}` : `атака ${shot} (в ближнем бою ${melee})`,
     `защита ${defenseOf(state, stack)}`,
     `урон ${creature.damageMin}–${creature.damageMax}`,
     `здоровье ${stack.firstHealth} из ${creature.health}`,
@@ -146,6 +157,14 @@ export function describeStack(state: BattleState, stack: StackState): string {
   }
   if (stack.retaliated) {
     parts.push("уже отвечал на удар");
+  }
+  // Удача и боевой дух отряда — когда заклинания сделали их не такими, как у армии.
+  const side = state.sides[stack.side];
+  if (luckOf(state, stack) !== side.luck) {
+    parts.push(`удача ${luckOf(state, stack)}`);
+  }
+  if (moraleOf(state, stack) !== side.morale) {
+    parts.push(`боевой дух ${moraleOf(state, stack)}`);
   }
   const spells = effectsText(stack);
   if (spells !== null) {

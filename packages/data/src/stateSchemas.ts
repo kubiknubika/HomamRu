@@ -221,6 +221,7 @@ const stackEffectSchema = z.strictObject({
   school: spellSchema.shape.schools.element.nullable(),
   negative: z.boolean(),
   rounds: z.int().min(1),
+  stacks: z.int().min(1).optional(),
 });
 
 /** Состояние боя целиком. Описание полей: docs/mechanics/10-battle-field.md … 13. */

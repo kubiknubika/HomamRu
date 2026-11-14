@@ -154,3 +154,182 @@
   values: [75, 50, 50]
   expertMass: true
   counters: [haste]
+# Круги 2–5, первая группа (docs/mechanics/67-spells-plain.md). chance: 0 — до шага 7.4 гильдия
+# выше первого уровня не строится; веса замка людей будут выписаны тогда же.
+# cumulative — до конца боя и складывается; spareMachines — не действует на катапульту и башни.
+- id: ice-bolt
+  name: Ледяная молния
+  level: 2
+  schools: [water]
+  cost: 8
+  skilledCost: 6
+  power: 20
+  value: 10
+  chance: 0
+  effect: damage
+  target: enemy
+  values: [10, 20, 50]
+- id: lightning-bolt
+  name: Молния
+  level: 2
+  schools: [air]
+  cost: 10
+  skilledCost: 8
+  power: 25
+  value: 10
+  chance: 0
+  effect: damage
+  target: enemy
+  values: [10, 20, 50]
+- id: protection-from-air
+  name: Защита от воздуха
+  level: 2
+  schools: [air]
+  cost: 7
+  skilledCost: 5
+  value: 70
+  chance: 0
+  effect: spellDamagePercent
+  target: ally
+  values: [70, 50, 50]
+  expertMass: true
+  protects: air
+- id: precision
+  name: Точность
+  level: 2
+  schools: [air]
+  cost: 8
+  skilledCost: 6
+  value: 3
+  chance: 0
+  effect: shotAttack
+  target: ally
+  values: [3, 6, 6]
+  expertMass: true
+- id: weakness
+  name: Слабость
+  level: 2
+  schools: [water]
+  cost: 8
+  skilledCost: 6
+  value: 3
+  chance: 0
+  effect: attackDown
+  target: enemy
+  values: [3, 6, 6]
+  expertMass: true
+  counters: [bloodlust]
+- id: disrupting-ray
+  name: Разрушающий луч
+  level: 2
+  schools: [air]
+  cost: 10
+  skilledCost: 8
+  value: 3
+  chance: 0
+  effect: defenseDown
+  target: enemy
+  values: [3, 4, 5]
+  cumulative: true
+- id: fortune
+  name: Удача
+  level: 2
+  schools: [air]
+  cost: 7
+  skilledCost: 5
+  value: 1
+  chance: 0
+  effect: luck
+  target: ally
+  values: [1, 2, 2]
+  expertMass: true
+  counters: [misfortune]
+- id: air-shield
+  name: Воздушный щит
+  level: 3
+  schools: [air]
+  cost: 12
+  skilledCost: 9
+  value: 75
+  chance: 0
+  effect: shotDamagePercent
+  target: ally
+  values: [75, 50, 50]
+  expertMass: true
+- id: protection-from-earth
+  name: Защита от земли
+  level: 3
+  schools: [earth]
+  cost: 12
+  skilledCost: 9
+  value: 70
+  chance: 0
+  effect: spellDamagePercent
+  target: ally
+  values: [70, 50, 50]
+  expertMass: true
+  protects: earth
+- id: mirth
+  name: Радость
+  level: 3
+  schools: [water]
+  cost: 12
+  skilledCost: 9
+  value: 1
+  chance: 0
+  effect: morale
+  target: ally
+  values: [1, 2, 2]
+  expertMass: true
+  counters: [sorrow]
+- id: misfortune
+  name: Неудача
+  level: 3
+  schools: [fire]
+  cost: 12
+  skilledCost: 9
+  value: 1
+  chance: 0
+  effect: luckDown
+  target: enemy
+  values: [1, 2, 2]
+  expertMass: true
+  counters: [fortune]
+- id: prayer
+  name: Молитва
+  level: 4
+  schools: [water]
+  cost: 16
+  skilledCost: 12
+  value: 2
+  chance: 0
+  effect: prayer
+  target: ally
+  values: [2, 4, 4]
+  expertMass: true
+- id: sorrow
+  name: Печаль
+  level: 4
+  schools: [earth]
+  cost: 16
+  skilledCost: 12
+  value: 1
+  chance: 0
+  effect: moraleDown
+  target: enemy
+  values: [1, 2, 2]
+  expertMass: true
+  counters: [mirth]
+- id: implosion
+  name: Взрыв
+  level: 5
+  schools: [earth]
+  cost: 30
+  skilledCost: 25
+  power: 75
+  value: 100
+  chance: 0
+  effect: damage
+  target: enemy
+  values: [100, 200, 300]
+  spareMachines: true

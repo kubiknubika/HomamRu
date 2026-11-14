@@ -17,7 +17,7 @@ import type {
 } from "./types.ts";
 
 export { CREATURES } from "./battle/testkit.ts";
-export { spell, SPELLS } from "./spellKit.ts";
+export { ALL_SPELLS, spell, SPELLS } from "./spellKit.ts";
 
 export interface Picture {
   readonly state: GameState;

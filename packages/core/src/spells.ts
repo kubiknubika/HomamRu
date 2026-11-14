@@ -11,7 +11,9 @@ export type SpellSchool = (typeof SPELL_SCHOOLS)[number];
 /**
  * Что делает заклинание (62-battle-spells.md):
  * `damage` — урон; `heal` — лечит и снимает вредные действия; `dispel` — снимает все действия;
- * остальные — действие на несколько раундов.
+ * остальные — действие на несколько раундов (67-spells-plain.md): `shotAttack` — атака при стрельбе,
+ * `attackDown` и `defenseDown` — меньше атака и защита, `shotDamagePercent` — доля урона выстрела,
+ * `prayer` — атака, защита и скорость, `luck`/`luckDown`, `morale`/`moraleDown` — удача и боевой дух отряда.
  */
 export const SPELL_EFFECTS = [
   "damage",
@@ -25,6 +27,15 @@ export const SPELL_EFFECTS = [
   "speedPercent",
   "meleeDamagePercent",
   "spellDamagePercent",
+  "shotAttack",
+  "attackDown",
+  "defenseDown",
+  "shotDamagePercent",
+  "prayer",
+  "luck",
+  "luckDown",
+  "morale",
+  "moraleDown",
 ] as const;
 export type SpellEffect = (typeof SPELL_EFFECTS)[number];
 
@@ -64,6 +75,10 @@ export interface SpellDefinition {
   readonly target: "enemy" | "ally" | "any";
   /** Для `spellDamagePercent`: от какой школы защищает. */
   readonly protects?: SpellSchool | undefined;
+  /** Действует до конца боя и складывается с собой («Разрушающий луч»). */
+  readonly cumulative?: boolean | undefined;
+  /** Не действует на катапульту и башни («Взрыв»). */
+  readonly spareMachines?: boolean | undefined;
   /** Заклинания, действие которых это заклинание снимает. */
   readonly counters: readonly string[];
 }
