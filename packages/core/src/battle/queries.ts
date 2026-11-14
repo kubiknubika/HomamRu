@@ -2,6 +2,7 @@
  * Запросы к состоянию боя: кто где стоит, куда можно пойти. Ничего не меняют.
  * Спецификация: docs/mechanics/12-battle-actions.md.
  */
+import { speedOf } from "./effects.ts";
 import { BATTLE_HEIGHT, BATTLE_WIDTH, cellIndex, distance, neighbours, sameCell } from "./hex.ts";
 import type { Cell } from "./hex.ts";
 import { isMachine, isMoat, siegeBlocked } from "./siege.ts";
@@ -55,7 +56,7 @@ export function reachableCells(state: BattleField, stack: StackState): Map<numbe
     for (let row = 0; row < BATTLE_HEIGHT; row += 1) {
       for (let col = 0; col < BATTLE_WIDTH; col += 1) {
         const cell = { col, row };
-        if (!blocked.has(cellIndex(cell)) && distance(stack, cell) <= stack.creature.speed) {
+        if (!blocked.has(cellIndex(cell)) && distance(stack, cell) <= speedOf(stack)) {
           reachable.set(cellIndex(cell), cell);
         }
       }
@@ -64,7 +65,7 @@ export function reachableCells(state: BattleField, stack: StackState): Map<numbe
   }
   // Поиск в ширину: волна за волной, не дальше скорости.
   let wave: Cell[] = [{ col: stack.col, row: stack.row }];
-  for (let step = 0; step < stack.creature.speed; step += 1) {
+  for (let step = 0; step < speedOf(stack); step += 1) {
     const next: Cell[] = [];
     for (const cell of wave) {
       // Вошедший в ров дальше не идёт; стоящий во рву с начала хода выходит свободно.

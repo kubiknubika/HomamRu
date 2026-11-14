@@ -14,6 +14,7 @@ import {
   parseCreatureFile,
   parseDefaultsFile,
   parseHeroesFile,
+  parseSpellsFile,
   parseMapFile,
   parseScenarioFile,
 } from "@homamru/data";
@@ -29,6 +30,7 @@ const BATTLES_DIR = join(ROOT, "data/battles");
 const CREATURES_DIR = join(ROOT, "data/creatures");
 const BUILDINGS_FILE = join(ROOT, "data/buildings.yaml");
 const HEROES_FILE = join(ROOT, "data/heroes.yaml");
+const SPELLS_FILE = join(ROOT, "data/spells.yaml");
 const DEFAULTS_FILE = join(ROOT, "data/defaults.yaml");
 
 function fromRoot(path: string): string {
@@ -71,7 +73,8 @@ export function loadBuildings(): BuildingDefinition[] {
 /** Контент игры целиком и начальные значения для старого сохранения. */
 export function loadDefaults(): SaveDefaults {
   const heroes = unwrap(parseHeroesFile(fromRoot(HEROES_FILE), readFileSync(HEROES_FILE, "utf8")));
-  const content = { creatures: loadCreatures(), buildings: loadBuildings(), heroes };
+  const spells = unwrap(parseSpellsFile(fromRoot(SPELLS_FILE), readFileSync(SPELLS_FILE, "utf8")));
+  const content = { creatures: loadCreatures(), buildings: loadBuildings(), heroes, spells };
   const text = readFileSync(DEFAULTS_FILE, "utf8");
   return unwrap(parseDefaultsFile(fromRoot(DEFAULTS_FILE), text, content));
 }

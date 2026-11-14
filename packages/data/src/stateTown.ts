@@ -2,16 +2,24 @@
  * Чтение города и зданий из сохранения — терпимо, как и всё состояние.
  * Правила: docs/mechanics/04-save.md, «Сохранения других версий».
  */
-import type { ArmyStack, BuildingDefinition, CreatureDefinition, TownState } from "@homamru/core";
+import type {
+  ArmyStack,
+  BuildingDefinition,
+  CreatureDefinition,
+  SpellDefinition,
+  TownState,
+} from "@homamru/core";
 import { z } from "zod";
 import { buildingSchema, savedCreatureSchema } from "./battle.ts";
 import type { SaveDefaults } from "./defaults.ts";
+import { defaultGuild, readSpellIds } from "./spells.ts";
 
 const stackSchema = z.object({ creature: z.string(), count: z.int().min(1) });
 
-interface LooseTown extends Omit<TownState, "available" | "garrison"> {
+interface LooseTown extends Omit<TownState, "available" | "garrison" | "spells"> {
   readonly available: readonly unknown[];
   readonly garrison: readonly unknown[];
+  readonly spells?: unknown;
 }
 
 function readable<S extends z.ZodType>(items: readonly unknown[], schema: S): z.infer<S>[] {
@@ -82,6 +90,7 @@ export function readTown(
   town: LooseTown,
   buildings: readonly BuildingDefinition[],
   known: ReadonlySet<string>,
+  spells: readonly SpellDefinition[],
 ): TownState {
   const built = [...new Set(town.buildings)].filter((id) =>
     buildings.some((building) => building.id === id),
@@ -97,5 +106,6 @@ export function readTown(
     buildings: built,
     available: readStacks(town.available, dwellers),
     garrison: readStacks(town.garrison, known),
+    spells: readSpellIds(town.spells, spells) ?? defaultGuild(spells),
   };
 }

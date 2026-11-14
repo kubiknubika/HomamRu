@@ -27,6 +27,9 @@ export function battleStepCommand(step: BattleScenarioStep, side: 0 | 1): Battle
   if ("shoot" in step) {
     return { type: "battleShoot", side, target: step.shoot };
   }
+  if ("cast" in step) {
+    return { type: "battleCast", side, spell: step.cast.spell, target: step.cast.target };
+  }
   if ("wait" in step) {
     return { type: "battleWait", side };
   }
@@ -47,6 +50,8 @@ export function describeBattleCommand(command: BattleCommand): string {
       return "защищаться";
     case "battleFlee":
       return "бежать";
+    case "battleCast":
+      return `колдовать «${command.spell}» на ${command.target}`;
   }
 }
 

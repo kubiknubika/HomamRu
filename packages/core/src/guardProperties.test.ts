@@ -99,7 +99,11 @@ function stateViolations(state: GameState): string[] {
     return broken;
   }
   check(hero.level === levelOf(hero.experience), "уровень не по опыту");
-  check(hero.attack + hero.defense === hero.level - 1, "атака плюс защита не по уровню");
+  check(
+    hero.attack + hero.defense + hero.spellPower + hero.knowledge === hero.level + 1,
+    "сумма характеристик не по уровню",
+  );
+  check(hero.mana >= 0, "мана меньше нуля");
   check(hero.army.length >= 1 && hero.army.length <= 7, `отрядов в армии ${hero.army.length}`);
   check(
     hero.army.every((stack) => stack.count >= 1),

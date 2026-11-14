@@ -26,9 +26,11 @@ import type {
   MapBattle,
   ObjectState,
   Position,
+  SpellDefinition,
 } from "@homamru/core";
 import { z } from "zod";
 import type { SaveDefaults } from "./defaults.ts";
+import { readHeroMagic, readSpells } from "./spells.ts";
 import {
   armyStackSchema,
   cellSchema,
@@ -111,6 +113,7 @@ function readObjects(
   terrain: readonly string[],
   known: ReadonlySet<string>,
   buildings: readonly BuildingDefinition[],
+  spells: readonly SpellDefinition[],
 ): ObjectState[] {
   const taken = new Set<string>();
   const objects: ObjectState[] = [];
@@ -123,7 +126,7 @@ function readObjects(
     }
     taken.add(key);
     if (object.type === "town") {
-      objects.push(readTown(object, buildings, known));
+      objects.push(readTown(object, buildings, known, spells));
       continue;
     }
     if (object.type === "guard") {
@@ -146,6 +149,7 @@ interface HeroContext {
   readonly known: ReadonlySet<string>;
   readonly defaults: SaveDefaults;
   readonly kinds: readonly HeroKind[];
+  readonly spells: readonly SpellDefinition[];
 }
 
 function readHero(hero: LooseHero, index: number, context: HeroContext): HeroState {
@@ -163,6 +167,7 @@ function readHero(hero: LooseHero, index: number, context: HeroContext): HeroSta
     movement: hero.movement,
     attack: hero.attack,
     defense: hero.defense,
+    ...readHeroMagic(hero, context.spells),
     army: readArmy(hero.army, context.known, context.defaults),
     experience: hero.experience,
     // Уровень всегда считается по опыту.
@@ -240,10 +245,11 @@ function finishState(loose: LooseState, defaults: SaveDefaults): GameState | nul
       : Array.from({ length: count }, () => NO_HERO);
   const kinds = readHeroKinds(loose.heroKinds, defaults);
   const rules = readTavernRules(loose.tavern, known, defaults);
-  const context = { terrain, starts, land, known, defaults, kinds };
+  const spells = readSpells(loose.spells, defaults.spells);
+  const context = { terrain, starts, land, known, defaults, kinds, spells };
   const heroes = listed.map((hero, index) => readHero(hero, index, context));
   const buildings = readBuildings(loose.buildings, defaults);
-  const objects = readObjects(loose.objects, terrain, known, buildings);
+  const objects = readObjects(loose.objects, terrain, known, buildings, spells);
   // Игроков столько, сколько нужно героям и шахтам, но не меньше одного и не больше предела.
   const owners = [
     ...heroes.map((hero) => hero.owner),
@@ -290,6 +296,7 @@ function finishState(loose: LooseState, defaults: SaveDefaults): GameState | nul
     creatures,
     buildings,
     heroKinds: kinds,
+    spells,
     tavern: rules,
     opponent: readOpponentRules(loose.opponent, buildings, defaults),
     battle: readBattle(loose.battle, heroes, objects, creatures),

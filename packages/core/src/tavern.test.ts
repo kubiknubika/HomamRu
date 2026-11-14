@@ -138,6 +138,12 @@ describe("наём героя", () => {
         movement: 1000,
         attack: kind?.attack,
         defense: kind?.defense,
+        spellPower: 1,
+        knowledge: 1,
+        // Мана полная: знание × 10. Книги у нанятого нет.
+        mana: 10,
+        book: false,
+        spells: [],
         army: offer?.army,
         experience: 0,
         level: 1,

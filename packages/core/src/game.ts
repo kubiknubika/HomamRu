@@ -3,6 +3,7 @@
  */
 import { mergeArmy } from "./army.ts";
 import { DAILY_MOVEMENT, heroIdOf } from "./heroIds.ts";
+import { maxMana, withGuildSpells } from "./magic.ts";
 import { validateMap } from "./map.ts";
 import type { MapError } from "./map.ts";
 import { addResources, createObjects, NO_RESOURCES } from "./objects.ts";
@@ -10,8 +11,25 @@ import { createRng } from "./rng.ts";
 import { STATE_VERSION } from "./types.ts";
 import { stockTown } from "./town.ts";
 import { refreshTavern } from "./tavern.ts";
-import type { GameContent } from "./tavernTypes.ts";
-import type { GameState, MapDefinition } from "./types.ts";
+import type { GameContent, HeroKind } from "./tavernTypes.ts";
+import type { GameState, HeroState, MapDefinition } from "./types.ts";
+
+type HeroOnMap = MapDefinition["players"][number]["hero"];
+
+/** Магия героя в начале партии: числа из карты важнее чисел из списка героев; мана полная. */
+function magicOf(
+  hero: HeroOnMap,
+  kind: HeroKind | undefined,
+): Pick<HeroState, "spellPower" | "knowledge" | "mana" | "book" | "spells"> {
+  const knowledge = hero.knowledge ?? kind?.knowledge ?? 0;
+  return {
+    spellPower: hero.spellPower ?? kind?.spellPower ?? 0,
+    knowledge,
+    mana: maxMana({ knowledge }),
+    book: hero.book ?? false,
+    spells: [...(hero.spells ?? [])],
+  };
+}
 
 export { DAILY_MOVEMENT, heroIdOf } from "./heroIds.ts";
 
@@ -26,7 +44,14 @@ export function createGame(
   content: GameContent,
 ): CreateGameResult {
   const { creatures, buildings } = content;
-  const errors = validateMap(map, creatures, buildings, content.heroes);
+  const errors = [...validateMap(map, creatures, buildings, content.heroes)];
+  for (const [index, player] of map.players.entries()) {
+    for (const id of player.hero.spells ?? []) {
+      if (!content.spells.some((spell) => spell.id === id)) {
+        errors.push({ field: `players.${index}.hero.spells`, message: `Заклинания «${id}» нет.` });
+      }
+    }
+  }
   if (errors.length > 0) {
     return { ok: false, errors };
   }
@@ -65,6 +90,7 @@ export function createGame(
         // Числа из карты важнее чисел из списка героев.
         attack: player.hero.attack ?? kind?.attack ?? 0,
         defense: player.hero.defense ?? kind?.defense ?? 0,
+        ...magicOf(player.hero, kind),
         // Один отряд на вид существ: одинаковые сливаются (31-recruitment.md).
         army: mergeArmy(player.hero.army),
         experience: 0,
@@ -77,6 +103,7 @@ export function createGame(
     creatures: creatures.map((creature) => ({ ...creature })),
     buildings: buildings.map((building) => ({ ...building })),
     heroKinds: content.heroes.map((kind) => ({ ...kind })),
+    spells: content.spells.map((spell) => ({ ...spell })),
     tavern: { price: content.tavern.price, army: content.tavern.army.map((rule) => ({ ...rule })) },
     opponent: {
       advantagePercent: content.opponent.advantagePercent,
@@ -95,5 +122,6 @@ export function createGame(
   for (const player of ready.players) {
     ready = refreshTavern(ready, player.id, []);
   }
-  return { ok: true, state: ready };
+  // Набор каждой гильдии магов решается в начале партии, после таверн (61-magic.md).
+  return { ok: true, state: withGuildSpells(ready) };
 }

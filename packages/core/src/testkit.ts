@@ -5,6 +5,7 @@ import type { GameContent, HeroKind, OpponentRules, TavernRules } from "./tavern
 import { CREATURES } from "./battle/testkit.ts";
 import { createGame, DAILY_MOVEMENT, heroIdOf } from "./game.ts";
 import { NO_RESOURCES } from "./objects.ts";
+import { SPELLS } from "./spellKit.ts";
 import { createRng } from "./rng.ts";
 import { STATE_VERSION } from "./types.ts";
 import type {
@@ -16,6 +17,7 @@ import type {
 } from "./types.ts";
 
 export { CREATURES } from "./battle/testkit.ts";
+export { spell, SPELLS } from "./spellKit.ts";
 
 export interface Picture {
   readonly state: GameState;
@@ -41,12 +43,12 @@ export const TEST_ARMY = [{ creature: "militia", count: 10 }];
 
 /** Герои для тестов: те же, что в data/heroes.yaml (32-hero-hire.md). */
 export const HEROES: readonly HeroKind[] = [
-  { id: "ratibor", name: "Ратибор", attack: 2, defense: 2 },
-  { id: "velena", name: "Велена", attack: 1, defense: 3 },
-  { id: "gorislav", name: "Горислав", attack: 3, defense: 1 },
-  { id: "milava", name: "Милава", attack: 2, defense: 2 },
-  { id: "svetozar", name: "Светозар", attack: 3, defense: 1 },
-  { id: "zhdana", name: "Ждана", attack: 1, defense: 3 },
+  { id: "ratibor", name: "Ратибор", attack: 2, defense: 2, spellPower: 1, knowledge: 1 },
+  { id: "velena", name: "Велена", attack: 1, defense: 3, spellPower: 1, knowledge: 1 },
+  { id: "gorislav", name: "Горислав", attack: 3, defense: 1, spellPower: 1, knowledge: 1 },
+  { id: "milava", name: "Милава", attack: 2, defense: 2, spellPower: 1, knowledge: 1 },
+  { id: "svetozar", name: "Светозар", attack: 3, defense: 1, spellPower: 1, knowledge: 1 },
+  { id: "zhdana", name: "Ждана", attack: 1, defense: 3, spellPower: 1, knowledge: 1 },
 ];
 
 /** Правила таверны для тестов: те же, что в data/defaults.yaml. */
@@ -95,6 +97,13 @@ export const BUILDINGS: readonly BuildingDefinition[] = [
     growthPercent: 100,
   },
   { id: "smithy", name: "Кузница", cost: { gold: 1000, wood: 5 }, requires: [] },
+  {
+    id: "mage-guild",
+    name: "Гильдия магов",
+    cost: { gold: 2000, wood: 5, ore: 5 },
+    requires: [],
+    mageGuild: 1,
+  },
   {
     id: "militia-yard",
     name: "Двор ополченцев",
@@ -166,6 +175,11 @@ export function fromPicture(rows: readonly string[]): Picture {
       movement: DAILY_MOVEMENT,
       attack: 0,
       defense: 0,
+      spellPower: 0,
+      knowledge: 0,
+      mana: 0,
+      book: false,
+      spells: [],
       army: TEST_ARMY,
       experience: 0,
       level: 1,
@@ -176,6 +190,7 @@ export function fromPicture(rows: readonly string[]): Picture {
     creatures: CREATURES,
     buildings: BUILDINGS,
     heroKinds: HEROES,
+    spells: SPELLS,
     tavern: TAVERN,
     opponent: OPPONENT,
     battle: null,
@@ -196,6 +211,7 @@ export const CONTENT: GameContent = {
   creatures: CREATURES,
   buildings: BUILDINGS,
   heroes: HEROES,
+  spells: SPELLS,
   tavern: TAVERN,
   opponent: OPPONENT,
 };

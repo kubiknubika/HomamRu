@@ -2,9 +2,11 @@
  * Очерёдность ходов, раунды, боевой дух, конец боя.
  * Спецификация: docs/mechanics/11-battle-turns.md.
  */
+import { startSpellRound } from "./cast.ts";
 import { BAD_DICE } from "./damage.ts";
 import { rollChance } from "./draft.ts";
 import type { BattleDraft } from "./draft.ts";
+import { speedOf } from "./effects.ts";
 import { isMachine } from "./siege.ts";
 import { siegePhase } from "./siegeRound.ts";
 import type { BattleEndReason, BattleSide, StackState, StackTurn } from "./types.ts";
@@ -28,8 +30,8 @@ function goesBefore(
   other: StackState,
   fastestFirst: boolean,
 ): boolean {
-  const speed = stack.creature.speed;
-  const otherSpeed = other.creature.speed;
+  const speed = speedOf(stack);
+  const otherSpeed = speedOf(other);
   if (speed !== otherSpeed) {
     return fastestFirst ? speed > otherSpeed : speed < otherSpeed;
   }
@@ -70,6 +72,7 @@ function startRound(draft: BattleDraft): void {
     stack.retaliated = false;
   }
   draft.events.push({ type: "roundStarted", round: draft.round });
+  startSpellRound(draft);
 }
 
 /**

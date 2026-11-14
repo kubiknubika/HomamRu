@@ -91,6 +91,11 @@ function removeGuard(state: GameState, guardId: string, hero: HeroState, events:
   return { ...state, objects };
 }
 
+/** Мана героя после боя: что осталось у него в бою. */
+function manaLeft(battle: MapBattle, side: 0 | 1, hero: HeroState): number {
+  return battle.state.sides[side].hero?.mana ?? hero.mana;
+}
+
 /** Нападающий победил: обороняющегося нет, город захвачен, герой получает опыт. */
 function finishWon(
   initial: GameState,
@@ -101,7 +106,11 @@ function finishWon(
   const fled = battle.state.result?.reason === "fled";
   const town = townById(initial, battle.townId);
   let state = initial;
-  let hero: HeroState = { ...attacker, army: survivors(battle.state, 0, attacker.army) };
+  let hero: HeroState = {
+    ...attacker,
+    army: survivors(battle.state, 0, attacker.army),
+    mana: manaLeft(battle, 0, attacker),
+  };
   let experience = killExperience(battle.state, 1);
   if (battle.guardId !== null) {
     events.push({ type: "guardDefeated", objectId: battle.guardId });
@@ -142,7 +151,11 @@ function finishLost(
   let state = withoutHero(initial, battle.heroId);
   const defender = heroOf(state, battle.defenderHeroId);
   if (defender !== undefined) {
-    const kept = { ...defender, army: survivors(battle.state, 1, defender.army) };
+    const kept = {
+      ...defender,
+      army: survivors(battle.state, 1, defender.army),
+      mana: manaLeft(battle, 1, defender),
+    };
     const experience =
       killExperience(battle.state, 0) + (reason === "fled" ? 0 : HERO_DEFEATED_EXPERIENCE);
     state = reward(withHero(state, kept), kept, experience, events);

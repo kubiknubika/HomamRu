@@ -27,6 +27,8 @@ const stepSchema = z.union([
     hireHero: z.strictObject({ town: z.string(), offer: z.number() }),
     expectError,
   }),
+  // Покупка книги заклинаний (61-magic.md).
+  z.strictObject({ buyBook: z.strictObject({ town: z.string() }), expectError }),
   z.strictObject({
     transfer: z.strictObject({
       town: z.string(),
@@ -66,8 +68,12 @@ const scenarioSchema = z.strictObject({
               movement: z.int().optional(),
               experience: z.int().optional(),
               level: z.int().optional(),
-              /** Атака плюс защита: что именно выросло с уровнем, решает случай. */
+              /** Атака, защита, сила магии и знание в сумме: что выросло с уровнем, решает случай. */
               skills: z.int().optional(),
+              mana: z.int().optional(),
+              book: z.boolean().optional(),
+              /** Выученные заклинания по порядку. */
+              spells: z.array(z.string()).optional(),
               army: z.array(armyStackSchema).optional(),
             }),
           ]),

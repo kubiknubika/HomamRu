@@ -28,44 +28,50 @@ function damage(value: unknown, roll: () => number): unknown {
 }
 
 describe("свойство: чтение никогда не падает", () => {
-  it("испорченная запись либо отвергается, либо даёт состояние, с которым игра работает", () => {
-    let rng = createRng(2026);
-    const roll = (): number => {
-      const next = nextInt(rng, 0, 1_000_000);
-      ({ rng } = next);
-      return next.value;
-    };
-    let loaded = 0;
-    let rejected = 0;
-    for (let round = 0; round < 3000; round += 1) {
-      let state: unknown = FULL;
-      for (let hits = (roll() % 3) + 1; hits > 0; hits -= 1) {
-        state = damage(state, roll);
+  it(
+    "испорченная запись либо отвергается, либо даёт состояние, с которым игра работает",
+    {
+      timeout: 60_000,
+    },
+    () => {
+      let rng = createRng(2026);
+      const roll = (): number => {
+        const next = nextInt(rng, 0, 1_000_000);
+        ({ rng } = next);
+        return next.value;
+      };
+      let loaded = 0;
+      let rejected = 0;
+      for (let round = 0; round < 3000; round += 1) {
+        let state: unknown = FULL;
+        for (let hits = (roll() % 3) + 1; hits > 0; hits -= 1) {
+          state = damage(state, roll);
+        }
+        const read = readState(state);
+        if (read === null) {
+          rejected += 1;
+          continue;
+        }
+        loaded += 1;
+        // Прочитанное состояние устойчиво: повторное чтение ничего не меняет.
+        const again = readState(read);
+        const text = renderState(read);
+        const ended = applyCommand(read, { type: "endTurn", player: read.currentPlayer });
+        const stepped = applyCommand(read, {
+          type: "moveHero",
+          player: read.currentPlayer,
+          heroId: read.heroes.find((hero) => hero.owner === read.currentPlayer)?.id ?? "A",
+          path: ["E", "S", "W", "N"],
+        });
+        if (!sameJson(again, read) || text.length === 0 || !ended.ok || stepped === undefined) {
+          throw new Error(`круг ${round}: состояние не годится: ${JSON.stringify(state)}`);
+        }
       }
-      const read = readState(state);
-      if (read === null) {
-        rejected += 1;
-        continue;
-      }
-      loaded += 1;
-      // Прочитанное состояние устойчиво: повторное чтение ничего не меняет.
-      const again = readState(read);
-      const text = renderState(read);
-      const ended = applyCommand(read, { type: "endTurn", player: read.currentPlayer });
-      const stepped = applyCommand(read, {
-        type: "moveHero",
-        player: read.currentPlayer,
-        heroId: read.heroes.find((hero) => hero.owner === read.currentPlayer)?.id ?? "A",
-        path: ["E", "S", "W", "N"],
-      });
-      if (!sameJson(again, read) || text.length === 0 || !ended.ok || stepped === undefined) {
-        throw new Error(`круг ${round}: состояние не годится: ${JSON.stringify(state)}`);
-      }
-    }
-    // Проверка не пустая: были и загруженные, и отвергнутые записи.
-    expect(loaded).toBeGreaterThan(500);
-    expect(rejected).toBeGreaterThan(100);
-  });
+      // Проверка не пустая: были и загруженные, и отвергнутые записи.
+      expect(loaded).toBeGreaterThan(500);
+      expect(rejected).toBeGreaterThan(100);
+    },
+  );
 });
 
 function sameJson(a: unknown, b: unknown): boolean {

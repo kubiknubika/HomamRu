@@ -41,6 +41,10 @@ const heroSchema = z.strictObject({
   y: z.int(),
   attack: z.int().optional(),
   defense: z.int().optional(),
+  spellPower: z.int().min(0).optional(),
+  knowledge: z.int().min(0).optional(),
+  book: z.boolean().optional(),
+  spells: z.array(z.string()).optional(),
   army: z.array(armyStackSchema),
 });
 

@@ -24,7 +24,12 @@ function checkHero(hero: HeroState, want: HeroWant): string[] {
     ["ожидался запас хода", want.movement, hero.movement],
     ["ожидался опыт", want.experience, hero.experience],
     ["ожидался уровень", want.level, hero.level],
-    ["ожидалась сумма атаки и защиты", want.skills, hero.attack + hero.defense],
+    [
+      "ожидалась сумма атаки, защиты, силы магии и знания",
+      want.skills,
+      hero.attack + hero.defense + hero.spellPower + hero.knowledge,
+    ],
+    ["ожидалась мана", want.mana, hero.mana],
   ] as const;
   for (const [name, wanted, got] of numbers) {
     if (wanted !== undefined && wanted !== got) {
@@ -33,6 +38,15 @@ function checkHero(hero: HeroState, want: HeroWant): string[] {
   }
   if (want.kind !== undefined && want.kind !== hero.kind) {
     failures.push(`Герой ${hero.id}: ожидался герой ${want.kind}, получен ${hero.kind}.`);
+  }
+  if (want.book !== undefined && want.book !== hero.book) {
+    failures.push(`Герой ${hero.id}: ожидалась книга заклинаний — ${want.book ? "есть" : "нет"}.`);
+  }
+  const known = hero.spells.join(", ") || "пусто";
+  if (want.spells !== undefined && (want.spells.join(", ") || "пусто") !== known) {
+    failures.push(
+      `Герой ${hero.id}: ожидались заклинания ${want.spells.join(", ") || "пусто"}, получены ${known}.`,
+    );
   }
   if (want.army !== undefined && armyText(want.army) !== armyText(hero.army)) {
     failures.push(

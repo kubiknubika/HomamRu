@@ -5,6 +5,7 @@ import {
   parseCreatureFile,
   parseDefaultsFile,
   parseHeroesFile,
+  parseSpellsFile,
 } from "@homamru/data";
 import type { ContentError, SaveDefaults } from "@homamru/data";
 import buildingsText from "../../../../data/buildings.yaml?raw";
@@ -13,9 +14,11 @@ import falconText from "../../../../data/creatures/falcon.json?raw";
 import militiaText from "../../../../data/creatures/militia.json?raw";
 import slingerText from "../../../../data/creatures/slinger.json?raw";
 import heroesText from "../../../../data/heroes.yaml?raw";
+import spellsText from "../../../../data/spells.yaml?raw";
 import defaultsText from "../../../../data/defaults.yaml?raw";
 
 const DEFAULTS_FILE = "data/defaults.yaml";
+const SPELLS_FILE = "data/spells.yaml";
 
 const BUILDINGS_FILE = "data/buildings.yaml";
 const HEROES_FILE = "data/heroes.yaml";
@@ -45,13 +48,20 @@ export function loadDefaults(): SaveDefaults {
   const creatures = loadCreatures();
   const buildings = parseBuildingsFile(BUILDINGS_FILE, buildingsText, creatures);
   const heroes = parseHeroesFile(HEROES_FILE, heroesText);
-  if (!buildings.ok || !heroes.ok) {
+  const spells = parseSpellsFile(SPELLS_FILE, spellsText);
+  if (!buildings.ok || !heroes.ok || !spells.ok) {
     return failContent([
       ...(buildings.ok ? [] : buildings.errors),
       ...(heroes.ok ? [] : heroes.errors),
+      ...(spells.ok ? [] : spells.errors),
     ]);
   }
-  const content = { creatures, buildings: buildings.value, heroes: heroes.value };
+  const content = {
+    creatures,
+    buildings: buildings.value,
+    heroes: heroes.value,
+    spells: spells.value,
+  };
   const parsed = parseDefaultsFile(DEFAULTS_FILE, defaultsText, content);
   return parsed.ok ? parsed.value : failContent(parsed.errors);
 }

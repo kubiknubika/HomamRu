@@ -117,6 +117,8 @@ describe("город в сохранении", () => {
       builtToday: false,
       available: [],
       garrison: [],
+      // Набор гильдии без жребия: заклинания с наибольшим шансом (04-save.md).
+      spells: ["magic-arrow", "shield", "dispel", "cure", "bless"],
     });
   });
 

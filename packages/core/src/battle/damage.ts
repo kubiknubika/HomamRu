@@ -3,6 +3,7 @@
  */
 import { nextInt } from "../rng.ts";
 import type { RngResult, RngState } from "../rng.ts";
+import { attackBonus, damagePercent, defenseBonus, fixedDamage } from "./effects.ts";
 import { distance } from "./hex.ts";
 import { hasWallPenalty, isMoat, MOAT_DEFENSE } from "./siege.ts";
 import type { BattleState, CreatureDefinition, StackState, StrikeKind } from "./types.ts";
@@ -27,7 +28,13 @@ export function rollBaseDamage(
   rng: RngState,
   creature: CreatureDefinition,
   count: number,
+  fixed: "max" | "min" | null = null,
 ): RngResult<number> {
+  if (fixed !== null) {
+    // «Благословение» и «Проклятие»: бросков нет.
+    const each = fixed === "max" ? creature.damageMax : creature.damageMin;
+    return { value: baseDamageOf(each * Math.min(count, MAX_ROLLS), count), rng };
+  }
   let current = rng;
   let sum = 0;
   for (let i = 0; i < Math.min(count, MAX_ROLLS); i += 1) {
@@ -41,6 +48,7 @@ export function rollBaseDamage(
 /**
  * Итоговый урон. Считается в целых числах; дробная часть отбрасывается один раз, в конце.
  * `halvings` — сколько раз урон делится пополам (стрелок в ближнем бою, дальний выстрел).
+ * `percent` — какая доля урона доходит до цели («Щит»).
  */
 export function computeDamage(
   base: number,
@@ -48,12 +56,13 @@ export function computeDamage(
   defense: number,
   lucky: boolean,
   halvings: number,
+  percent = 100,
 ): number {
   const bonusPoints = attack > defense ? Math.min(attack - defense, MAX_ATTACK_POINTS) : 0;
   const reductionPoints = defense > attack ? Math.min(defense - attack, MAX_DEFENSE_POINTS) : 0;
   // (1 + 5 % × очки + 100 % при удаче) = (20 + очки + 20) / 20; (1 − 2,5 % × очки) = (40 − очки) / 40.
   const numerator = base * (20 + bonusPoints + (lucky ? 20 : 0)) * (40 - reductionPoints);
-  return Math.max(1, Math.floor(numerator / (800 * 2 ** halvings)));
+  return Math.max(1, Math.floor((numerator * percent) / (800 * 2 ** halvings * 100)));
 }
 
 export interface Losses {
@@ -86,16 +95,17 @@ export function defendBonusOf(defense: number): number {
 /** Что нужно знать о бое, чтобы посчитать удар: герои сторон и осада. */
 type Combat = Pick<BattleState, "sides" | "siege">;
 
-/** Атака отряда с прибавкой героя. */
-export function attackOf(combat: Combat, stack: StackState): number {
-  return stack.creature.attack + (combat.sides[stack.side].hero?.attack ?? 0);
+/** Атака отряда с прибавками героя и заклинаний; «Жажда крови» — только в ближнем бою. */
+export function attackOf(combat: Combat, stack: StackState, kind: StrikeKind): number {
+  const hero = combat.sides[stack.side].hero?.attack ?? 0;
+  return stack.creature.attack + hero + attackBonus(stack, kind);
 }
 
-/** Защита отряда с прибавками героя и «защищаться»; во рву — меньше на 3. */
+/** Защита отряда с прибавками героя, заклинаний и «защищаться»; во рву — меньше на 3. */
 export function defenseOf(combat: Combat, stack: StackState): number {
   const moat = isMoat(combat.siege, stack) ? MOAT_DEFENSE : 0;
   const hero = combat.sides[stack.side].hero?.defense ?? 0;
-  return stack.creature.defense + hero + stack.defendBonus - moat;
+  return stack.creature.defense + hero + defenseBonus(stack) + stack.defendBonus - moat;
 }
 
 /** Сколько раз урон делится пополам: стрелок в ближнем бою, выстрел дальше 10 клеток, выстрел через стену. */
@@ -123,11 +133,23 @@ export function damageRange(
   kind: StrikeKind,
 ): { readonly min: number; readonly max: number } {
   const rolls = Math.min(attacker.count, MAX_ROLLS);
-  const attack = attackOf(combat, attacker);
+  const attack = attackOf(combat, attacker, kind);
   const defense = defenseOf(combat, target);
   const halvings = halvingsOf(combat, kind, attacker, target);
+  const percent = damagePercent(target, kind);
   const { damageMin, damageMax } = attacker.creature;
+  const fixed = fixedDamage(attacker);
   const of = (roll: number): number =>
-    computeDamage(baseDamageOf(roll * rolls, attacker.count), attack, defense, false, halvings);
-  return { min: of(damageMin), max: of(damageMax) };
+    computeDamage(
+      baseDamageOf(roll * rolls, attacker.count),
+      attack,
+      defense,
+      false,
+      halvings,
+      percent,
+    );
+  return {
+    min: of(fixed === "max" ? damageMax : damageMin),
+    max: of(fixed === "min" ? damageMin : damageMax),
+  };
 }

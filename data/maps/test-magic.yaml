@@ -1,0 +1,27 @@
+# Проверочная карта магии этапа 7 (docs/mechanics/61-magic.md, 62-battle-spells.md).
+# У героя уже есть книга и два заклинания; рядом охранник, поодаль — свой город.
+id: test-magic
+name: Проверочная карта магии
+terrain:
+  - "........"
+  - "........"
+  - "........"
+  - "...##..."
+  - "........"
+  - "........"
+  - "........"
+  - "........"
+players:
+  - hero:
+      x: 0
+      y: 0
+      spellPower: 3
+      knowledge: 2
+      book: true
+      spells: [magic-arrow, bless]
+      army:
+        - { creature: falcon, count: 20 }
+    resources: { gold: 20000, wood: 20, ore: 20 }
+objects:
+  - { type: guard, x: 4, y: 0, creature: militia, count: 15 }
+  - { type: town, x: 1, y: 5, owner: 0, buildings: [tavern, fort, militia-yard] }

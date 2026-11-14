@@ -19,6 +19,8 @@ type Stage3Event = Extract<
       | "gameOver"
       | "experienceGained"
       | "levelGained"
+      | "bookBought"
+      | "spellsLearned"
       | "garrisonJoined"
       | "townCaptured"
       | "townlessCountdown"
@@ -27,7 +29,12 @@ type Stage3Event = Extract<
 >;
 
 const OUTCOME_NAMES = { won: "победа героя", lost: "герой разбит", fled: "герой бежал" } as const;
-const STAT_NAMES = { attack: "атака", defense: "защита" } as const;
+const STAT_NAMES = {
+  attack: "атака",
+  defense: "защита",
+  spellPower: "сила магии",
+  knowledge: "знание",
+} as const;
 
 const ELIMINATION_NAMES = {
   nothing: "нет ни героя, ни города",
@@ -78,6 +85,10 @@ export function formatBattleSideEvent(event: Stage3Event): string {
       return `Игрок ${event.player + 1} выбыл: ${ELIMINATION_NAMES[event.reason]}`;
     case "experienceGained":
       return `Герой ${event.heroId} получил опыт: +${event.amount}, всего ${event.total}`;
+    case "bookBought":
+      return `Герой ${event.heroId} купил книгу заклинаний в городе ${event.townId}: золото −${event.cost}`;
+    case "spellsLearned":
+      return `Герой ${event.heroId} выучил в городе ${event.townId}: ${event.spells.join(", ")}`;
     case "levelGained":
       return `Герой ${event.heroId} получил уровень ${event.level}: ${STAT_NAMES[event.stat]} +1`;
   }

@@ -27,6 +27,11 @@ const FRESH_HERO = {
   name: "Ратибор",
   attack: 2,
   defense: 2,
+  spellPower: 1,
+  knowledge: 1,
+  mana: 10,
+  book: false,
+  spells: [],
   army: TEST_ARMY,
   experience: 0,
   level: 1,
@@ -130,7 +135,7 @@ describe("создание партии", () => {
     expect(createGame(mapOf({ players }), 42, CONTENT)).toEqual({
       ok: true,
       state: {
-        version: 8,
+        version: 9,
         rng: { s: 42 },
         map: {
           id: "test",
@@ -171,6 +176,7 @@ describe("создание партии", () => {
         creatures: CREATURES,
         buildings: BUILDINGS,
         heroKinds: CONTENT.heroes,
+        spells: CONTENT.spells,
         tavern: CONTENT.tavern,
         opponent: CONTENT.opponent,
         battle: null,

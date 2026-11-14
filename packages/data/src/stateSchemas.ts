@@ -15,6 +15,7 @@ import {
 import type { BattleState, Command } from "@homamru/core";
 import { z } from "zod";
 import { savedCreatureSchema } from "./battle.ts";
+import { spellSchema } from "./spells.ts";
 
 /**
  * Начальные значения параметров состояния — те, что вписываются, когда в записи их нет.
@@ -29,6 +30,9 @@ export const DEFAULTS = {
   movement: DAILY_MOVEMENT,
   heroAttack: 0,
   heroDefense: 0,
+  heroSpellPower: 1,
+  heroKnowledge: 1,
+  heroBook: false,
   heroExperience: 0,
   mineOwner: null,
   day: 1,
@@ -105,6 +109,8 @@ export const objectSchema = z.discriminatedUnion("type", [
     builtToday: z.boolean().catch(false),
     available: z.array(z.unknown()).catch([]),
     garrison: z.array(z.unknown()).catch([]),
+    // Набор гильдии сверяется с заклинаниями партии при чтении; нет его — набор по умолчанию.
+    spells: z.unknown().optional(),
   }),
 ]);
 
@@ -124,6 +130,11 @@ export const NO_HERO = {
   movement: DEFAULTS.movement,
   attack: DEFAULTS.heroAttack,
   defense: DEFAULTS.heroDefense,
+  spellPower: DEFAULTS.heroSpellPower,
+  knowledge: DEFAULTS.heroKnowledge,
+  mana: undefined,
+  book: DEFAULTS.heroBook,
+  spells: [],
   experience: DEFAULTS.heroExperience,
   army: [],
 } as const;
@@ -138,6 +149,12 @@ export const heroSchema = z.object({
   movement: z.int().min(0).catch(DEFAULTS.movement),
   attack: z.int().min(0).catch(DEFAULTS.heroAttack),
   defense: z.int().min(0).catch(DEFAULTS.heroDefense),
+  spellPower: z.int().min(0).catch(DEFAULTS.heroSpellPower),
+  knowledge: z.int().min(0).catch(DEFAULTS.heroKnowledge),
+  // Маны нет в записи — запас полный.
+  mana: z.int().min(0).optional().catch(undefined),
+  book: z.boolean().catch(DEFAULTS.heroBook),
+  spells: z.unknown().optional(),
   experience: z.int().min(0).catch(DEFAULTS.heroExperience),
   army: z.array(z.unknown()).catch([]),
 });
@@ -171,6 +188,7 @@ export const looseStateSchema = z.object({
   creatures: z.array(z.unknown()).catch([]),
   buildings: z.array(z.unknown()).catch([]),
   heroKinds: z.unknown().optional(),
+  spells: z.unknown().optional(),
   tavern: z.unknown().optional(),
   opponent: z.unknown().optional(),
   battle: z.unknown().optional(),
@@ -184,9 +202,29 @@ const battleCellSchema = z.strictObject({ col: z.int(), row: z.int() });
 const battleSideSchema = z.union([z.literal(0), z.literal(1)]);
 
 const battleSideStateSchema = z.strictObject({
-  hero: z.strictObject({ attack: z.int(), defense: z.int() }).nullable(),
+  // В записях до этапа 7 магии в бою нет.
+  hero: z
+    .strictObject({
+      attack: z.int(),
+      defense: z.int(),
+      spellPower: z.int().min(0).default(0),
+      mana: z.int().min(0).default(0),
+      spells: z.array(spellSchema).default([]),
+    })
+    .nullable(),
   morale: z.int(),
   luck: z.int(),
+  cast: z.boolean().default(false),
+});
+
+const stackEffectSchema = z.strictObject({
+  spell: z.string(),
+  name: z.string(),
+  effect: spellSchema.shape.effect,
+  value: z.int(),
+  school: spellSchema.shape.schools.element.nullable(),
+  negative: z.boolean(),
+  rounds: z.int().min(1),
 });
 
 /** Состояние боя целиком. Описание полей: docs/mechanics/10-battle-field.md … 13. */
@@ -231,6 +269,7 @@ const battleStateSchema = z.strictObject({
       moraleUsed: z.boolean(),
       retaliated: z.boolean(),
       defendBonus: z.int(),
+      effects: z.array(stackEffectSchema).default([]),
     }),
   ),
   activeStack: z.string().nullable(),
@@ -283,6 +322,13 @@ export const commandSchema = z.discriminatedUnion("type", [
     from: z.enum(["garrison", "hero"]),
     creature: z.string(),
     count: z.number(),
+  }),
+  z.strictObject({ type: z.literal("buyBook"), player: z.int(), townId: z.string() }),
+  z.strictObject({
+    type: z.literal("battleCast"),
+    side: battleSideSchema,
+    spell: z.string(),
+    target: z.string(),
   }),
   z.strictObject({ type: z.literal("battleMove"), side: battleSideSchema, to: battleCellSchema }),
   z.strictObject({

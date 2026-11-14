@@ -115,6 +115,9 @@ export type {
   StackState,
 } from "./battle/types.ts";
 export { chooseBattleCommand } from "./battle/ai.ts";
+export { SPELL_EFFECTS, SPELL_SCHOOLS } from "./spells.ts";
+export type { SpellDefinition } from "./spells.ts";
+export { maxMana } from "./magic.ts";
 export { randomBattle, randomSiege, runAutoBattle } from "./battle/autobattle.ts";
 export { TOWNLESS_DAYS } from "./players.ts";
 export { townsOf } from "./opponentTown.ts";

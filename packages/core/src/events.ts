@@ -179,5 +179,17 @@ export type GameEvent =
       readonly type: "levelGained";
       readonly heroId: string;
       readonly level: number;
-      readonly stat: "attack" | "defense";
+      readonly stat: "attack" | "defense" | "spellPower" | "knowledge";
+    }
+  | {
+      readonly type: "bookBought";
+      readonly heroId: string;
+      readonly townId: string;
+      readonly cost: number;
+    }
+  | {
+      readonly type: "spellsLearned";
+      readonly heroId: string;
+      readonly townId: string;
+      readonly spells: readonly string[];
     };
