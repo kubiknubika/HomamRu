@@ -125,12 +125,68 @@ describe("компьютер в осаде", () => {
     expect(chooseBattleCommand(turnOf(breached, "a1"))?.type).toBe("battleMove");
   });
 
-  it("катапульту компьютер не трогает", () => {
-    const { state } = siege("fort", ["militia:1"], ["falcon:40"]);
-    const command = chooseBattleCommand(
-      turnOf(withStacks(state, { b1: { col: 1, row: 7 } }), "b1"),
+  it("катапульту компьютер бьёт, только когда больше ударить некого", () => {
+    const { state } = siege("fort", ["militia:1"], ["falcon:40", "militia:5"]);
+    // Обороняющийся без башен и стрелков стену не держит. Сокол достаёт и ополченца, и катапульту.
+    const near = turnOf(
+      withStacks(state, { b1: { col: 1, row: 6 }, a1: { col: 1, row: 5 } }),
+      "b1",
     );
-    expect(command).not.toMatchObject({ target: "ac" });
+    expect(chooseBattleCommand(near)).toMatchObject({ type: "battleAttack", target: "a1" });
+    // Ополченец далеко и за стеной не достать, катапульта рядом.
+    const far = turnOf(
+      withStacks(state, {
+        b1: { col: 1, row: 8 },
+        a1: { col: 13, row: 0 },
+        b2: { col: 14, row: 10 },
+      }),
+      "b1",
+    );
+    expect(chooseBattleCommand(far)).toMatchObject({ type: "battleAttack", target: "ac" });
+  });
+
+  it("башня стреляет по катапульте, только когда других целей нет", () => {
+    const { state } = siege("citadel", ["militia:400"], ["militia:5"]);
+    const shot = untilNextRound(state).find((event) => event.type === "towerShot");
+    expect(shot).toMatchObject({ targetId: "a1" });
+  });
+
+  it("осада встала — нападающий бежит: катапульта разбита, пешие за стену не попадут", () => {
+    const led = army(["militia:400"], { hero: { attack: 0, defense: 0 } });
+    const { state } = startBattle(led, army(["militia:5"]), {
+      siege: { fortification: "citadel", buildings: 0 },
+    });
+    const mine = turnOf(state, "a1");
+    expect(chooseBattleCommand(mine)).toEqual({ type: "battleDefend", side: 0 });
+    const lost = withStacks(mine, { ac: { count: 0 } });
+    expect(chooseBattleCommand(lost)).toEqual({ type: "battleFlee", side: 0 });
+    expect(chooseBattleCommand(withStacks(mine, { ac: { shots: 0 } }))?.type).toBe("battleFlee");
+    // Есть пролом — дорога есть, бежать незачем.
+    expect(chooseBattleCommand(withHealth(lost, { gate: 0 }))?.type).toBe("battleMove");
+    // Без героя бежать некому.
+    const alone = siege("citadel", ["militia:400"], ["militia:5"]).state;
+    expect(chooseBattleCommand(withStacks(turnOf(alone, "a1"), { ac: { count: 0 } }))?.type).toBe(
+      "battleDefend",
+    );
+  });
+
+  it("с летающими или стрелками нападающий без катапульты не бежит", () => {
+    const hero = { hero: { attack: 0, defense: 0 } };
+    const citadel = { siege: { fortification: "citadel", buildings: 0 } } as const;
+    const flying = startBattle(
+      army(["militia:40", "falcon:5"], hero),
+      army(["militia:5"]),
+      citadel,
+    ).state;
+    const gone = withStacks(turnOf(flying, "a1"), { ac: { count: 0 } });
+    expect(chooseBattleCommand(gone)).toEqual({ type: "battleDefend", side: 0 });
+    const shooting = startBattle(
+      army(["militia:40", "slinger:5"], hero),
+      army(["militia:5"]),
+      citadel,
+    ).state;
+    const still = withStacks(turnOf(shooting, "a1"), { ac: { count: 0 } });
+    expect(chooseBattleCommand(still)).toEqual({ type: "battleDefend", side: 0 });
   });
 
   it(`${SIEGES} осад двух компьютеров: заканчиваются, свойства не нарушены, побеждают обе стороны, повтор сходится`, () => {

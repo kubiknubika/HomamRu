@@ -177,6 +177,21 @@ function holdsWall(state: BattleState): boolean {
   );
 }
 
+/**
+ * Осада встала: катапульта разбита или отстрелялась, а у нападающего нет ни летающих,
+ * ни стрелков с выстрелами, ни пешей дороги к врагу. Тогда его герой бежит.
+ */
+function siegeStalled(state: BattleState, enemies: readonly StackState[]): boolean {
+  const mine = state.stacks.filter((stack) => stack.side === 0 && isAlive(stack));
+  const able = (stack: StackState): boolean =>
+    isMachine(stack)
+      ? stack.shots > 0
+      : stack.creature.flying ||
+        stack.shots > 0 ||
+        nearestEnemy(state, stack, enemies, true) !== undefined;
+  return state.sides[0].hero !== null && !mine.some(able);
+}
+
 /** Нападающий сошёл с моста: стоя на нём, он не даёт обороняющемуся открыть ворота и выйти. */
 function leaveBridge(state: BattleState, me: StackState): BattleCommand | undefined {
   if (!sameCell(me, GATE_BRIDGE)) {
@@ -192,7 +207,8 @@ function leaveBridge(state: BattleState, me: StackState): BattleCommand | undefi
  * Команда простого компьютера: стрелять → ударить → подойти → защищаться.
  * В осаде (50-siege.md): обороняющийся, пока ему есть чем стрелять, за стену не выходит;
  * пеший нападающий идёт, только когда до врага есть дорога; в ров зря никто не встаёт.
- * Катапульту компьютер не трогает. Случайных чисел не использует.
+ * Катапульту бьют, только когда больше некого. Нападающий бежит, когда осада встала.
+ * Случайных чисел не использует.
  * `undefined` — бой окончен, ходить некому.
  */
 export function chooseBattleCommand(state: BattleState): BattleCommand | undefined {
@@ -200,9 +216,10 @@ export function chooseBattleCommand(state: BattleState): BattleCommand | undefin
   if (state.result !== null || me === undefined) {
     return undefined;
   }
-  const enemies = state.stacks.filter(
-    (stack) => stack.side !== me.side && isAlive(stack) && !isMachine(stack),
-  );
+  const foes = state.stacks.filter((stack) => stack.side !== me.side && isAlive(stack));
+  const enemies = foes.filter((stack) => !isMachine(stack));
+  // Катапульта — цель последней очереди: по ней бьют, когда больше ударить некого.
+  const machines = foes.filter((stack) => isMachine(stack));
   const defend: BattleCommand = { type: "battleDefend", side: me.side };
   const shot = chooseShot(state, me, enemies);
   if (state.siege === null || shot !== undefined) {
@@ -217,11 +234,15 @@ export function chooseBattleCommand(state: BattleState): BattleCommand | undefin
     // Бьёт только тех, до кого дотягивается, не выходя за стену и не открывая ворот.
     return chooseAttack(state, me, enemies, behindWall) ?? defend;
   }
+  if (me.side === 0 && siegeStalled(state, enemies)) {
+    return { type: "battleFlee", side: 0 };
+  }
   // Пешему нападающему ров по дороге в пролом не помеха; остальные в ров не встают.
   const onFoot = me.side === 0 && !me.creature.flying;
   const dry: Allowed = (cell) => onFoot || !isMoat(state.siege, cell);
   return (
     chooseAttack(state, me, enemies, dry) ??
+    chooseAttack(state, me, machines, dry) ??
     chooseApproach(state, me, enemies, dry, onFoot) ??
     (onFoot ? leaveBridge(state, me) : undefined) ??
     defend

@@ -103,12 +103,13 @@ function shotValue(stack: StackState, minDamage: number): number {
 }
 
 /**
- * Цель башни: сначала тот, кто на следующем ходу сможет выстрелить или ударить;
+ * Цель башни: катапульта — в последнюю очередь; сначала тот, кто на следующем ходу сможет выстрелить или ударить;
  * из равных — тот, кто внутри стен; из равных — тот, по кому выстрел ценнее; затем по месту в армии.
  */
 function towerTarget(draft: BattleDraft, minDamage: number): StackState | undefined {
   const defenders = draft.stacks.filter((stack) => stack.side === 1 && stack.count > 0);
   const keyOf = (stack: StackState): readonly number[] => [
+    isMachine(stack) ? 0 : 1,
     canShoot(draft, stack) ||
     defenders.some((defender) => attackCells(draft, stack, defender).length > 0)
       ? 1
@@ -119,7 +120,7 @@ function towerTarget(draft: BattleDraft, minDamage: number): StackState | undefi
   ];
   let best: { readonly stack: StackState; readonly key: readonly number[] } | undefined;
   for (const stack of draft.stacks) {
-    if (stack.side !== 0 || stack.count === 0 || isMachine(stack)) {
+    if (stack.side !== 0 || stack.count === 0) {
       continue;
     }
     const key = keyOf(stack);
