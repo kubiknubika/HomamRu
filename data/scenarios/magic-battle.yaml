@@ -25,7 +25,8 @@ expect:
   battle: false
   outcome: none
   heroes:
-    # Мана: 20 − 5 − 5. Опыт: 15 ополченцев × 12 здоровья.
-    A: { experience: 180, mana: 10, book: true, spells: [magic-arrow, bless] }
+    # Мана: 20 − 5 − 5 и ещё − 5: бой доигрывает компьютер (fight), а он тоже колдует.
+    # Опыт: 15 ополченцев × 12 здоровья.
+    A: { experience: 180, mana: 5, book: true, spells: [magic-arrow, bless] }
   objects:
     o1: absent

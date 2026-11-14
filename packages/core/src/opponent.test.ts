@@ -62,11 +62,11 @@ const guard = (x: number, y: number, creature: string, count: number): MapObject
 
 describe("город компьютера", () => {
   it("строит следующее здание по списку, нанимает на остаток, золото на стройку не тратит", () => {
-    // 3300 золота: ратуша 2500; следующее — стрельбище (1000, но дерева нет): из 800 отложено
-    // 1000 — нанимать не на что.
+    // 3300 золота: ратуша 2500; следующее — гильдия магов (2000, но дерева и руды нет):
+    // 800 меньше отложенных 2000 — нанимать не на что.
     expect(turn(withResources(alone([HOME]), 3300, 0, 0)).town).toEqual(["build o1 town-hall"]);
-    // 3800: после ратуши 1300, сверх отложенной 1000 — 300: пять ополченцев по 60.
-    expect(turn(withResources(alone([HOME]), 3800, 0, 0)).town).toEqual([
+    // 4800: после ратуши 2300, сверх отложенных 2000 — 300: пять ополченцев по 60.
+    expect(turn(withResources(alone([HOME]), 4800, 0, 0)).town).toEqual([
       "build o1 town-hall",
       "recruit o1 militia 5",
     ]);
@@ -84,7 +84,10 @@ describe("город компьютера", () => {
   });
 
   it("здание, для которого нет нужной постройки, список не задерживает", () => {
-    const town = { ...HOME, buildings: ["tavern", "town-hall"] } as MapObjectDefinition;
+    const town = {
+      ...HOME,
+      buildings: ["tavern", "town-hall", "mage-guild"],
+    } as MapObjectDefinition;
     // Двору нужен форт, стрельбищу — двор: первой строится кузница, которой ничего не нужно.
     expect(turn(withResources(alone([town]), 20_000, 50, 50)).town[0]).toBe("build o1 smithy");
   });

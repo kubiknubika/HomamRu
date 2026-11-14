@@ -5,6 +5,7 @@
  */
 import { guardBattleCommand } from "./battleAuto.ts";
 import { guardWatching } from "./guards.ts";
+import { BOOK_PRICE, learnableSpells } from "./magic.ts";
 import { accepted, armyValue, townCommand, townsOf } from "./opponentTown.ts";
 import { findPath } from "./pathfinding.ts";
 import type { PathResult } from "./pathfinding.ts";
@@ -75,6 +76,16 @@ function defencePath(state: GameState, hero: HeroState): FoundPath | undefined |
   return null;
 }
 
+/** Есть ли герою зачем идти в свой город: купить книгу (золота хватает) или выучить заклинания. */
+function teaches(state: GameState, hero: HeroState, town: TownState): boolean {
+  if (
+    learnableSpells(state, { ...hero, spells: hero.book ? hero.spells : [] }, town).length === 0
+  ) {
+    return false;
+  }
+  return hero.book || (state.players[hero.owner]?.resources.gold ?? 0) >= BOOK_PRICE;
+}
+
 /** Берётся ли объект без боя: кучка, не своя шахта, пустой чужой город — вне зоны охранника. */
 function isFree(state: GameState, hero: HeroState, object: ObjectState): boolean {
   if (object.type === "guard" || guardWatching(state, object.x, object.y) !== undefined) {
@@ -85,7 +96,8 @@ function isFree(state: GameState, hero: HeroState, object: ObjectState): boolean
     return true;
   }
   if (object.owner === hero.owner) {
-    return false;
+    // Свой город с гильдией — тоже цель: купить книгу или выучить новое (63-opponent-magic.md).
+    return object.type === "town" && !at(hero, object) && teaches(state, hero, object);
   }
   const empty = object.type === "mine" || object.garrison.length === 0;
   return empty && heroAt(state, object) === undefined;

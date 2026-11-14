@@ -2,6 +2,7 @@
  * Компьютерный игрок: что он делает в своих городах.
  * Спецификация: docs/mechanics/42-opponent.md, «Город».
  */
+import { BOOK_PRICE, guildLevel } from "./magic.ts";
 import { applyCommand } from "./commands.ts";
 import type { ArmyStack, Command, GameState, TownState } from "./types.ts";
 
@@ -98,9 +99,17 @@ function commandIn(state: GameState, town: TownState): Command | undefined {
       return build;
     }
   }
+  // Герой в городе с гильдией покупает книгу — раньше найма существ (63-opponent-magic.md).
+  const book = accepted(state, { type: "buyBook", ...base });
+  if (book !== undefined) {
+    return book;
+  }
   // Золото на следующее здание по списку на наём не тратится.
-  const reserve = state.buildings.find((candidate) => candidate.id === building)?.cost.gold ?? 0;
-  const recruit = recruitCommand(state, town, reserve);
+  const forBuilding =
+    state.buildings.find((candidate) => candidate.id === building)?.cost.gold ?? 0;
+  // И золото на книгу, пока герой без книги до гильдии не дошёл: иначе он ходил бы за ней зря.
+  const forBook = hero?.book === false && guildLevel(state, town) > 0 ? BOOK_PRICE : 0;
+  const recruit = recruitCommand(state, town, forBuilding + forBook);
   if (recruit !== undefined) {
     return recruit;
   }

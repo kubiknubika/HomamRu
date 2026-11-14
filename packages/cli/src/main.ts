@@ -6,6 +6,7 @@
  * pnpm run play --autobattle <сид> — один автобой целиком;
  * pnpm run play --sieges [число] — сводка осад двух компьютеров (по умолчанию 1000);
  * pnpm run play --siege <сид> — одна осада целиком;
+ * pnpm run play --mages [число] — сводка «маг против не мага» на равных армиях (по умолчанию 1000);
  * pnpm run play --rivals [число] [карта] — сводка партий «компьютер против компьютера»
  * (по умолчанию 100 партий на карте test-rivals; карта — имя файла из data/maps без расширения);
  * pnpm run play --rival <сид> [карта] — одна такая партия целиком.
@@ -13,6 +14,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { runAutoBattles, showAutoBattle } from "./autobattle.ts";
+import { runMageDuels } from "./mages.ts";
 import { runDump } from "./dump.ts";
 import {
   listScenarioFiles,
@@ -70,17 +72,25 @@ function main(args: readonly string[]): boolean {
   const [mode, value, mapId] = args;
   if (mode === "--autobattles") {
     const count = value === undefined ? DEFAULT_AUTO_BATTLES : Number(value);
-    return playAuto(runAutoBattles(count, loadCreatures()));
+    return playAuto(runAutoBattles(count, loadCreatures(), "field", loadDefaults().spells));
   }
   if (mode === "--autobattle") {
-    return playAuto(showAutoBattle(Number(value ?? 1), loadCreatures()));
+    return playAuto(
+      showAutoBattle(Number(value ?? 1), loadCreatures(), "field", loadDefaults().spells),
+    );
   }
   if (mode === "--sieges") {
     const count = value === undefined ? DEFAULT_AUTO_BATTLES : Number(value);
-    return playAuto(runAutoBattles(count, loadCreatures(), "siege"));
+    return playAuto(runAutoBattles(count, loadCreatures(), "siege", loadDefaults().spells));
   }
   if (mode === "--siege") {
-    return playAuto(showAutoBattle(Number(value ?? 1), loadCreatures(), "siege"));
+    return playAuto(
+      showAutoBattle(Number(value ?? 1), loadCreatures(), "siege", loadDefaults().spells),
+    );
+  }
+  if (mode === "--mages") {
+    const count = value === undefined ? DEFAULT_AUTO_BATTLES : Number(value);
+    return playAuto(runMageDuels(count, loadCreatures(), loadDefaults().spells));
   }
   if (mode === "--rivals") {
     const count = value === undefined ? DEFAULT_RIVAL_GAMES : Number(value);

@@ -82,10 +82,7 @@ export function learnSpells(state: GameState, events: GameEvent[]): GameState {
     if (town === undefined || !hero.book) {
       return hero;
     }
-    const fresh = guildSpells(state, town).filter((id) => {
-      const level = state.spells.find((spell) => spell.id === id)?.level ?? Infinity;
-      return level <= MAX_LEARNABLE_LEVEL && !hero.spells.includes(id);
-    });
+    const fresh = learnableSpells(state, hero, town);
     if (fresh.length === 0) {
       return hero;
     }
@@ -94,6 +91,14 @@ export function learnSpells(state: GameState, events: GameEvent[]): GameState {
     return { ...hero, spells: [...hero.spells, ...fresh] };
   });
   return changed ? { ...state, heroes } : state;
+}
+
+/** Заклинания гильдии города, которые герой с книгой выучил бы, войдя в него. */
+export function learnableSpells(state: GameState, hero: HeroState, town: TownState): string[] {
+  return guildSpells(state, town).filter((id) => {
+    const level = state.spells.find((spell) => spell.id === id)?.level ?? Infinity;
+    return level <= MAX_LEARNABLE_LEVEL && !hero.spells.includes(id);
+  });
 }
 
 /** Покупка книги заклинаний героем, стоящим в своём городе с гильдией. */

@@ -8,7 +8,7 @@ import {
   renderBattle,
   runAutoBattle,
 } from "@homamru/core";
-import type { CreatureDefinition } from "@homamru/core";
+import type { CreatureDefinition, SpellDefinition } from "@homamru/core";
 import type { ScenarioRun } from "./scenario.ts";
 
 /** Слова сводки: обычные бои или осады (случайный город: форт, цитадель или замок). */
@@ -24,6 +24,7 @@ export function runAutoBattles(
   count: number,
   creatures: readonly CreatureDefinition[],
   kind: AutoKind = "field",
+  spells: readonly SpellDefinition[] = [],
 ): ScenarioRun {
   const { make, many, flag } = KINDS[kind];
   let fled = 0;
@@ -33,7 +34,7 @@ export function runAutoBattles(
   let longest = 0;
   let commands = 0;
   for (let seed = 1; seed <= count; seed += 1) {
-    const run = runAutoBattle(make(seed, creatures), creatures, seed);
+    const run = runAutoBattle(make(seed, creatures, spells), creatures, seed);
     const winner = run.state?.result?.winner;
     if (run.problems.length > 0 || winner === undefined) {
       failures.push(`Сид ${seed}: ${run.problems.join("; ") || "нет итога"}.`);
@@ -66,8 +67,9 @@ export function showAutoBattle(
   seed: number,
   creatures: readonly CreatureDefinition[],
   kind: AutoKind = "field",
+  spells: readonly SpellDefinition[] = [],
 ): ScenarioRun {
-  const definition = KINDS[kind].make(seed, creatures);
+  const definition = KINDS[kind].make(seed, creatures, spells);
   const run = runAutoBattle(definition, creatures, seed);
   const lines = [`${KINDS[kind].one}, сид ${seed}. Описание боя:`, JSON.stringify(definition), ""];
   const created = createBattle(definition, creatures, seed);
