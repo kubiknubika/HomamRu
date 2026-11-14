@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest";
 import { describeStack } from "./battleLog.ts";
 import { createBattleSession } from "./battleSession.ts";
 import {
+  beforeOpening,
   catapultLabel,
   cellLook,
   cellNote,
@@ -105,11 +106,14 @@ describe("вид клеток", () => {
     ]);
   });
 
-  it("башни нарисованы на клетках вечной стены, каждая на своей", () => {
+  it("башни стоят как в Heroes 3: верхняя на стене, главная у правого края, нижняя за стеной", () => {
     const state = siege("castle");
-    const cells = Object.values(TOWER_CELLS);
-    expect(new Set(cells.map((cell) => `${cell.col},${cell.row}`)).size).toBe(3);
-    expect(cells.map((cell) => cellLook(state, cell))).toEqual(["wall", "wall", "wall"]);
+    expect(cellLook(state, TOWER_CELLS.upperTower)).toBe("wall");
+    expect(TOWER_CELLS.keep).toEqual({ col: 14, row: 3 });
+    expect(TOWER_CELLS.lowerTower).toEqual({ col: 12, row: 10 });
+    // Главная и нижняя — на обычных клетках, но не там, где армия встаёт в начале боя.
+    expect(cellLook(state, TOWER_CELLS.keep)).toBe("field");
+    expect(state.stacks.some((stack) => stack.col === 14 && stack.row === 3)).toBe(false);
   });
 
   it("куда летит снаряд катапульты: участок, створ ворот, клетка башни", () => {
@@ -142,17 +146,18 @@ describe("подсказки осады", () => {
     expect(cellNote(state, { col: 8, row: 5 })).toBeNull();
   });
 
-  it("башня: урон по числу зданий; разрушенная — просто стена", () => {
+  it("башня: урон по числу зданий; про разрушенную не сказано ничего", () => {
     const state = siege("castle", "militia", 4);
     expect(cellNote(state, TOWER_CELLS.keep)).toBe(
       "Главная башня: стреляет в начале раунда, урон 18–36, прочность 2.",
     );
     expect(cellNote(state, TOWER_CELLS.upperTower)).toContain("Верхняя башня");
     expect(cellNote(state, TOWER_CELLS.lowerTower)).toContain("урон 10–20");
-    expect(cellNote(withHealth(state, { keep: 0 }), TOWER_CELLS.keep)).toBe(
+    expect(cellNote(withHealth(state, { keep: 0 }), TOWER_CELLS.keep)).toBeNull();
+    expect(cellNote(withHealth(state, { upperTower: 0 }), TOWER_CELLS.upperTower)).toBe(
       "Стена. Её не сломать.",
     );
-    expect(cellNote(siege("fort"), TOWER_CELLS.keep)).toBe("Стена. Её не сломать.");
+    expect(cellNote(siege("fort"), TOWER_CELLS.keep)).toBeNull();
   });
 
   it("выстрел через стену помечен; через пролом на пути и изнутри — нет", () => {
@@ -208,12 +213,62 @@ describe("сессия боя в осаде", () => {
 
 describe("проверочная осада", () => {
   it("открывается из своего файла: замок с тремя башнями и рвом, игрок нападает", () => {
-    const state = startTrialBattle(7, "siege");
+    const { state } = startTrialBattle(7, "siege");
     expect(towerMarks(state)).toHaveLength(3);
     expect(state.siege?.moat).toBe(true);
     expect(state.stacks.some((stack) => stack.id === "ac")).toBe(true);
     expect(state.sides[0].hero).not.toBeNull();
     // Обычный проверочный бой остался без стены.
-    expect(startTrialBattle(7).siege).toBeNull();
+    expect(startTrialBattle(7).state.siege).toBeNull();
+  });
+});
+
+describe("выстрелы до первого хода", () => {
+  it("сначала поле как до выстрелов, потом они показаны по одному, потом ход игрока", () => {
+    for (let seed = 1; seed <= 30; seed += 1) {
+      const { state, opening } = startTrialBattle(seed, "siege");
+      const session = createBattleSession(state, undefined, 0, opening);
+      const before = session.getSnapshot();
+      // До показа: все отряды целы, стена замка не тронута, управление заперто.
+      expect(before.locked).toBe(true);
+      expect(before.state.stacks.every((stack) => stack.count === stack.initialCount)).toBe(true);
+      expect(before.state.siege?.health).toMatchObject({ wall1: 3, wall2: 3, wall3: 3, wall4: 3 });
+      const shown: string[] = [];
+      session.subscribe((_snapshot, events) => {
+        shown.push(...events.map((event) => event.type));
+      });
+      session.animationDone();
+      // Три башни и катапульта; погибших отрядов в этом бою до первого хода нет.
+      expect(shown).toEqual(["towerShot", "towerShot", "towerShot", "catapultShot"]);
+      expect(session.getSnapshot().state).toBe(state);
+      expect(session.getSnapshot().locked).toBe(true);
+      session.animationDone();
+      expect(session.getSnapshot().locked).toBe(false);
+      expect(shown).toHaveLength(4);
+    }
+  });
+
+  it("поле до выстрелов: урон катапульты возвращён тому участку, куда она попала", () => {
+    const state = withHealth(siege("fort"), { ...WHOLE, wall3: 0 });
+    const shot = {
+      type: "catapultShot",
+      aimed: "wall2",
+      hit: "wall3",
+      damage: 2,
+      left: 0,
+    } as const;
+    const before = beforeOpening(state, [shot]);
+    expect(before.siege?.health).toMatchObject({ wall2: 2, wall3: 2 });
+    expect(cellLook(before, { col: 10, row: 7 })).toBe("segment");
+  });
+
+  it("без событий начала (бой из сохранения, обычный бой) поле показано как есть", () => {
+    const state = siege("citadel");
+    expect(createBattleSession(state).getSnapshot().state).toBe(state);
+    const open = siege(null);
+    const session = createBattleSession(open, undefined, 0, [{ type: "roundStarted", round: 1 }]);
+    expect(session.getSnapshot().state).toBe(open);
+    session.animationDone();
+    expect(session.getSnapshot().locked).toBe(false);
   });
 });

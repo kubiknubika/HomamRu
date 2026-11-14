@@ -14,7 +14,7 @@ import {
   wallCells,
   wallPartCell,
 } from "@homamru/core";
-import type { BattleState, Cell, StackState, Tower, WallPart } from "@homamru/core";
+import type { BattleEvent, BattleState, Cell, StackState, Tower, WallPart } from "@homamru/core";
 
 /** Вид клетки поля. */
 export type CellLook =
@@ -29,11 +29,16 @@ export type CellLook =
 
 const SEGMENTS = ["wall1", "wall2", "wall3", "wall4"] as const;
 
-/** Где нарисованы башни: на клетках вечной стены. На правила не влияет. */
+/**
+ * Где нарисованы башни — там же, где на картинке осады в Heroes 3 (сверено по VCMI,
+ * `config/factions/castle.json`, `siege.towers`): верхняя — у верхнего конца стены, нижняя — у нижнего,
+ * сразу за стеной, главная — у правого края поля. На правила не влияет: башня клетку не занимает,
+ * отряд может стоять поверх неё.
+ */
 export const TOWER_CELLS: Readonly<Record<Tower, Cell>> = {
   upperTower: { col: 11, row: 0 },
-  keep: { col: 10, row: 2 },
-  lowerTower: { col: 11, row: 9 },
+  keep: { col: 14, row: 3 },
+  lowerTower: { col: 12, row: 10 },
 };
 
 const TOWER_NAMES: Readonly<Record<Tower, string>> = {
@@ -147,7 +152,7 @@ export function shotNote(state: BattleState, me: StackState, targetId: string): 
 
 /**
  * Что случилось до первого хода: башни и катапульта стреляют в начале раунда, и первого тоже.
- * Событий начала боя у экрана нет, поэтому строка собрана по состоянию.
+ * Строка собрана по состоянию: она верна и для боя, поднятого из сохранения, где событий начала нет.
  */
 export function openingLine(state: BattleState): string {
   const { siege } = state;
@@ -177,4 +182,35 @@ export function openingLine(state: BattleState): string {
 /** Надпись над частью стены после выстрела катапульты. */
 export function catapultLabel(damage: number): string {
   return damage === 0 ? "не пробила" : `−${damage}`;
+}
+
+/** Событие, которое экран показывает до первого хода: выстрел башни, катапульты, гибель отряда. */
+export function isSiegeShot(event: BattleEvent): boolean {
+  return event.type === "towerShot" || event.type === "catapultShot" || event.type === "stackDied";
+}
+
+/**
+ * Поле, каким оно было до выстрелов первого раунда: все отряды целы, стена не тронута.
+ * Годится только для боя, в котором ещё не было ни одной команды.
+ */
+export function beforeOpening(state: BattleState, opening: readonly BattleEvent[]): BattleState {
+  const { siege } = state;
+  if (siege === null) {
+    return state;
+  }
+  const health = { ...siege.health };
+  for (const event of opening) {
+    if (event.type === "catapultShot") {
+      health[event.hit] = event.left + event.damage;
+    }
+  }
+  return {
+    ...state,
+    siege: { ...siege, health },
+    stacks: state.stacks.map((stack) => ({
+      ...stack,
+      count: stack.initialCount,
+      firstHealth: stack.creature.health,
+    })),
+  };
 }

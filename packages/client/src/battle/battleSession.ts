@@ -3,7 +3,7 @@
  * Здесь нет ни Phaser, ни React, и нет правил боя — они в ядре.
  * Спецификация управления: docs/mechanics/16-battle-screen.md.
  */
-import { cellNote, openingLine } from "./battleSiege.ts";
+import { beforeOpening, cellNote, isSiegeShot, openingLine } from "./battleSiege.ts";
 import {
   activeStackOf,
   applyBattleCommand,
@@ -144,9 +144,12 @@ export function createBattleSession(
   initial: BattleState,
   onCommand?: OnBattleCommand,
   playerSide: Side = 0,
+  opening: readonly BattleEvent[] = [],
 ): BattleSession {
+  // Выстрелы до первого хода: сначала поле показано как до них, потом они проигрываются.
+  let pending = opening.filter(isSiegeShot);
   let snapshot: BattleSnapshot = {
-    state: initial,
+    state: pending.length > 0 ? beforeOpening(initial, pending) : initial,
     selection: null,
     locked: true,
     log: openingLine(initial),
@@ -282,6 +285,12 @@ export function createBattleSession(
       simple("battleFlee");
     },
     animationDone: () => {
+      if (pending.length > 0) {
+        const shots = pending;
+        pending = [];
+        publish({ state: initial }, shots);
+        return;
+      }
       const { state } = snapshot;
       const command =
         activeStackOf(state)?.side === playerSide ? undefined : chooseBattleCommand(state);
