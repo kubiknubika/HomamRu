@@ -64,15 +64,20 @@ describe("карта первой версии «Четыре края»", () =>
   );
 
   it(
-    "край не решает: победить можно и с северо-запада, и с юго-востока",
+    "с северо-запада первый игрок побеждает",
     () => {
-      // Компьютер против себя выигрывает тем, кто ходит первым. Если бы один край был
-      // заведомо слабее, первый ход его бы не спасал.
       const northWestFirst = statsOf(runComputerGames(GAMES, map, content).lines);
-      // Ничьи по сроку здесь допустимы: два компьютера изредка встают друг против друга
-      // и не нападают (см. «Известные слабости» в 25-first-map.md).
-      const southEastFirst = runComputerGames(GAMES, swapped(map), content);
       expect(northWestFirst.wins[0]).toBeGreaterThan(GAMES / 2);
+    },
+    SLOW,
+  );
+
+  // На шаге 7.2 магия сломала это свойство (первый игрок с юго-востока не побеждал ни разу);
+  // починено двумя правилами компьютера: «враг рядом» и «за гарнизоном» (42-opponent.md).
+  it(
+    "край не решает: первый игрок побеждает и с юго-востока",
+    () => {
+      const southEastFirst = runComputerGames(GAMES, swapped(map), content);
       expect(statsOf(southEastFirst.lines).wins[0]).toBeGreaterThan(GAMES / 2);
     },
     SLOW,

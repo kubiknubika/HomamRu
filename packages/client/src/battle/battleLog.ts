@@ -1,6 +1,7 @@
 /** Журнал боя для игрока: события одной команды одной строкой. */
-import { defenseOf, findStack, isMachine } from "@homamru/core";
+import { attackBonus, defenseOf, findStack, isMachine, speedOf } from "@homamru/core";
 import type { BattleEvent, BattleState, StackState } from "@homamru/core";
+import { effectsText } from "./battleSpells.ts";
 
 const STRIKE_VERBS = { melee: "бьёт", retaliation: "отвечает", shot: "стреляет" } as const;
 
@@ -127,13 +128,15 @@ export function describeStack(state: BattleState, stack: StackState): string {
   }
   const hero = state.sides[stack.side].hero;
   const attack = creature.attack + (hero?.attack ?? 0);
+  // «Жажда крови» прибавляет атаку только в ближнем бою.
+  const melee = attackBonus(stack, "melee");
   const parts = [
     `${creature.name}: ${stack.count} из ${stack.initialCount}`,
-    `атака ${attack}`,
+    melee === 0 ? `атака ${attack}` : `атака ${attack} (в ближнем бою ${attack + melee})`,
     `защита ${defenseOf(state, stack)}`,
     `урон ${creature.damageMin}–${creature.damageMax}`,
     `здоровье ${stack.firstHealth} из ${creature.health}`,
-    `скорость ${creature.speed}`,
+    `скорость ${speedOf(stack)}`,
   ];
   if (creature.flying) {
     parts.push("летает");
@@ -143,6 +146,10 @@ export function describeStack(state: BattleState, stack: StackState): string {
   }
   if (stack.retaliated) {
     parts.push("уже отвечал на удар");
+  }
+  const spells = effectsText(stack);
+  if (spells !== null) {
+    parts.push(`заклинания: ${spells}`);
   }
   return parts.join(" · ");
 }

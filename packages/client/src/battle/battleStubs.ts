@@ -40,7 +40,13 @@ export const RING_MARK_STYLES = {
   attackable: { color: 0xe2463c, width: 2 },
   target: { color: 0xff9a1f, width: 4 },
   inspected: { color: 0x3aa0ff, width: 3 },
+  spellEnemy: { color: 0xe2463c, width: 3 },
+  spellAlly: { color: 0x3fbf5a, width: 3 },
 } as const;
+
+/** Цвета заклинаний: полезное и вредное — метки на отрядах и вспышка при колдовстве. */
+export const SPELL_GOOD_COLOR = 0x3fbf5a;
+export const SPELL_BAD_COLOR = 0xe2463c;
 
 /** Цвета сторон: нападающий и обороняющийся. */
 const SIDE_COLORS = [0xc8372d, 0x2d6fc8] as const;
@@ -50,6 +56,9 @@ const FONT = "system-ui, sans-serif";
 export interface StackStub {
   readonly container: Phaser.GameObjects.Container;
   readonly count: Phaser.GameObjects.Text;
+  /** Метки заклинаний на отряде: полезного и вредного. */
+  readonly good: Phaser.GameObjects.Arc;
+  readonly bad: Phaser.GameObjects.Arc;
 }
 
 /**
@@ -95,7 +104,15 @@ export function createStackStub(scene: Phaser.Scene, stack: StackState, size: nu
     mark.setStrokeStyle(1.5, 0x000000, 0.8);
     parts.push(mark);
   }
-  return { container: scene.add.container(0, 0, parts), count };
+  // Метки заклинаний слева сверху: зелёная — полезное, красная — вредное.
+  const dot = size * 0.09;
+  const good = scene.add.circle(-size * 0.34, -size * 0.4, dot, SPELL_GOOD_COLOR);
+  const bad = scene.add.circle(-size * 0.34 + dot * 2.4, -size * 0.4, dot, SPELL_BAD_COLOR);
+  for (const mark of [good, bad]) {
+    mark.setStrokeStyle(1.5, 0x000000, 0.8).setVisible(false);
+  }
+  parts.push(good, bad);
+  return { container: scene.add.container(0, 0, parts), count, good, bad };
 }
 
 /** Всплывающее число урона над целью. */

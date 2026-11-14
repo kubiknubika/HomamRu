@@ -20,6 +20,7 @@ opponent:
   buildOrder:
     - town-hall
     - militia-yard
+    - mage-guild
     - slinger-range
     - smithy
     - barracks

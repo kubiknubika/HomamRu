@@ -117,7 +117,9 @@ export type {
 export { chooseBattleCommand } from "./battle/ai.ts";
 export { SPELL_EFFECTS, SPELL_SCHOOLS } from "./spells.ts";
 export type { SpellDefinition } from "./spells.ts";
-export { maxMana } from "./magic.ts";
+export { BOOK_PRICE, guildLevel, guildSpells, maxMana } from "./magic.ts";
+export { canTarget, castableSpells, spellValue } from "./battle/cast.ts";
+export { attackBonus, speedOf } from "./battle/effects.ts";
 export { randomBattle, randomSiege, runAutoBattle } from "./battle/autobattle.ts";
 export { TOWNLESS_DAYS } from "./players.ts";
 export { townsOf } from "./opponentTown.ts";

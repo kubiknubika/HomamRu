@@ -6,6 +6,7 @@ import type {
   BuildingDefinition,
   CreatureDefinition,
   MapDefinition,
+  SpellDefinition,
 } from "@homamru/core";
 import {
   parseBattleFile,
@@ -70,11 +71,19 @@ export function loadBuildings(): BuildingDefinition[] {
   return unwrap(parseBuildingsFile(fromRoot(BUILDINGS_FILE), text, loadCreatures()));
 }
 
+function loadSpells(): SpellDefinition[] {
+  return unwrap(parseSpellsFile(fromRoot(SPELLS_FILE), readFileSync(SPELLS_FILE, "utf8")));
+}
+
 /** Контент игры целиком и начальные значения для старого сохранения. */
 export function loadDefaults(): SaveDefaults {
   const heroes = unwrap(parseHeroesFile(fromRoot(HEROES_FILE), readFileSync(HEROES_FILE, "utf8")));
-  const spells = unwrap(parseSpellsFile(fromRoot(SPELLS_FILE), readFileSync(SPELLS_FILE, "utf8")));
-  const content = { creatures: loadCreatures(), buildings: loadBuildings(), heroes, spells };
+  const content = {
+    creatures: loadCreatures(),
+    buildings: loadBuildings(),
+    heroes,
+    spells: loadSpells(),
+  };
   const text = readFileSync(DEFAULTS_FILE, "utf8");
   return unwrap(parseDefaultsFile(fromRoot(DEFAULTS_FILE), text, content));
 }
@@ -99,7 +108,7 @@ export function listBattleFiles(): string[] {
 
 /** Читает файл боя. Ошибка в файле — исключение. */
 export function loadBattle(path: string): BattleDefinition {
-  return unwrap(parseBattleFile(fromRoot(path), readFileSync(path, "utf8")));
+  return unwrap(parseBattleFile(fromRoot(path), readFileSync(path, "utf8"), loadSpells()));
 }
 
 /**

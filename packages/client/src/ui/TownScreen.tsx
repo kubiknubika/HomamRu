@@ -1,4 +1,4 @@
-import { RESOURCES } from "@homamru/core";
+import { guildLevel, RESOURCES } from "@homamru/core";
 import type { GameState, TownState } from "@homamru/core";
 import { useState, useSyncExternalStore } from "react";
 import { RESOURCE_NAMES } from "../game/captions.ts";
@@ -7,6 +7,7 @@ import { amountsText, buildingGives, buildingStatus, recruitRows } from "../game
 import type { RecruitRow } from "../game/townTexts.ts";
 import { Messages } from "./Messages.tsx";
 import { TownArmies } from "./TownArmies.tsx";
+import { TownGuild } from "./TownGuild.tsx";
 import { TownTavern } from "./TownTavern.tsx";
 
 interface TownScreenProps {
@@ -179,6 +180,7 @@ export function TownScreen({ session, town }: TownScreenProps) {
           <Buildings session={session} state={state} town={town} />
           <Recruitment session={session} state={state} town={town} />
           <TownArmies session={session} state={state} town={town} />
+          {guildLevel(state, town) > 0 && <TownGuild session={session} state={state} town={town} />}
           {hasTavern && <TownTavern session={session} state={state} town={town} />}
         </div>
       </div>

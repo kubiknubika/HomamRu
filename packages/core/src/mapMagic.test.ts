@@ -57,15 +57,14 @@ describe("герой в бою на карте", () => {
     expect(cast).toMatchObject({ ok: true });
     const after = playBattleOut(cast.ok ? cast.state : state).state;
     expect(after.battle).toBeNull();
-    expect(after.heroes[0]).toMatchObject({
-      mana: 15,
-      book: true,
-      spells: ["magic-arrow", "bless"],
-    });
+    // Бой доигрывает компьютер, а он колдует и дальше: маны не больше, чем осталось после стрелы.
+    expect(after.heroes[0]).toMatchObject({ book: true, spells: ["magic-arrow", "bless"] });
+    expect(after.heroes[0]?.mana).toBeLessThanOrEqual(15);
   });
 
   it("без колдовства мана после боя прежняя", () => {
-    const after = playBattleOut(inBattle(MAGE)).state;
+    // Заклинаний герой не знает — компьютеру, доигрывающему бой, колдовать нечем.
+    const after = playBattleOut(inBattle({ ...MAGE, spells: [] })).state;
     expect(after.heroes[0]?.mana).toBe(20);
   });
 

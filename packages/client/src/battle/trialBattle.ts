@@ -4,7 +4,7 @@ import type { BattleEvent, BattleState } from "@homamru/core";
 import { parseBattleFile } from "@homamru/data";
 import siegeText from "../../../../data/battles/trial-siege.yaml?raw";
 import trialText from "../../../../data/battles/trial.yaml?raw";
-import { failContent, loadCreatures } from "../game/content.ts";
+import { failContent, loadCreatures, loadDefaults } from "../game/content.ts";
 
 const FILES = {
   field: { file: "data/battles/trial.yaml", text: trialText },
@@ -23,7 +23,7 @@ export interface TrialBattle {
 export function startTrialBattle(seed: number, kind: TrialKind = "field"): TrialBattle {
   const { file: BATTLE_FILE, text } = FILES[kind];
   const creatures = loadCreatures();
-  const battle = parseBattleFile(BATTLE_FILE, text);
+  const battle = parseBattleFile(BATTLE_FILE, text, loadDefaults().spells);
   if (!battle.ok) {
     return failContent(battle.errors);
   }

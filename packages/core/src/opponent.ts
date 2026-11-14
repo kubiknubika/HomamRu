@@ -5,6 +5,7 @@
  */
 import { guardBattleCommand } from "./battleAuto.ts";
 import { guardWatching } from "./guards.ts";
+import { BOOK_PRICE, learnableSpells } from "./magic.ts";
 import { accepted, armyValue, townCommand, townsOf } from "./opponentTown.ts";
 import { findPath } from "./pathfinding.ts";
 import type { PathResult } from "./pathfinding.ts";
@@ -12,6 +13,8 @@ import type { Command, GameState, HeroState, ObjectState, Position, TownState } 
 
 /** За сколько дней враг должен дойти до города, чтобы герой пошёл его оборонять. */
 const THREAT_DAYS = 2;
+/** Гарнизон не меньше стольких процентов армии героя — герой идёт за ним в город. */
+const REFILL_PERCENT = 60;
 const PERCENT = 100;
 
 type FoundPath = Extract<PathResult, { found: true }>;
@@ -75,6 +78,16 @@ function defencePath(state: GameState, hero: HeroState): FoundPath | undefined |
   return null;
 }
 
+/** Есть ли герою зачем идти в свой город: купить книгу (золота хватает) или выучить заклинания. */
+function teaches(state: GameState, hero: HeroState, town: TownState): boolean {
+  if (
+    learnableSpells(state, { ...hero, spells: hero.book ? hero.spells : [] }, town).length === 0
+  ) {
+    return false;
+  }
+  return hero.book || (state.players[hero.owner]?.resources.gold ?? 0) >= BOOK_PRICE;
+}
+
 /** Берётся ли объект без боя: кучка, не своя шахта, пустой чужой город — вне зоны охранника. */
 function isFree(state: GameState, hero: HeroState, object: ObjectState): boolean {
   if (object.type === "guard" || guardWatching(state, object.x, object.y) !== undefined) {
@@ -85,7 +98,8 @@ function isFree(state: GameState, hero: HeroState, object: ObjectState): boolean
     return true;
   }
   if (object.owner === hero.owner) {
-    return false;
+    // Свой город с гильдией — тоже цель: купить книгу или выучить новое (63-opponent-magic.md).
+    return object.type === "town" && !at(hero, object) && teaches(state, hero, object);
   }
   const empty = object.type === "mine" || object.garrison.length === 0;
   return empty && heroAt(state, object) === undefined;
@@ -137,18 +151,49 @@ function attackPath(state: GameState, hero: HeroState): FoundPath | undefined {
   return beatable.toSorted((a, b) => a.strength - b.strength || a.path.cost - b.path.cost)[0]?.path;
 }
 
+function pathsTo(state: GameState, hero: HeroState, cells: readonly Position[]): Target[] {
+  return cells.flatMap((cell) => {
+    const path = pathTo(state, hero, cell);
+    return path === undefined ? [] : [{ path, strength: 0 }];
+  });
+}
+
+/** Чужой герой, которого можно победить и достать сегодня: ближайший. */
+function huntPath(state: GameState, hero: HeroState): FoundPath | undefined {
+  const foes = state.heroes.filter(
+    (other) => other.owner !== hero.owner && canBeat(state, hero, heroStrength(state, other)),
+  );
+  const path = nearest(pathsTo(state, hero, foes))?.path;
+  return path !== undefined && path.days <= 1 ? path : undefined;
+}
+
+/** Свой город, где накопился большой гарнизон: ближайший. Стоя в своём городе, герой никуда не идёт. */
+function refillPath(state: GameState, hero: HeroState): FoundPath | undefined {
+  if (townUnder(state, hero) !== undefined) {
+    return undefined;
+  }
+  const need = armyValue(state, hero.army) * REFILL_PERCENT;
+  const rich = townsOf(state, hero.owner).filter(
+    (town) => armyValue(state, town.garrison) * PERCENT >= need,
+  );
+  return nearest(pathsTo(state, hero, rich))?.path;
+}
+
 /** Куда идти герою; `undefined` — стоять. Порядок — из 42-opponent.md. */
 function goalPath(state: GameState, hero: HeroState): FoundPath | undefined {
   const defence = defencePath(state, hero);
   if (defence !== null) {
     return defence;
   }
-  const free = state.objects
-    .filter((object) => isFree(state, hero, object))
-    .flatMap((object) => {
-      const path = pathTo(state, hero, object);
-      return path === undefined ? [] : [{ path }];
-    });
+  const urgent = huntPath(state, hero) ?? refillPath(state, hero);
+  if (urgent !== undefined) {
+    return urgent;
+  }
+  const free = pathsTo(
+    state,
+    hero,
+    state.objects.filter((object) => isFree(state, hero, object)),
+  );
   const attack = nearest(free)?.path ?? attackPath(state, hero);
   if (attack !== undefined) {
     return attack;
@@ -157,11 +202,7 @@ function goalPath(state: GameState, hero: HeroState): FoundPath | undefined {
   if (townUnder(state, hero) !== undefined) {
     return undefined;
   }
-  const homes = townsOf(state, hero.owner).flatMap((town) => {
-    const path = pathTo(state, hero, town);
-    return path === undefined ? [] : [{ path }];
-  });
-  return nearest(homes)?.path;
+  return nearest(pathsTo(state, hero, townsOf(state, hero.owner)))?.path;
 }
 
 /** Команда герою: пройти сегодняшнюю часть пути к цели. */

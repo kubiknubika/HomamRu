@@ -57,6 +57,7 @@ export const OPPONENT: OpponentRules = {
   buildOrder: [
     "town-hall",
     "militia-yard",
+    "mage-guild",
     "slinger-range",
     "smithy",
     "barracks",

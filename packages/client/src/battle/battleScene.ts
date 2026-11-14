@@ -5,7 +5,7 @@
 import type { BattleEvent, BattleState, Cell } from "@homamru/core";
 import * as Phaser from "phaser";
 import type { FrameMeter } from "../game/frameMeter.ts";
-import { showLabel, showStrike, tracePath } from "./battleEffects.ts";
+import { showLabel, showSpell, showStrike, tracePath } from "./battleEffects.ts";
 import { drawBattleField } from "./battleFieldView.ts";
 import { highlightsOf } from "./battleHighlights.ts";
 import { cellAt, cellCenter, cellCorners, layoutOf } from "./battleGeometry.ts";
@@ -128,6 +128,8 @@ export class BattleScene extends Phaser.Scene {
         .setVisible(stack.count > 0)
         .setAlpha(1);
       stub.count.setText(String(stack.count));
+      stub.good.setVisible(stack.effects.some((effect) => !effect.negative));
+      stub.bad.setVisible(stack.effects.some((effect) => effect.negative));
     }
   }
 
@@ -243,6 +245,14 @@ export class BattleScene extends Phaser.Scene {
         return;
       }
     }
+    if (event.type === "spellCast") {
+      const stub = this.stubs.get(event.targetId);
+      if (stub !== undefined) {
+        const cast = { outcome: event.outcome, bySelf: this.isAllyCast(event) };
+        showSpell(this, stub, this.stackSize(), cast, next);
+        return;
+      }
+    }
     const { state } = this.session.getSnapshot();
     const view = { layout: this.layout, stubs: this.stubs, size: this.stackSize(), state };
     const redraw = (): void => {
@@ -251,6 +261,12 @@ export class BattleScene extends Phaser.Scene {
     if (!showSiegeEvent(this, view, event, redraw, next)) {
       next();
     }
+  }
+
+  /** Заклинание наложено на отряд своей стороны — значит, оно полезное. */
+  private isAllyCast(event: { readonly side: number; readonly targetId: string }): boolean {
+    const { state } = this.session.getSnapshot();
+    return state.stacks.find((stack) => stack.id === event.targetId)?.side === event.side;
   }
 
   private cellUnder(pointer: Phaser.Input.Pointer): Cell | null {

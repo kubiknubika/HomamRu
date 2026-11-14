@@ -3,6 +3,7 @@
  */
 import { createRng, nextInt } from "../rng.ts";
 import type { RngState } from "../rng.ts";
+import type { SpellDefinition } from "../spells.ts";
 import { chooseBattleCommand } from "./ai.ts";
 import { applyBattleCommand } from "./commands.ts";
 import { createBattle } from "./create.ts";
@@ -73,10 +74,11 @@ const SIEGE_BUILDINGS = 8;
 export function randomSiege(
   seed: number,
   creatures: readonly CreatureDefinition[],
+  spells: readonly SpellDefinition[] = [],
 ): BattleDefinition {
   const fortification = FORTIFICATIONS[seed % FORTIFICATIONS.length] ?? "fort";
   return {
-    ...randomBattle(seed, creatures),
+    ...randomBattle(seed, creatures, spells),
     obstacles: [],
     siege: { fortification, buildings: seed % SIEGE_BUILDINGS },
   };
@@ -85,11 +87,42 @@ export function randomSiege(
 const MAX_COUNT = 40;
 const MAX_HERO_STAT = 5;
 const MAX_OBSTACLES = 8;
+const MAX_MANA = 40;
+/** Сдвиг сида для магии героев: армии по сиду остаются теми же, что были до этапа 7. */
+const MAGIC_STREAM = 7001;
+
+/**
+ * Дописывает героям случайную магию: сила 0–5, мана 0–40, каждое заклинание — с шансом 1 из 2.
+ * Жребий идёт своим потоком случайных чисел.
+ */
+function withMagic(
+  definition: BattleDefinition,
+  seed: number,
+  spells: readonly SpellDefinition[],
+): BattleDefinition {
+  let rng: RngState = createRng(seed + MAGIC_STREAM);
+  const roll = (min: number, max: number): number => {
+    const result = nextInt(rng, min, max);
+    ({ rng } = result);
+    return result.value;
+  };
+  const enchant = (army: ArmyDefinition): ArmyDefinition => {
+    const magic = {
+      spellPower: roll(0, MAX_HERO_STAT),
+      mana: roll(0, MAX_MANA),
+      spells: spells.filter(() => roll(0, 1) === 1),
+    };
+    return army.hero === undefined ? army : { ...army, hero: { ...army.hero, ...magic } };
+  };
+  const attacker = enchant(definition.attacker);
+  return { ...definition, attacker, defender: enchant(definition.defender) };
+}
 
 /** Случайное описание боя для автобоёв: по одному и тому же сиду — одно и то же. */
 export function randomBattle(
   seed: number,
   creatures: readonly CreatureDefinition[],
+  spells: readonly SpellDefinition[] = [],
 ): BattleDefinition {
   let rng: RngState = createRng(seed);
   const roll = (min: number, max: number): number => {
@@ -117,11 +150,12 @@ export function randomBattle(
     const cell = { col: roll(1, BATTLE_WIDTH - 2), row: roll(0, BATTLE_HEIGHT - 1) };
     obstacles.set(cellIndex(cell), cell);
   }
-  return {
+  const definition = {
     id: `auto-${seed}`,
     name: `Автобой ${seed}`,
     obstacles: [...obstacles.values()],
     attacker,
     defender,
   };
+  return spells.length === 0 ? definition : withMagic(definition, seed, spells);
 }

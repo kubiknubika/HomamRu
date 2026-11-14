@@ -6,6 +6,7 @@
 import { activeStackOf, findStack, reachableCells } from "@homamru/core";
 import type { Cell, StackState } from "@homamru/core";
 import { attackableTargets, playerStack } from "./battleSession.ts";
+import { spellTargets } from "./battleSpells.ts";
 import type { BattleSnapshot } from "./battleSession.ts";
 
 type CellMark =
@@ -29,6 +30,10 @@ type RingMark =
   | "attackable"
   /** Выбранный враг. */
   | "target"
+  /** Чужой отряд, на который ляжет выбранное заклинание. */
+  | "spellEnemy"
+  /** Свой отряд, на который ляжет выбранное заклинание. */
+  | "spellAlly"
   /** Отряд, который игрок рассматривает. */
   | "inspected";
 
@@ -54,6 +59,17 @@ export function highlightsOf(snapshot: BattleSnapshot): Highlights {
     rings.push({ stack: active, mark: "active" });
   }
   const me = playerStack(snapshot);
+  if (selection?.kind === "spell") {
+    // Выбрано заклинание: видны только отряды, на которые оно ложится.
+    const hero = state.sides[snapshot.playerSide].hero;
+    const spell = hero?.spells.find((item) => item.id === selection.spell);
+    const targets = spell === undefined ? [] : spellTargets(state, snapshot.playerSide, spell);
+    for (const stack of targets) {
+      const mark = stack.side === snapshot.playerSide ? "spellAlly" : "spellEnemy";
+      rings.push({ stack, mark: stack.id === selection.targetId ? "target" : mark });
+    }
+    return { cells: [], rings };
+  }
   if (me !== undefined) {
     for (const cell of reachableCells(state, me).values()) {
       put(cell, "reach");

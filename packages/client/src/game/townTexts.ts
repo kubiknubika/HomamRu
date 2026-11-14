@@ -2,7 +2,13 @@
  * Слова и числа экрана города. Спецификация: docs/mechanics/33-town-screen.md.
  * Правил игры здесь нет: что можно, а что нельзя, решает ядро.
  */
-import { buildObstacle, missingResources, RESOURCES, weeklyGrowth } from "@homamru/core";
+import {
+  BOOK_PRICE,
+  buildObstacle,
+  missingResources,
+  RESOURCES,
+  weeklyGrowth,
+} from "@homamru/core";
 import { RESOURCE_NAMES } from "./captions.ts";
 import type {
   ArmyStack,
@@ -33,6 +39,9 @@ function buildingName(state: GameState, id: string): string {
 export function buildingGives(state: GameState, building: BuildingDefinition): string {
   if (building.tavern === true) {
     return "наём героя";
+  }
+  if (building.mageGuild !== undefined) {
+    return "пять заклинаний первого круга, книга заклинаний";
   }
   if (building.income !== undefined) {
     return `доход города ${building.income} золота в день`;
@@ -119,4 +128,26 @@ export function armyText(state: GameState, army: readonly ArmyStack[]): string {
       return `${name.toLowerCase()} ${stack.count}`;
     })
     .join(", ");
+}
+
+export type BookStatus =
+  | { readonly kind: "buy"; readonly price: number }
+  | { readonly kind: "text"; readonly text: string };
+
+/** Строка про книгу в разделе «Гильдия магов» (docs/mechanics/64-magic-screen.md). */
+export function bookStatus(state: GameState, town: TownState): BookStatus {
+  const hero = state.heroes.find(
+    (candidate) =>
+      candidate.owner === town.owner && candidate.x === town.x && candidate.y === town.y,
+  );
+  if (hero === undefined) {
+    return { kind: "text", text: "Героя в городе нет" };
+  }
+  if (hero.book) {
+    return { kind: "text", text: "Книга есть, заклинания выучены" };
+  }
+  const lack = BOOK_PRICE - (state.players[town.owner]?.resources.gold ?? 0);
+  return lack > 0
+    ? { kind: "text", text: `Книга: не хватает золота ${lack}` }
+    : { kind: "buy", price: BOOK_PRICE };
 }

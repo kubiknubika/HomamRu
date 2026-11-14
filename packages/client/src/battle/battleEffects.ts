@@ -1,6 +1,11 @@
 /** Рисование и простая анимация боя, вынесенные из сцены. */
 import type * as Phaser from "phaser";
-import { createDamageText, PROJECTILE_COLOR } from "./battleStubs.ts";
+import {
+  createDamageText,
+  PROJECTILE_COLOR,
+  SPELL_BAD_COLOR,
+  SPELL_GOOD_COLOR,
+} from "./battleStubs.ts";
 import type { StackStub } from "./battleStubs.ts";
 
 const STRIKE_MS = 420;
@@ -132,6 +137,55 @@ export function showStrike(
     repeat: 1,
     onComplete: () => {
       stub.container.setAlpha(1).setVisible(strike.left > 0);
+      onComplete();
+    },
+  });
+}
+
+interface ShownCast {
+  readonly outcome:
+    | { readonly kind: "damage"; readonly damage: number; readonly left: number }
+    | { readonly kind: "heal" | "dispel" | "effect" };
+  /** Заклинание наложено на отряд своей стороны: вспышка зелёная, иначе красная. */
+  readonly bySelf: boolean;
+}
+
+/** Заклинание: цель дважды вспыхивает цветом; при уроне всплывает число, как при ударе. */
+export function showSpell(
+  scene: Phaser.Scene,
+  stub: StackStub,
+  size: number,
+  cast: ShownCast,
+  onComplete: () => void,
+): void {
+  const { x, y } = stub.container;
+  const { outcome } = cast;
+  const color = cast.bySelf ? SPELL_GOOD_COLOR : SPELL_BAD_COLOR;
+  const flash = scene.add.circle(x, y - size * 0.1, size * 0.5, color, 0.75);
+  flash.setDepth(EFFECT_DEPTH).setAlpha(0);
+  if (outcome.kind === "damage") {
+    const text = createDamageText(scene, `−${outcome.damage}`, size);
+    text.setPosition(x, y - size * 0.5).setDepth(EFFECT_DEPTH + 1);
+    scene.tweens.add({
+      targets: text,
+      y: y - size * 1.1,
+      alpha: 0,
+      duration: STRIKE_MS * 2,
+      onComplete: () => {
+        text.destroy();
+      },
+    });
+    stub.count.setText(String(outcome.left));
+  }
+  scene.tweens.add({
+    targets: flash,
+    alpha: 1,
+    duration: STRIKE_MS / 2,
+    yoyo: true,
+    repeat: 1,
+    onComplete: () => {
+      flash.destroy();
+      stub.container.setVisible(outcome.kind !== "damage" || outcome.left > 0);
       onComplete();
     },
   });

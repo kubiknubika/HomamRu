@@ -233,6 +233,9 @@ export function createSession(initial: GameState, onAccepted?: OnAccepted): Sess
     transfer: (from, creature, count) => {
       sendTown((base) => ({ type: "transfer", ...base, from, creature, count }));
     },
+    buyBook: () => {
+      sendTown((base) => ({ type: "buyBook", ...base }));
+    },
     hireHero: (offer) => {
       sendTown((base) => ({ type: "hireHero", ...base, offer }));
     },

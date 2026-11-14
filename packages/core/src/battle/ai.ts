@@ -2,6 +2,7 @@
  * Простой компьютер в бою: выбирает команду для отряда, чей сейчас ход.
  * Спецификация: docs/mechanics/15-battle-ai.md; осада — 50-siege.md.
  */
+import { chooseCast } from "./aiSpells.ts";
 import { bestCell, chooseApproach, chooseAttack, chooseShot, nearestEnemy } from "./aiMoves.ts";
 import type { Allowed } from "./aiMoves.ts";
 import { distance, sameCell } from "./hex.ts";
@@ -95,7 +96,7 @@ function leaveBridge(state: BattleState, me: StackState): BattleCommand | undefi
 }
 
 /**
- * Команда простого компьютера: стрелять → ударить → подойти → защищаться.
+ * Команда простого компьютера: колдовать → стрелять → ударить → подойти → защищаться.
  * В осаде (50-siege.md): обороняющийся, пока ему есть чем стрелять, за стену не выходит;
  * пеший нападающий идёт, только когда до врага есть дорога; в ров зря никто не встаёт.
  * Катапульту бьют, только когда больше некого. Нападающий бежит, когда осада встала.
@@ -109,6 +110,11 @@ export function chooseBattleCommand(
   const me = activeStackOf(state);
   if (state.result !== null || me === undefined) {
     return undefined;
+  }
+  // Сначала герой колдует, если есть что: ход отряда на это не тратится (63-opponent-magic.md).
+  const spell = chooseCast(state, me.side);
+  if (spell !== undefined) {
+    return spell;
   }
   const foes = state.stacks.filter((stack) => stack.side !== me.side && isAlive(stack));
   const enemies = foes.filter((stack) => !isMachine(stack));

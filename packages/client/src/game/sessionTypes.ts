@@ -53,6 +53,8 @@ export interface Session {
   recruit(creature: string, count: number): void;
   /** Передать отряд: `from` — кто отдаёт. */
   transfer(from: "garrison" | "hero", creature: string, count: number): void;
+  /** Купить книгу заклинаний герою, стоящему в открытом городе. */
+  buyBook(): void;
   /** Нанять героя таверны с номером 0 или 1. */
   hireHero(offer: number): void;
   /** Игрок закрыл окно итога боя: экран возвращается к карте. */
