@@ -1,0 +1,16 @@
+# Осада для сценариев: цитадель (стена, ворота, ров, главная башня), без героев, боевого духа и удачи.
+id: test-siege
+name: Осада цитадели
+obstacles: []
+siege: { fortification: citadel, buildings: 0 }
+attacker:
+  morale: 0
+  luck: 0
+  army:
+    - { creature: falcon, count: 30 }
+    - { creature: militia, count: 40 }
+defender:
+  morale: 0
+  luck: 0
+  army:
+    - { creature: slinger, count: 10 }

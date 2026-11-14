@@ -35,4 +35,30 @@ describe("автобои из консоли", () => {
     ]);
     expect(run.lines.at(-1)).toBe("Повторить бой с ошибкой: pnpm run play --autobattle <сид>");
   });
+
+  it("сводка осад: все кончаются, сказано, сколько раз нападающий бежал", () => {
+    const run = runAutoBattles(150, creatures, "siege");
+    expect(run.failures).toEqual([]);
+    expect(run.lines[0]).toBe("Осад: 150, с ошибками: 0.");
+    expect(run.lines[3]).toMatch(/^Нападающий бежал из вставшей осады: \d+\.$/);
+  });
+
+  it("одна осада печатается целиком: выстрелы до первого хода, стена на поле, итог", () => {
+    // Сид 2 — замок: ров и все башни.
+    const run = showAutoBattle(2, creatures, "siege");
+    expect(run.ok).toBe(true);
+    const text = run.lines.join("\n");
+    expect(text).toContain("Осада, сид 2. Описание боя:");
+    expect(text).toContain('"siege":{"fortification":"castle"');
+    expect(text).toMatch(/башня стреляет в a\d/);
+    expect(text).toContain("Катапульта");
+    expect(text).toMatch(/~ {2}=/);
+    expect(text).toContain("Бой окончен в раунде");
+  });
+
+  it("сводка осад с ошибкой подсказывает свою команду повтора", () => {
+    const stuck = creatures.map((creature) => ({ ...creature, speed: 0, flying: false, shots: 0 }));
+    const run = runAutoBattles(1, stuck, "siege");
+    expect(run.lines.at(-1)).toBe("Повторить бой с ошибкой: pnpm run play --siege <сид>");
+  });
 });

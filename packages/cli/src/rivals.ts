@@ -6,7 +6,16 @@ import type { ScenarioRun } from "./scenario.ts";
 /** Срок партии двух компьютеров в днях: подобран на шаге 5.2 (docs/mechanics/42-opponent.md). */
 export const RIVALS_DAYS = 120;
 
-type Played = { ok: true; game: ComputerGame } | { ok: false; failures: string[] };
+/** Осады партии: сколько началось, сколько кончилось взятием города, из скольких нападающий бежал. */
+interface SiegeCount {
+  started: number;
+  taken: number;
+  fled: number;
+}
+
+type Played =
+  | { ok: true; game: ComputerGame; sieges: SiegeCount }
+  | { ok: false; failures: string[] };
 
 function play(
   map: MapDefinition,
@@ -18,14 +27,24 @@ function play(
   if (!created.ok) {
     return { ok: false, failures: created.errors.map((e) => `Карта: ${e.field}: ${e.message}`) };
   }
+  const sieges: SiegeCount = { started: 0, taken: 0, fled: 0 };
+  let inSiege = false;
   const game = playComputerGame(created.state, RIVALS_DAYS, (state, events) => {
     for (const event of events) {
+      if (event.type === "battleStarted") {
+        inSiege = (state.battle?.state.siege ?? null) !== null;
+        sieges.started += inSiege ? 1 : 0;
+      } else if (event.type === "battle") {
+        sieges.fled += inSiege && event.event.type === "sideFled" ? 1 : 0;
+      } else if (event.type === "townCaptured") {
+        sieges.taken += inSiege && event.fought ? 1 : 0;
+      }
       if (event.type !== "battle") {
         onLine?.(`День ${state.day}: ${formatEvent(event)}`);
       }
     }
   });
-  return { ok: true, game };
+  return { ok: true, game, sieges };
 }
 
 function problemsOf(game: ComputerGame): string[] {
@@ -47,6 +66,7 @@ export function runComputerGames(
   let longestGame = 0;
   let shortestGame = Number.POSITIVE_INFINITY;
   let longestTurn = 0;
+  const sieges: SiegeCount = { started: 0, taken: 0, fled: 0 };
   for (let seed = 1; seed <= count; seed += 1) {
     const played = play(map, content, seed);
     const problems = played.ok ? problemsOf(played.game) : played.failures;
@@ -61,6 +81,9 @@ export function runComputerGames(
     longestGame = Math.max(longestGame, state.day);
     shortestGame = Math.min(shortestGame, state.day);
     longestTurn = Math.max(longestTurn, played.game.longestTurn);
+    sieges.started += played.sieges.started;
+    sieges.taken += played.sieges.taken;
+    sieges.fled += played.sieges.fled;
   }
   const finished = count - failures.length;
   const average = finished === 0 ? 0 : Math.round((days * 10) / finished) / 10;
@@ -68,6 +91,7 @@ export function runComputerGames(
     `Партий двух компьютеров на карте «${map.name}»: ${count}, без победителя или с ошибкой: ${failures.length}.`,
     `Побед: ${wins.map((won, index) => `игрок ${index + 1} — ${won}`).join(", ")}.`,
     `Дней в партии: от ${finished === 0 ? 0 : shortestGame} до ${longestGame}, в среднем ${average}. Команд за ход самое большее: ${longestTurn}.`,
+    `Осад: ${sieges.started}, город взят: ${sieges.taken}, нападающий бежал: ${sieges.fled}.`,
   ];
   if (failures.length > 0) {
     lines.push("Повторить партию с ошибкой: pnpm run play --rival <сид>");
