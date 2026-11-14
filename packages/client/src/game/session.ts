@@ -6,7 +6,7 @@
  * 24-map-screen.md, 43-opponent-screen.md.
  */
 import { applyCommand, computerCommand, townsOf } from "@homamru/core";
-import type { Command, GameEvent, GameState, TownState } from "@homamru/core";
+import type { BattleEvent, Command, GameEvent, GameState, TownState } from "@homamru/core";
 import { createBattleSession } from "../battle/battleSession.ts";
 import { describeCell } from "./captions.ts";
 import { messagesOf, summaryOf } from "./messages.ts";
@@ -35,6 +35,7 @@ export function createSession(initial: GameState, onAccepted?: OnAccepted): Sess
     townList: false,
   };
   /** События команды, закончившей бой: карта узнаёт о них, когда игрок вернулся на неё. */
+  let opening: BattleEvent[] = [];
   let afterBattle: { events: readonly GameEvent[]; before: GameState } | null = null;
   /** Строки сообщения, которые копятся, пока ходит противник. */
   let carried: readonly string[] = [];
@@ -64,6 +65,10 @@ export function createSession(initial: GameState, onAccepted?: OnAccepted): Sess
       return null;
     }
     onAccepted?.(command, result.state);
+    if (snapshot.state.battle === null && result.state.battle !== null) {
+      // Начало боя: выстрелы башен и катапульты до первого хода покажет экран боя.
+      opening = result.events.flatMap((event) => (event.type === "battle" ? [event.event] : []));
+    }
     return result;
   }
 
@@ -103,7 +108,8 @@ export function createSession(initial: GameState, onAccepted?: OnAccepted): Sess
     const side = battleSideOf(snapshot.state);
     const battle = snapshot.state.battle;
     if (battle !== null && side !== null && snapshot.battle === null) {
-      const screen = createBattleSession(battle.state, sendBattle, side);
+      const screen = createBattleSession(battle.state, sendBattle, side, opening);
+      opening = [];
       publish({ ...closed, battle: screen, summary: null });
     }
   }

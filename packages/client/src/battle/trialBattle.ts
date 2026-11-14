@@ -1,16 +1,29 @@
-/** Проверочный бой для пункта меню: читает файл боя и файлы существ. */
+/** Проверочные бои для пунктов меню: читает файл боя и файлы существ. */
 import { createBattle } from "@homamru/core";
-import type { BattleState } from "@homamru/core";
+import type { BattleEvent, BattleState } from "@homamru/core";
 import { parseBattleFile } from "@homamru/data";
+import siegeText from "../../../../data/battles/trial-siege.yaml?raw";
 import trialText from "../../../../data/battles/trial.yaml?raw";
 import { failContent, loadCreatures } from "../game/content.ts";
 
-const BATTLE_FILE = "data/battles/trial.yaml";
+const FILES = {
+  field: { file: "data/battles/trial.yaml", text: trialText },
+  siege: { file: "data/battles/trial-siege.yaml", text: siegeText },
+} as const;
 
-/** Начинает проверочный бой. Ошибка в файлах — исключение. */
-export function startTrialBattle(seed: number): BattleState {
+export type TrialKind = keyof typeof FILES;
+
+export interface TrialBattle {
+  readonly state: BattleState;
+  /** События начала боя: в осаде — выстрелы башен и катапульты до первого хода. */
+  readonly opening: readonly BattleEvent[];
+}
+
+/** Начинает проверочный бой: обычный или осаду. Ошибка в файлах — исключение. */
+export function startTrialBattle(seed: number, kind: TrialKind = "field"): TrialBattle {
+  const { file: BATTLE_FILE, text } = FILES[kind];
   const creatures = loadCreatures();
-  const battle = parseBattleFile(BATTLE_FILE, trialText);
+  const battle = parseBattleFile(BATTLE_FILE, text);
   if (!battle.ok) {
     return failContent(battle.errors);
   }
@@ -18,5 +31,5 @@ export function startTrialBattle(seed: number): BattleState {
   if (!created.ok) {
     return failContent(created.errors.map((error) => ({ file: BATTLE_FILE, ...error })));
   }
-  return created.state;
+  return { state: created.state, opening: created.events };
 }

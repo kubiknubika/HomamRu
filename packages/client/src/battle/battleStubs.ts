@@ -5,9 +5,24 @@
 import type { StackState } from "@homamru/core";
 import type * as Phaser from "phaser";
 
-export const FIELD_COLOR = 0x4f7a3a;
 export const FIELD_LINE_COLOR = 0x23361a;
-export const OBSTACLE_COLOR = 0x2b2f36;
+
+/** Цвета клеток поля по их виду (см. battleSiege.ts). Треснувший участок — стена с прочностью 1. */
+export const CELL_LOOK_COLORS = {
+  field: 0x4f7a3a,
+  obstacle: 0x2b2f36,
+  wall: 0x6f7178,
+  segment: 0x9a9ca3,
+  cracked: 0xb9a184,
+  gate: 0x7a5230,
+  gateOpen: 0xb89468,
+  moat: 0x2f5d8a,
+} as const;
+
+/** Башня: тёмный квадрат с зубцом цвета обороняющегося. */
+export const TOWER_COLOR = 0x3b3d44;
+export const TOWER_FLAG_COLOR = 0x2d6fc8;
+export const PROJECTILE_COLOR = 0x1c1c1c;
 
 /** Цвет и прозрачность подсветки клеток (см. battleHighlights.ts). */
 export const CELL_MARK_STYLES = {

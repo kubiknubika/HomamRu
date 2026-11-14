@@ -2,23 +2,17 @@
  * Сцена боя. Только показывает состояние и передаёт касания в бой;
  * правил боя здесь нет (догма 5). Спецификация: docs/mechanics/16-battle-screen.md.
  */
-import { BATTLE_HEIGHT, BATTLE_WIDTH } from "@homamru/core";
 import type { BattleEvent, BattleState, Cell } from "@homamru/core";
 import * as Phaser from "phaser";
 import type { FrameMeter } from "../game/frameMeter.ts";
 import { showLabel, showStrike, tracePath } from "./battleEffects.ts";
+import { drawBattleField } from "./battleFieldView.ts";
 import { highlightsOf } from "./battleHighlights.ts";
 import { cellAt, cellCenter, cellCorners, layoutOf } from "./battleGeometry.ts";
 import type { BattleLayout } from "./battleGeometry.ts";
 import type { BattleSession, BattleSnapshot } from "./battleSession.ts";
-import {
-  CELL_MARK_STYLES,
-  createStackStub,
-  FIELD_COLOR,
-  FIELD_LINE_COLOR,
-  OBSTACLE_COLOR,
-  RING_MARK_STYLES,
-} from "./battleStubs.ts";
+import { showSiegeEvent } from "./battleSiegeEffects.ts";
+import { CELL_MARK_STYLES, createStackStub, RING_MARK_STYLES } from "./battleStubs.ts";
 import type { StackStub } from "./battleStubs.ts";
 
 /** Место снизу под журнал, очередь ходов и кнопки (см. styles.css). */
@@ -116,21 +110,8 @@ export class BattleScene extends Phaser.Scene {
   }
 
   private drawField(state: BattleState): void {
-    const graphics = this.field;
-    if (graphics === undefined) {
-      return;
-    }
-    graphics.clear();
-    const obstacles = new Set(state.obstacles.map((cell) => `${cell.col},${cell.row}`));
-    graphics.lineStyle(1.5, FIELD_LINE_COLOR, 0.9);
-    for (let row = 0; row < BATTLE_HEIGHT; row += 1) {
-      for (let col = 0; col < BATTLE_WIDTH; col += 1) {
-        const corners = cellCorners(this.layout, { col, row });
-        graphics.fillStyle(obstacles.has(`${col},${row}`) ? OBSTACLE_COLOR : FIELD_COLOR, 1);
-        tracePath(graphics, corners);
-        graphics.fillPath();
-        graphics.strokePath();
-      }
+    if (this.field !== undefined) {
+      drawBattleField(this.field, this.layout, state);
     }
   }
 
@@ -226,6 +207,7 @@ export class BattleScene extends Phaser.Scene {
     if (event === undefined) {
       this.showing = false;
       const snapshot = this.session.getSnapshot();
+      this.drawField(snapshot.state);
       this.placeStacks(snapshot.state);
       this.drawHighlights(snapshot);
       this.time.delayedCall(PAUSE_MS, () => {
@@ -261,7 +243,14 @@ export class BattleScene extends Phaser.Scene {
         return;
       }
     }
-    next();
+    const { state } = this.session.getSnapshot();
+    const view = { layout: this.layout, stubs: this.stubs, size: this.stackSize(), state };
+    const redraw = (): void => {
+      this.drawField(state);
+    };
+    if (!showSiegeEvent(this, view, event, redraw, next)) {
+      next();
+    }
   }
 
   private cellUnder(pointer: Phaser.Input.Pointer): Cell | null {

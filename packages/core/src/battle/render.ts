@@ -4,6 +4,7 @@
  */
 import { BATTLE_HEIGHT, BATTLE_WIDTH, cellIndex } from "./hex.ts";
 import { activeStackOf } from "./queries.ts";
+import { GATE_INNER, GATE_OUTER, isMoat, wallCells } from "./siege.ts";
 import type { BattleEvent, BattleSide, BattleState, StackState } from "./types.ts";
 
 const SIDE_NAMES = ["нападающий", "обороняющийся"] as const;
@@ -57,6 +58,23 @@ export function renderBattle(state: BattleState): string {
   for (const cell of state.obstacles) {
     marks.set(cellIndex(cell), "#");
   }
+  if (state.siege !== null) {
+    // Осада: «~» ров, «=» стена, «|» целые ворота (проём и створ).
+    for (let row = 0; row < BATTLE_HEIGHT; row += 1) {
+      for (let col = 0; col < BATTLE_WIDTH; col += 1) {
+        if (isMoat(state.siege, { col, row })) {
+          marks.set(cellIndex({ col, row }), "~");
+        }
+      }
+    }
+    for (const cell of wallCells(state.siege)) {
+      marks.set(cellIndex(cell), "=");
+    }
+    if (state.siege.health.gate > 0) {
+      marks.set(cellIndex(GATE_OUTER), "|");
+      marks.set(cellIndex(GATE_INNER), "|");
+    }
+  }
   for (const stack of state.stacks) {
     if (stack.count > 0) {
       marks.set(cellIndex(stack), stack.id);
@@ -78,6 +96,23 @@ export function renderBattle(state: BattleState): string {
   lines.push("", ...state.stacks.map(stackLine));
   return lines.join("\n");
 }
+
+const TOWER_NAMES = {
+  keep: "Главная башня",
+  upperTower: "Верхняя башня",
+  lowerTower: "Нижняя башня",
+} as const;
+
+const PART_NAMES = {
+  wall1: "участок стены 1",
+  wall2: "участок стены 2",
+  wall3: "участок стены 3",
+  wall4: "участок стены 4",
+  gate: "ворота",
+  keep: "главная башня",
+  upperTower: "верхняя башня",
+  lowerTower: "нижняя башня",
+} as const;
 
 const STRIKE_NAMES = { melee: "бьёт", retaliation: "отвечает", shot: "стреляет в" } as const;
 
@@ -104,6 +139,19 @@ export function formatBattleEvent(event: BattleEvent): string {
       return `Отряд ${event.stackId} защищается: защита +${event.bonus}`;
     case "moraleTurn":
       return `Отряд ${event.stackId} ходит ещё раз: высокий боевой дух`;
+    case "towerShot":
+      return `${TOWER_NAMES[event.tower]} стреляет в ${event.targetId}: урон ${event.damage}, убито ${event.killed}, осталось ${event.left}`;
+    case "catapultShot": {
+      const where =
+        event.hit === event.aimed
+          ? PART_NAMES[event.hit]
+          : `${PART_NAMES[event.hit]} (целилась: ${PART_NAMES[event.aimed]})`;
+      const outcome =
+        event.left === 0 && event.damage > 0 ? "разрушено" : `прочность ${event.left}`;
+      return `Катапульта попадает: ${where}, урон ${event.damage}, ${outcome}`;
+    }
+    case "moatDamage":
+      return `Отряд ${event.stackId} во рву: урон ${event.damage}, убито ${event.killed}, осталось ${event.left}`;
     case "sideFled":
       return `Бежит ${sideName(event.side)}`;
     case "battleEnded":

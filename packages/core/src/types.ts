@@ -19,7 +19,7 @@ import type { GameEvent } from "./events.ts";
 import type { RngState } from "./rng.ts";
 
 /** Номер версии формата состояния. Увеличивается при любом изменении формата. */
-export const STATE_VERSION = 7;
+export const STATE_VERSION = 8;
 
 /** Направления шага в порядке из спецификации перемещения. */
 export const DIRECTIONS = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"] as const;

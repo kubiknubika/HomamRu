@@ -1,3 +1,4 @@
+import type { TrialKind } from "../battle/trialBattle.ts";
 import { mapLabel } from "../game/maps.ts";
 import type { Ending } from "../game/view.ts";
 import { Dialog, DialogButton } from "./Dialog.tsx";
@@ -21,7 +22,7 @@ interface GameDialogsProps {
   readonly mapIndex: number;
   readonly setOverlay: (overlay: Overlay) => void;
   readonly onNew: (mapIndex: number) => void;
-  readonly onTrial: () => void;
+  readonly onTrial: (kind: TrialKind) => void;
   readonly onDump: () => void;
 }
 
@@ -41,7 +42,18 @@ export function GameDialogs(props: GameDialogsProps) {
             setOverlay({ kind: "confirmNew", mapIndex });
           }}
         />
-        <DialogButton label="Проверочный бой" onClick={onTrial} />
+        <DialogButton
+          label="Проверочный бой"
+          onClick={() => {
+            onTrial("field");
+          }}
+        />
+        <DialogButton
+          label="Проверочная осада"
+          onClick={() => {
+            onTrial("siege");
+          }}
+        />
         <DialogButton
           label="Сохранить дамп"
           onClick={() => {

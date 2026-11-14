@@ -1,8 +1,25 @@
 /** Журнал боя для игрока: события одной команды одной строкой. */
-import { findStack } from "@homamru/core";
+import { defenseOf, findStack, isMachine } from "@homamru/core";
 import type { BattleEvent, BattleState, StackState } from "@homamru/core";
 
 const STRIKE_VERBS = { melee: "бьёт", retaliation: "отвечает", shot: "стреляет" } as const;
+
+const TOWER_NAMES = {
+  keep: "Главная башня",
+  upperTower: "Верхняя башня",
+  lowerTower: "Нижняя башня",
+} as const;
+
+const PART_NAMES = {
+  wall1: "стена",
+  wall2: "стена",
+  wall3: "стена",
+  wall4: "стена",
+  gate: "ворота",
+  keep: "главная башня",
+  upperTower: "верхняя башня",
+  lowerTower: "нижняя башня",
+} as const;
 
 function describeEvent(
   event: BattleEvent,
@@ -27,6 +44,16 @@ function describeEvent(
       return `${nameOf(event.stackId)} защищается: защита +${event.bonus}`;
     case "moraleTurn":
       return `${nameOf(event.stackId)}: высокий боевой дух, ещё один ход`;
+    case "towerShot":
+      return `${TOWER_NAMES[event.tower]} стреляет: ${nameOf(event.targetId)}, урон ${event.damage}, погибло ${event.killed}`;
+    case "catapultShot": {
+      if (event.damage === 0) {
+        return `Катапульта: ${PART_NAMES[event.hit]}, без урона`;
+      }
+      return `Катапульта: ${PART_NAMES[event.hit]}, ${event.left === 0 ? "разрушено" : "повреждено"}`;
+    }
+    case "moatDamage":
+      return `${nameOf(event.stackId)} во рву: урон ${event.damage}, погибло ${event.killed}`;
     case "sideFled":
       return event.side === playerSide ? "Вы бежали с поля боя" : "Противник бежал";
     case "stackTurn":
@@ -80,13 +107,15 @@ export function lostCount(state: BattleState, stack: StackState): number {
 /** Характеристики отряда одной строкой — для показа по удержанию пальца. */
 export function describeStack(state: BattleState, stack: StackState): string {
   const { creature } = stack;
+  if (isMachine(stack)) {
+    return `Катапульта: здоровье ${stack.firstHealth} из ${creature.health}, защита ${defenseOf(state, stack)}, выстрелов ${stack.shots}. Сама стреляет по стене в начале раунда. Не ходит и не отвечает на удар.`;
+  }
   const hero = state.sides[stack.side].hero;
   const attack = creature.attack + (hero?.attack ?? 0);
-  const defense = creature.defense + (hero?.defense ?? 0) + stack.defendBonus;
   const parts = [
     `${creature.name}: ${stack.count} из ${stack.initialCount}`,
     `атака ${attack}`,
-    `защита ${defense}`,
+    `защита ${defenseOf(state, stack)}`,
     `урон ${creature.damageMin}–${creature.damageMax}`,
     `здоровье ${stack.firstHealth} из ${creature.health}`,
     `скорость ${creature.speed}`,

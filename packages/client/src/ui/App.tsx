@@ -250,10 +250,11 @@ export function App({ gameParent, storage }: AppProps) {
         mapIndex={phase.mapIndex}
         setOverlay={setOverlay}
         onNew={newGame}
-        onTrial={() => {
+        onTrial={(kind) => {
           setOverlay(NO_OVERLAY);
           // Каждый бой — с новым сидом; сам бой от сида зависит полностью.
-          setTrial(createBattleSession(startTrialBattle(Date.now() % 2_000_000_000)));
+          const trialBattle = startTrialBattle(Date.now() % 2_000_000_000, kind);
+          setTrial(createBattleSession(trialBattle.state, undefined, 0, trialBattle.opening));
         }}
         onDump={exportDump}
       />

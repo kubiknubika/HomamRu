@@ -4,7 +4,8 @@
 import { nextInt } from "../rng.ts";
 import type { RngResult, RngState } from "../rng.ts";
 import { distance } from "./hex.ts";
-import type { BattleSideState, CreatureDefinition, StackState, StrikeKind } from "./types.ts";
+import { hasWallPenalty, isMoat, MOAT_DEFENSE } from "./siege.ts";
+import type { BattleState, CreatureDefinition, StackState, StrikeKind } from "./types.ts";
 
 const MAX_ROLLS = 10;
 /** Дальше этого расстояния выстрел бьёт вполсилы. */
@@ -82,23 +83,33 @@ export function defendBonusOf(defense: number): number {
   return Math.max(1, Math.floor(defense / 5));
 }
 
-type Sides = readonly [BattleSideState, BattleSideState];
+/** Что нужно знать о бое, чтобы посчитать удар: герои сторон и осада. */
+type Combat = Pick<BattleState, "sides" | "siege">;
 
 /** Атака отряда с прибавкой героя. */
-export function attackOf(sides: Sides, stack: StackState): number {
-  return stack.creature.attack + (sides[stack.side].hero?.attack ?? 0);
+export function attackOf(combat: Combat, stack: StackState): number {
+  return stack.creature.attack + (combat.sides[stack.side].hero?.attack ?? 0);
 }
 
-/** Защита отряда с прибавками героя и «защищаться». */
-export function defenseOf(sides: Sides, stack: StackState): number {
-  return stack.creature.defense + (sides[stack.side].hero?.defense ?? 0) + stack.defendBonus;
+/** Защита отряда с прибавками героя и «защищаться»; во рву — меньше на 3. */
+export function defenseOf(combat: Combat, stack: StackState): number {
+  const moat = isMoat(combat.siege, stack) ? MOAT_DEFENSE : 0;
+  const hero = combat.sides[stack.side].hero?.defense ?? 0;
+  return stack.creature.defense + hero + stack.defendBonus - moat;
 }
 
-/** Сколько раз урон делится пополам: стрелок в ближнем бою, выстрел дальше 10 клеток. */
-export function halvingsOf(kind: StrikeKind, attacker: StackState, target: StackState): number {
-  const halved =
-    kind === "shot" ? distance(attacker, target) > FULL_SHOT_RANGE : attacker.creature.shots > 0;
-  return halved ? 1 : 0;
+/** Сколько раз урон делится пополам: стрелок в ближнем бою, выстрел дальше 10 клеток, выстрел через стену. */
+export function halvingsOf(
+  combat: Combat,
+  kind: StrikeKind,
+  attacker: StackState,
+  target: StackState,
+): number {
+  if (kind !== "shot") {
+    return attacker.creature.shots > 0 ? 1 : 0;
+  }
+  const far = distance(attacker, target) > FULL_SHOT_RANGE ? 1 : 0;
+  return far + (hasWallPenalty(combat.siege, attacker, target) ? 1 : 0);
 }
 
 /**
@@ -106,15 +117,15 @@ export function halvingsOf(kind: StrikeKind, attacker: StackState, target: Stack
  * Нужен экрану боя, чтобы показать игроку «от и до».
  */
 export function damageRange(
-  sides: Sides,
+  combat: Combat,
   attacker: StackState,
   target: StackState,
   kind: StrikeKind,
 ): { readonly min: number; readonly max: number } {
   const rolls = Math.min(attacker.count, MAX_ROLLS);
-  const attack = attackOf(sides, attacker);
-  const defense = defenseOf(sides, target);
-  const halvings = halvingsOf(kind, attacker, target);
+  const attack = attackOf(combat, attacker);
+  const defense = defenseOf(combat, target);
+  const halvings = halvingsOf(combat, kind, attacker, target);
   const { damageMin, damageMax } = attacker.creature;
   const of = (roll: number): number =>
     computeDamage(baseDamageOf(roll * rolls, attacker.count), attack, defense, false, halvings);

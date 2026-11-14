@@ -30,6 +30,7 @@ describe("партии компьютер против компьютера", ()
     const longestTurn = Number(/Команд за ход самое большее: (\d+)/.exec(run.lines[2] ?? "")?.[1]);
     expect(longestTurn).toBeGreaterThan(0);
     expect(longestTurn).toBeLessThan(30);
+    expect(run.lines[3]).toMatch(/^Осад: \d+, город взят: \d+, нападающий бежал: \d+\.$/);
   });
 
   it("одна партия печатается целиком и кончается победой", () => {

@@ -7,6 +7,7 @@
 import { defenderArmy, readFate, readOutcome } from "./statePlayers.ts";
 import {
   heroIdOf,
+  isMachine,
   levelOf,
   MAX_PLAYERS,
   MAX_STACKS,
@@ -193,9 +194,11 @@ function readBattle(
     ...hero.army.map((stack) => ({ side: 0, ...stack })),
     ...defender.map((stack) => ({ side: 1, ...stack })),
   ];
+  // Катапульта осады — не из армии героя: в сверку не входит.
+  const fighters = state.stacks.filter((stack) => !isMachine(stack));
   const fits =
-    state.stacks.length === expected.length &&
-    state.stacks.every((stack, index) => {
+    fighters.length === expected.length &&
+    fighters.every((stack, index) => {
       const want = expected[index];
       return (
         stack.side === want?.side &&

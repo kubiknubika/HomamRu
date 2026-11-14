@@ -3,6 +3,7 @@
  * Здесь нет ни Phaser, ни React, и нет правил боя — они в ядре.
  * Спецификация управления: docs/mechanics/16-battle-screen.md.
  */
+import { beforeOpening, cellNote, isSiegeShot, openingLine } from "./battleSiege.ts";
 import {
   activeStackOf,
   applyBattleCommand,
@@ -48,6 +49,8 @@ export interface BattleSnapshot {
   readonly history: readonly string[];
   /** Отряд, который игрок рассматривает: видны его характеристики и клетки хода. */
   readonly inspected: string | null;
+  /** Что сказано про клетку осады, на которой игрок держит палец: стена, ров, ворота, башня. */
+  readonly note: string | null;
   /** Сторона игрока: 0 — он напал, 1 — напали на него. За другую ходит компьютер. */
   readonly playerSide: Side;
 }
@@ -103,14 +106,14 @@ function selectEnemy(
   enemy: StackState,
 ): BattleSelection | null {
   if (canShoot(state, me)) {
-    const damage = damageRange(state.sides, me, enemy, "shot");
+    const damage = damageRange(state, me, enemy, "shot");
     return { kind: "shoot", targetId: enemy.id, damage };
   }
   const cells = attackCells(state, me, enemy);
   if (cells.length === 0) {
     return null;
   }
-  const damage = damageRange(state.sides, me, enemy, "melee");
+  const damage = damageRange(state, me, enemy, "melee");
   // Клетка одна — она сразу выбрана.
   const from = cells.length === 1 ? (cells[0] ?? null) : null;
   return { kind: "attack", targetId: enemy.id, cells, from, damage };
@@ -141,14 +144,18 @@ export function createBattleSession(
   initial: BattleState,
   onCommand?: OnBattleCommand,
   playerSide: Side = 0,
+  opening: readonly BattleEvent[] = [],
 ): BattleSession {
+  // Выстрелы до первого хода: сначала поле показано как до них, потом они проигрываются.
+  let pending = opening.filter(isSiegeShot);
   let snapshot: BattleSnapshot = {
-    state: initial,
+    state: pending.length > 0 ? beforeOpening(initial, pending) : initial,
     selection: null,
     locked: true,
-    log: "",
+    log: openingLine(initial),
     history: [],
     inspected: null,
+    note: null,
     playerSide,
   };
   const listeners = new Set<Listener>();
@@ -181,6 +188,7 @@ export function createBattleSession(
         selection: null,
         locked: true,
         inspected: null,
+        note: null,
         log: line || snapshot.log,
         history: history.slice(-HISTORY_LENGTH),
       },
@@ -241,9 +249,9 @@ export function createBattleSession(
       };
     },
     tapCell: (cell) => {
-      if (snapshot.inspected !== null) {
-        // Касание убирает показ рассматриваемого отряда.
-        publish({ inspected: null });
+      if (snapshot.inspected !== null || snapshot.note !== null) {
+        // Касание убирает показ рассматриваемого отряда или клетки.
+        publish({ inspected: null, note: null });
       }
       const me = playerStack(snapshot);
       if (me === undefined) {
@@ -262,8 +270,9 @@ export function createBattleSession(
     },
     inspectCell: (cell) => {
       const target = stackAt(snapshot.state, cell);
-      if (target !== undefined) {
-        publish({ inspected: target.id });
+      const note = target === undefined ? cellNote(snapshot.state, cell) : null;
+      if (target !== undefined || note !== null) {
+        publish({ inspected: target?.id ?? null, note });
       }
     },
     wait: () => {
@@ -276,6 +285,12 @@ export function createBattleSession(
       simple("battleFlee");
     },
     animationDone: () => {
+      if (pending.length > 0) {
+        const shots = pending;
+        pending = [];
+        publish({ state: initial }, shots);
+        return;
+      }
       const { state } = snapshot;
       const command =
         activeStackOf(state)?.side === playerSide ? undefined : chooseBattleCommand(state);

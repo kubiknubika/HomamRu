@@ -6,7 +6,8 @@ import { applyBattleCommand } from "./battle/commands.ts";
 import { createBattle } from "./battle/create.ts";
 import { BATTLE_HEIGHT, cellIndex } from "./battle/hex.ts";
 import type { Cell } from "./battle/hex.ts";
-import type { BattleCommand } from "./battle/types.ts";
+import { FORTIFICATIONS } from "./battle/siege.ts";
+import type { BattleCommand, BattleDefinition } from "./battle/types.ts";
 import { mergeArmy } from "./army.ts";
 import type { GameEvent } from "./events.ts";
 import { ARMY_LUCK, ARMY_MORALE } from "./hero.ts";
@@ -87,6 +88,23 @@ function defenderOf(state: GameState, target: BattleTarget, events: GameEvent[])
   return { state: merged, army: joined.army, hero: joined, ids };
 }
 
+const FORTIFICATION_IDS: readonly string[] = FORTIFICATIONS;
+
+/** Осада: бой за город с фортом. Здания считаются без форта, цитадели и замка (50-siege.md). */
+function siegeOf(state: GameState, townId: string | null): BattleDefinition["siege"] {
+  const town = state.objects.find((object) => object.id === townId);
+  if (town?.type !== "town") {
+    return undefined;
+  }
+  const fortification = FORTIFICATIONS.findLast((id) => town.buildings.includes(id));
+  return fortification === undefined
+    ? undefined
+    : {
+        fortification,
+        buildings: town.buildings.filter((id) => !FORTIFICATION_IDS.includes(id)).length,
+      };
+}
+
 /**
  * Начинает бой: герой — нападающий. Возвращает состояние с полем `battle`;
  * события дописываются в список.
@@ -100,12 +118,15 @@ export function startBattle(
   const defender = defenderOf(initial, target, events);
   const { state, ids } = defender;
   const { seed, obstacles, rng } = rollBattle(state.rng);
+  const siege = siegeOf(state, ids.townId);
   const against = ids.guardId ?? ids.defenderHeroId ?? ids.townId ?? "";
   const created = createBattle(
     {
       id: `${hero.id}-${against}`,
       name: "Бой на карте",
-      obstacles,
+      // На поле осады препятствий нет; жребий препятствий всё равно брошен, чтобы порядок случайных чисел не зависел от вида боя.
+      obstacles: siege === undefined ? obstacles : [],
+      ...(siege === undefined ? {} : { siege }),
       attacker: {
         hero: { attack: hero.attack, defense: hero.defense },
         morale: ARMY_MORALE,

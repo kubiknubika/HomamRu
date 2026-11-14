@@ -1,0 +1,22 @@
+# Бой для пункта меню «Проверочная осада» (docs/mechanics/51-siege-screen.md).
+# Игрок — нападающий. Город с замком: стена, ров, ворота, три башни; в городе 4 здания.
+id: trial-siege
+name: Проверочная осада
+obstacles: []
+siege: { fortification: castle, buildings: 4 }
+attacker:
+  hero: { attack: 1, defense: 1 }
+  morale: 1
+  luck: 1
+  army:
+    - { creature: militia, count: 60 }
+    - { creature: slinger, count: 30 }
+    - { creature: armsman, count: 15 }
+    - { creature: falcon, count: 12 }
+defender:
+  morale: 1
+  luck: 1
+  army:
+    - { creature: militia, count: 30 }
+    - { creature: slinger, count: 12 }
+    - { creature: falcon, count: 5 }

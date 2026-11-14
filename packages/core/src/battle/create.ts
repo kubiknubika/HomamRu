@@ -4,9 +4,12 @@
  */
 import { createRng } from "../rng.ts";
 import { BATTLE_WIDTH, cellIndex, inField } from "./hex.ts";
-import { activateNext } from "./turns.ts";
-import type { BattleDraft } from "./turns.ts";
-import { BATTLE_VERSION, MAX_STACKS } from "./types.ts";
+import { toState } from "./draft.ts";
+import type { BattleDraft } from "./draft.ts";
+import { CATAPULT, CATAPULT_CELL, createSiege } from "./siege.ts";
+import { siegePhase } from "./siegeRound.ts";
+import { activateNext, endIfDestroyed } from "./turns.ts";
+import { MAX_STACKS } from "./types.ts";
 import type {
   ArmyDefinition,
   BattleDefinition,
@@ -131,18 +134,23 @@ function placeArmy(
   return stacks;
 }
 
-/** Собирает неизменяемое состояние из рабочей копии. */
-export function toState(draft: BattleDraft, obstacles: BattleState["obstacles"]): BattleState {
+/** Катапульта нападающего: стоит на своём месте у края поля и в очереди ходов не участвует. */
+function catapult(): StackState {
   return {
-    version: BATTLE_VERSION,
-    rng: draft.rng,
-    round: draft.round,
-    obstacles,
-    sides: draft.sides,
-    stacks: draft.stacks,
-    activeStack: draft.activeStack,
-    lastActedSide: draft.lastActedSide,
-    result: draft.result,
+    id: "ac",
+    side: 0,
+    slot: MAX_STACKS,
+    creature: CATAPULT,
+    count: 1,
+    initialCount: 1,
+    firstHealth: CATAPULT.health,
+    shots: CATAPULT.shots,
+    col: CATAPULT_CELL.col,
+    row: CATAPULT_CELL.row,
+    turn: "done",
+    moraleUsed: false,
+    retaliated: false,
+    defendBonus: 0,
   };
 }
 
@@ -161,12 +169,21 @@ export function createBattle(
     ...validateArmy("defender", definition.defender, byId),
     ...validateObstacles(definition),
   ];
+  const { siege } = definition;
+  if (siege !== undefined && !isWhole(siege.buildings, 0, Number.MAX_SAFE_INTEGER)) {
+    errors.push({ field: "siege.buildings", message: "Число зданий — целое, не меньше 0." });
+  }
+  if (siege !== undefined && definition.obstacles.length > 0) {
+    errors.push({ field: "obstacles", message: "На поле осады препятствий нет." });
+  }
   if (errors.length > 0) {
     return { ok: false, errors };
   }
   const draft: BattleDraft = {
     rng: createRng(seed),
     round: 1,
+    obstacles: definition.obstacles.map((cell) => ({ col: cell.col, row: cell.row })),
+    siege: siege === undefined ? null : createSiege(siege.fortification, siege.buildings),
     sides: [
       {
         hero: definition.attacker.hero ?? null,
@@ -182,6 +199,7 @@ export function createBattle(
     stacks: [
       ...placeArmy(0, definition.attacker, byId),
       ...placeArmy(1, definition.defender, byId),
+      ...(siege === undefined ? [] : [catapult()]),
     ],
     activeStack: null,
     // В начале боя преимущество у нападающего: считается, что последним ходил обороняющийся.
@@ -189,13 +207,9 @@ export function createBattle(
     result: null,
     events: [{ type: "roundStarted", round: 1 }],
   };
-  activateNext(draft);
-  return {
-    ok: true,
-    state: toState(
-      draft,
-      definition.obstacles.map((cell) => ({ col: cell.col, row: cell.row })),
-    ),
-    events: draft.events,
-  };
+  siegePhase(draft);
+  if (!endIfDestroyed(draft)) {
+    activateNext(draft);
+  }
+  return { ok: true, state: toState(draft), events: draft.events };
 }

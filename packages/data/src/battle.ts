@@ -189,6 +189,12 @@ const battleSchema = z.strictObject({
   id: z.string().regex(ID_PATTERN, ID_MESSAGE),
   name: z.string().min(1),
   obstacles: z.array(cellSchema),
+  siege: z
+    .strictObject({
+      fortification: z.enum(["fort", "citadel", "castle"]),
+      buildings: z.int().min(0),
+    })
+    .optional(),
   attacker: armySchema,
   defender: armySchema,
 });

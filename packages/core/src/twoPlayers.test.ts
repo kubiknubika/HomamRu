@@ -141,6 +141,60 @@ describe("нападение на город", () => {
     );
   });
 
+  it("город с фортом — осада: стена и катапульта; катапульта в армию героя не попадает", () => {
+    const state = put(duel([HOME, enemyTown(army("militia:5"))]), "A", 3, 3);
+    const fighting = run(state, TO_TOWN);
+    expect(fighting.battle?.state.siege).toMatchObject({
+      moat: false,
+      health: { gate: 2, keep: 0 },
+    });
+    expect(fighting.battle?.state.obstacles).toEqual([]);
+    expect(fighting.battle?.state.stacks.map((stack) => stack.id)).toEqual(["a1", "b1", "ac"]);
+    const { state: after } = playBattleOut(fighting);
+    expect(after.heroes[0]?.army.map((stack) => stack.creature)).toEqual(["militia"]);
+  });
+
+  it.each([
+    [["tavern", "fort", "citadel", "town-hall"], { moat: true, keepDamage: 14, towerDamage: 8 }],
+    [
+      ["tavern", "fort", "citadel", "castle"],
+      { moat: true, keepDamage: 12, health: { gate: 2, upperTower: 2 } },
+    ],
+  ])("постройки %j: осада %j", (buildings, siege) => {
+    const town = { ...enemyTown(army("militia:5")), buildings };
+    const fighting = run(put(duel([HOME, town]), "A", 3, 3), TO_TOWN);
+    expect(fighting.battle?.state.siege).toMatchObject(siege);
+  });
+
+  it("город без форта: бой обычный, без стены и катапульты", () => {
+    const town = { ...enemyTown(army("militia:5")), buildings: ["tavern"] };
+    const fighting = run(put(duel([HOME, town]), "A", 3, 3), TO_TOWN);
+    expect(fighting.battle?.state.siege).toBeNull();
+    expect(fighting.battle?.state.stacks.map((stack) => stack.id)).toEqual(["a1", "b1"]);
+  });
+
+  it("осада встала (катапульта разбита, стена цела): нападающий компьютер бежит и пропадает", () => {
+    const town = {
+      ...enemyTown(army("militia:5")),
+      buildings: ["tavern", "fort", "citadel", "castle"],
+    };
+    const fighting = run(put(duel([HOME, town]), "A", 3, 3), TO_TOWN);
+    const battle = fighting.battle;
+    if (battle === null) {
+      throw new Error("Боя нет.");
+    }
+    const stacks = battle.state.stacks.map((stack) =>
+      stack.id === "ac" ? { ...stack, count: 0 } : stack,
+    );
+    const stuck = { ...fighting, battle: { ...battle, state: { ...battle.state, stacks } } };
+    const { state: after, commands, events } = playBattleOut(stuck);
+    expect(commands.at(-1)).toMatchObject({ type: "battleFlee", side: 0 });
+    expect(after.battle).toBeNull();
+    expect(after.heroes.map((hero) => hero.id)).toEqual(["B"]);
+    expect(after.objects[1]).toMatchObject({ owner: 1, garrison: army("militia:5") });
+    expect(events.some((event) => event.type === "townCaptured")).toBe(false);
+  });
+
   it("гарнизон отбился: нападающего нет, в гарнизоне выжившие, город у хозяина", () => {
     const state = put(duel([HOME, enemyTown(army("militia:200"))], army("militia:5")), "A", 3, 3);
     const { state: after } = playBattleOut(run(state, TO_TOWN));

@@ -4,8 +4,11 @@
  * Файл .json считается дампом ошибки: партия из него повторяется и сверяется.
  * pnpm run play --autobattles [число] — сводка автобоёв (по умолчанию 1000);
  * pnpm run play --autobattle <сид> — один автобой целиком;
- * pnpm run play --rivals [число] — сводка партий «компьютер против компьютера» (по умолчанию 100);
- * pnpm run play --rival <сид> — одна такая партия целиком.
+ * pnpm run play --sieges [число] — сводка осад двух компьютеров (по умолчанию 1000);
+ * pnpm run play --siege <сид> — одна осада целиком;
+ * pnpm run play --rivals [число] [карта] — сводка партий «компьютер против компьютера»
+ * (по умолчанию 100 партий на карте test-rivals; карта — имя файла из data/maps без расширения);
+ * pnpm run play --rival <сид> [карта] — одна такая партия целиком.
  */
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -64,7 +67,7 @@ function playAuto(run: ScenarioRun): boolean {
 }
 
 function main(args: readonly string[]): boolean {
-  const [mode, value] = args;
+  const [mode, value, mapId] = args;
   if (mode === "--autobattles") {
     const count = value === undefined ? DEFAULT_AUTO_BATTLES : Number(value);
     return playAuto(runAutoBattles(count, loadCreatures()));
@@ -72,12 +75,19 @@ function main(args: readonly string[]): boolean {
   if (mode === "--autobattle") {
     return playAuto(showAutoBattle(Number(value ?? 1), loadCreatures()));
   }
+  if (mode === "--sieges") {
+    const count = value === undefined ? DEFAULT_AUTO_BATTLES : Number(value);
+    return playAuto(runAutoBattles(count, loadCreatures(), "siege"));
+  }
+  if (mode === "--siege") {
+    return playAuto(showAutoBattle(Number(value ?? 1), loadCreatures(), "siege"));
+  }
   if (mode === "--rivals") {
     const count = value === undefined ? DEFAULT_RIVAL_GAMES : Number(value);
-    return playAuto(runComputerGames(count, loadRivalsMap(), loadDefaults()));
+    return playAuto(runComputerGames(count, loadRivalsMap(mapId), loadDefaults()));
   }
   if (mode === "--rival") {
-    return playAuto(showComputerGame(Number(value ?? 1), loadRivalsMap(), loadDefaults()));
+    return playAuto(showComputerGame(Number(value ?? 1), loadRivalsMap(mapId), loadDefaults()));
   }
   return playFiles(args);
 }

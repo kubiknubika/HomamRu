@@ -2,7 +2,8 @@
  * Применение команд боя и повтор боя.
  * Спецификация: docs/mechanics/12-battle-actions.md.
  */
-import { toState } from "./create.ts";
+import { rollChance, toDraft, toState } from "./draft.ts";
+import type { BattleDraft } from "./draft.ts";
 import {
   applyDamage,
   attackOf,
@@ -16,8 +17,8 @@ import {
 import { cellIndex, distance, inField, sameCell } from "./hex.ts";
 import type { Cell } from "./hex.ts";
 import { findStack, hasAdjacentEnemy, isAlive, reachableCells } from "./queries.ts";
-import { activateNext, endBattle, endIfDestroyed, rollChance } from "./turns.ts";
-import type { BattleDraft } from "./turns.ts";
+import { isMachine, isMoat, MOAT_DAMAGE } from "./siege.ts";
+import { activateNext, endBattle, endIfDestroyed } from "./turns.ts";
 import type {
   BattleCommand,
   BattleCommandResult,
@@ -32,19 +33,6 @@ type DraftStack = BattleDraft["stacks"][number];
 
 function reject(code: BattleRejectCode, message: string): BattleCommandResult {
   return { ok: false, code, message };
-}
-
-function toDraft(state: BattleState): BattleDraft {
-  return {
-    rng: state.rng,
-    round: state.round,
-    sides: state.sides,
-    stacks: state.stacks.map((stack) => ({ ...stack })),
-    activeStack: state.activeStack,
-    lastActedSide: state.lastActedSide,
-    result: state.result,
-    events: [],
-  };
 }
 
 function draftStack(draft: BattleDraft, id: string): DraftStack {
@@ -68,6 +56,22 @@ function moveTo(draft: BattleDraft, stack: DraftStack, to: Cell): void {
     from,
     to: { col: to.col, row: to.row },
   });
+  if (isMoat(draft.siege, to)) {
+    const losses = applyDamage(stack.count, stack.firstHealth, stack.creature.health, MOAT_DAMAGE);
+    stack.count = losses.count;
+    stack.firstHealth = losses.firstHealth;
+    draft.events.push({
+      type: "moatDamage",
+      stackId: stack.id,
+      damage: MOAT_DAMAGE,
+      killed: losses.killed,
+      left: losses.count,
+    });
+    if (losses.count === 0) {
+      stack.turn = "done";
+      draft.events.push({ type: "stackDied", stackId: stack.id });
+    }
+  }
 }
 
 /** Один удар: жребий удачи, броски урона, потери цели. */
@@ -84,10 +88,10 @@ function strike(
 
   const damage = computeDamage(
     base.value,
-    attackOf(draft.sides, attacker),
-    defenseOf(draft.sides, target),
+    attackOf(draft, attacker),
+    defenseOf(draft, target),
     lucky,
-    halvingsOf(kind, attacker, target),
+    halvingsOf(draft, kind, attacker, target),
   );
 
   const losses = applyDamage(target.count, target.firstHealth, target.creature.health, damage);
@@ -128,8 +132,8 @@ function finishAction(draft: BattleDraft, stack: DraftStack): void {
   activateNext(draft);
 }
 
-function accept(state: BattleState, draft: BattleDraft): BattleCommandResult {
-  return { ok: true, state: toState(draft, state.obstacles), events: draft.events };
+function accept(draft: BattleDraft): BattleCommandResult {
+  return { ok: true, state: toState(draft), events: draft.events };
 }
 
 function applyMove(
@@ -144,7 +148,7 @@ function applyMove(
   const stack = draftStack(draft, active.id);
   moveTo(draft, stack, command.to);
   finishAction(draft, stack);
-  return accept(state, draft);
+  return accept(draft);
 }
 
 /** Проверки цели, общие для удара и выстрела. */
@@ -183,14 +187,19 @@ function applyAttack(
   const stack = draftStack(draft, active.id);
   const victim = draftStack(draft, target.id);
   moveTo(draft, stack, from);
+  if (stack.count === 0) {
+    // Погиб во рву, не дойдя до удара.
+    finishAction(draft, stack);
+    return accept(draft);
+  }
   strike(draft, stack, victim, "melee");
-  // Отвечают только выжившие и только раз за раунд.
-  if (victim.count > 0 && !victim.retaliated) {
+  // Отвечают только выжившие и только раз за раунд; катапульта не отвечает.
+  if (victim.count > 0 && !victim.retaliated && !isMachine(victim)) {
     victim.retaliated = true;
     strike(draft, victim, stack, "retaliation");
   }
   finishAction(draft, stack);
-  return accept(state, draft);
+  return accept(draft);
 }
 
 function applyShoot(
@@ -216,7 +225,7 @@ function applyShoot(
   stack.shots -= 1;
   strike(draft, stack, draftStack(draft, target.id), "shot");
   finishAction(draft, stack);
-  return accept(state, draft);
+  return accept(draft);
 }
 
 function applyWait(state: BattleState, active: StackState): BattleCommandResult {
@@ -229,7 +238,7 @@ function applyWait(state: BattleState, active: StackState): BattleCommandResult 
   stack.turn = stack.moraleUsed ? "waitingAfterMorale" : "waiting";
   draft.events.push({ type: "stackWaits", stackId: stack.id });
   activateNext(draft);
-  return accept(state, draft);
+  return accept(draft);
 }
 
 function applyDefend(state: BattleState, active: StackState): BattleCommandResult {
@@ -240,7 +249,7 @@ function applyDefend(state: BattleState, active: StackState): BattleCommandResul
   stack.turn = "done";
   draft.events.push({ type: "stackDefends", stackId: stack.id, bonus: stack.defendBonus });
   activateNext(draft);
-  return accept(state, draft);
+  return accept(draft);
 }
 
 function applyFlee(state: BattleState, active: StackState): BattleCommandResult {
@@ -250,7 +259,7 @@ function applyFlee(state: BattleState, active: StackState): BattleCommandResult 
   const draft = toDraft(state);
   draft.events.push({ type: "sideFled", side: active.side });
   endBattle(draft, active.side === 0 ? 1 : 0, "fled");
-  return accept(state, draft);
+  return accept(draft);
 }
 
 /**
