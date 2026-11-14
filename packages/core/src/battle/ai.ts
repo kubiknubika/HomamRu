@@ -1,179 +1,70 @@
 /**
  * Простой компьютер в бою: выбирает команду для отряда, чей сейчас ход.
- * Спецификация: docs/mechanics/15-battle-ai.md.
+ * Спецификация: docs/mechanics/15-battle-ai.md; осада — 50-siege.md.
  */
-import { attackOf, computeDamage, defenseOf, halvingsOf } from "./damage.ts";
-import { cellIndex, distance, sameCell } from "./hex.ts";
-import type { Cell } from "./hex.ts";
-import {
-  activeStackOf,
-  attackCells,
-  canShoot,
-  isAlive,
-  reachableCells,
-  walkSteps,
-} from "./queries.ts";
+import { bestCell, chooseApproach, chooseAttack, chooseShot, nearestEnemy } from "./aiMoves.ts";
+import type { Allowed } from "./aiMoves.ts";
+import { distance, sameCell } from "./hex.ts";
+import { activeStackOf, isAlive, reachableCells } from "./queries.ts";
 import { GATE_BRIDGE, GATE_INNER, isInside, isMachine, isMoat, TOWERS } from "./siege.ts";
-import type { BattleCommand, BattleState, StackState, StrikeKind } from "./types.ts";
-
-/**
- * Удвоенный ожидаемый урон: вместо бросков — средний урон существа, удача не учитывается.
- * Не больше удвоенного общего здоровья цели.
- */
-function expectedDamage(
-  state: BattleState,
-  attacker: StackState,
-  target: StackState,
-  kind: StrikeKind,
-): number {
-  const { damageMin, damageMax } = attacker.creature;
-  const damage = computeDamage(
-    (damageMin + damageMax) * attacker.count,
-    attackOf(state, attacker),
-    defenseOf(state, target),
-    false,
-    halvingsOf(state, kind, attacker, target),
-  );
-  const health = (target.count - 1) * target.creature.health + target.firstHealth;
-  return Math.min(damage, 2 * health);
-}
-
-/** Раньше по порядку та клетка, у которой меньше ряд, затем меньше столбец. */
-function cellBefore(a: Cell, b: Cell): boolean {
-  return a.row !== b.row ? a.row < b.row : a.col < b.col;
-}
-
-/** Клетка с наименьшей оценкой; при равенстве — первая по порядку клеток. */
-function bestCell(cells: Iterable<Cell>, scoreOf: (cell: Cell) => number | undefined) {
-  let best: { readonly cell: Cell; readonly score: number } | undefined;
-  for (const cell of cells) {
-    const score = scoreOf(cell);
-    if (score === undefined) {
-      continue;
-    }
-    if (
-      best === undefined ||
-      score < best.score ||
-      (score === best.score && cellBefore(cell, best.cell))
-    ) {
-      best = { cell, score };
-    }
-  }
-  return best;
-}
-
-function chooseShot(
-  state: BattleState,
-  me: StackState,
-  enemies: readonly StackState[],
-): BattleCommand | undefined {
-  if (!canShoot(state, me)) {
-    return undefined;
-  }
-  let best: StackState | undefined;
-  let bestDamage = -1;
-  for (const enemy of enemies) {
-    const damage = expectedDamage(state, me, enemy, "shot");
-    if (damage > bestDamage) {
-      best = enemy;
-      bestDamage = damage;
-    }
-  }
-  return best === undefined ? undefined : { type: "battleShoot", side: me.side, target: best.id };
-}
-
-/** Куда отряду можно вставать: в осаде компьютер ходит не везде (50-siege.md). */
-type Allowed = (cell: Cell) => boolean;
-
-function chooseAttack(
-  state: BattleState,
-  me: StackState,
-  enemies: readonly StackState[],
-  allowed: Allowed,
-): BattleCommand | undefined {
-  let best: { readonly enemy: StackState; readonly cells: readonly Cell[] } | undefined;
-  let bestDamage = -1;
-  for (const enemy of enemies) {
-    const cells = attackCells(state, me, enemy).filter(allowed);
-    const damage = expectedDamage(state, me, enemy, "melee");
-    if (cells.length > 0 && damage > bestDamage) {
-      best = { enemy, cells };
-      bestDamage = damage;
-    }
-  }
-  if (best === undefined) {
-    return undefined;
-  }
-  // Из клеток удара — ближайшая к отряду: пешему по шагам, летающему по расстоянию.
-  const steps = me.creature.flying ? undefined : walkSteps(state, me, me);
-  const from = bestCell(best.cells, (cell) =>
-    steps === undefined ? distance(me, cell) : steps.get(cellIndex(cell)),
-  );
-  return from === undefined
-    ? undefined
-    : { type: "battleAttack", side: me.side, target: best.enemy.id, from: from.cell };
-}
-
-/** Как далеко от каждой клетки до врага: число для клетки или `undefined`, если пути нет. */
-type Measure = (cell: Cell) => number | undefined;
-
-/** Ближайший враг и мера «как далеко до него». `onFootOnly` — только если до врага есть дорога. */
-function nearestEnemy(
-  state: BattleState,
-  me: StackState,
-  enemies: readonly StackState[],
-  onFootOnly: boolean,
-): Measure | undefined {
-  let best: { readonly measure: Measure; readonly far: number } | undefined;
-  if (!me.creature.flying) {
-    for (const enemy of enemies) {
-      const steps = walkSteps(state, enemy, me);
-      const far = steps.get(cellIndex(me));
-      if (far !== undefined && (best === undefined || far < best.far)) {
-        best = { measure: (cell) => steps.get(cellIndex(cell)), far };
-      }
-    }
-  }
-  if (best === undefined && !onFootOnly) {
-    // Летающий отряд, или пешком ни до кого не дойти: по расстоянию.
-    for (const enemy of enemies) {
-      const far = distance(me, enemy);
-      if (best === undefined || far < best.far) {
-        best = { measure: (cell) => distance(cell, enemy), far };
-      }
-    }
-  }
-  return best?.measure;
-}
-
-function chooseApproach(
-  state: BattleState,
-  me: StackState,
-  enemies: readonly StackState[],
-  allowed: Allowed,
-  onFootOnly: boolean,
-): BattleCommand | undefined {
-  const measure = nearestEnemy(state, me, enemies, onFootOnly);
-  const now = measure?.(me);
-  if (measure === undefined || now === undefined) {
-    return undefined;
-  }
-  const best = bestCell([...reachableCells(state, me).values()].filter(allowed), measure);
-  return best === undefined || best.score >= now
-    ? undefined
-    : { type: "battleMove", side: me.side, to: best.cell };
-}
+import type { BattleCommand, BattleState, StackState } from "./types.ts";
 
 /** За стеной и не на створе ворот: стоя там, обороняющийся ворот не открывает. */
 const behindWall: Allowed = (cell) => isInside(cell) && !sameCell(cell, GATE_INNER);
 
-/** Обороняющийся держит стену, пока ему есть чем стрелять: башнями или стрелками. */
-function holdsWall(state: BattleState): boolean {
+/**
+ * Как компьютер ведёт осаду. В игре — `SIEGE_TACTICS`; остальные значения нужны для сравнения
+ * в прогонах (docs/mechanics/stage-6.md, «Сравнение тактик»).
+ */
+export interface SiegeTactics {
+  /**
+   * Когда обороняющийся выходит из-за стены: никогда; когда у него нет ни башен, ни стрелков;
+   * ещё и когда его обстреливают, а ответить стрелками нечем; всегда.
+   */
+  readonly sortie: "never" | "noRanged" | "outshot" | "always";
+  /** Обороняющийся, держа стену, подходит к врагу по клеткам внутри стен. */
+  readonly closeUp: boolean;
+  /** Летающие нападающего не летят за стену, пока пешим туда нет дороги. */
+  readonly flyersWait: boolean;
+}
+
+export const SIEGE_TACTICS: SiegeTactics = {
+  sortie: "noRanged",
+  closeUp: false,
+  flyersWait: false,
+};
+
+function hasShots(state: BattleState, side: number): boolean {
+  return state.stacks.some(
+    (stack) => stack.side === side && isAlive(stack) && !isMachine(stack) && stack.shots > 0,
+  );
+}
+
+/** Обороняющийся держит стену — см. `SiegeTactics.sortie`. */
+function holdsWall(state: BattleState, sortie: SiegeTactics["sortie"]): boolean {
   const { siege } = state;
+  if (siege === null || sortie === "always") {
+    return false;
+  }
+  if (sortie === "never") {
+    return true;
+  }
+  const ranged = hasShots(state, 1);
+  if (sortie === "outshot" && !ranged && hasShots(state, 0)) {
+    return false;
+  }
+  return ranged || TOWERS.some((tower) => siege.health[tower] > 0);
+}
+
+/** Летающему нападающему рано за стену: у него есть пешие, дороги им нет, катапульта ещё стреляет. */
+function flyerWaits(state: BattleState, me: StackState, enemies: readonly StackState[]): boolean {
+  const mine = state.stacks.filter((stack) => stack.side === 0 && isAlive(stack));
+  const foot = mine.filter((stack) => !isMachine(stack) && !stack.creature.flying);
   return (
-    siege !== null &&
-    (TOWERS.some((tower) => siege.health[tower] > 0) ||
-      state.stacks.some((stack) => stack.side === 1 && isAlive(stack) && stack.shots > 0))
+    me.creature.flying &&
+    foot.length > 0 &&
+    mine.some((stack) => isMachine(stack) && stack.shots > 0) &&
+    !foot.some((stack) => nearestEnemy(state, stack, enemies, true) !== undefined)
   );
 }
 
@@ -211,7 +102,10 @@ function leaveBridge(state: BattleState, me: StackState): BattleCommand | undefi
  * Случайных чисел не использует.
  * `undefined` — бой окончен, ходить некому.
  */
-export function chooseBattleCommand(state: BattleState): BattleCommand | undefined {
+export function chooseBattleCommand(
+  state: BattleState,
+  tactics: SiegeTactics = SIEGE_TACTICS,
+): BattleCommand | undefined {
   const me = activeStackOf(state);
   if (state.result !== null || me === undefined) {
     return undefined;
@@ -230,12 +124,19 @@ export function chooseBattleCommand(state: BattleState): BattleCommand | undefin
       defend
     );
   }
-  if (me.side === 1 && holdsWall(state) && isInside(me)) {
+  if (me.side === 1 && holdsWall(state, tactics.sortie) && isInside(me)) {
     // Бьёт только тех, до кого дотягивается, не выходя за стену и не открывая ворот.
-    return chooseAttack(state, me, enemies, behindWall) ?? defend;
+    return (
+      chooseAttack(state, me, enemies, behindWall) ??
+      (tactics.closeUp ? chooseApproach(state, me, enemies, behindWall, false) : undefined) ??
+      defend
+    );
   }
   if (me.side === 0 && siegeStalled(state, enemies)) {
     return { type: "battleFlee", side: 0 };
+  }
+  if (me.side === 0 && tactics.flyersWait && flyerWaits(state, me, enemies)) {
+    return chooseAttack(state, me, enemies, (cell) => !isInside(cell)) ?? defend;
   }
   // Пешему нападающему ров по дороге в пролом не помеха; остальные в ров не встают.
   const onFoot = me.side === 0 && !me.creature.flying;

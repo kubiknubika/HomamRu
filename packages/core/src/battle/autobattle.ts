@@ -35,6 +35,7 @@ export function runAutoBattle(
   definition: BattleDefinition,
   creatures: readonly CreatureDefinition[],
   seed: number,
+  choose: (state: BattleState) => BattleCommand | undefined = chooseBattleCommand,
 ): AutoBattleRun {
   const created = createBattle(definition, creatures, seed);
   if (!created.ok) {
@@ -49,7 +50,7 @@ export function runAutoBattle(
       problems.push(`бой не закончился за ${AUTO_BATTLE_MAX_ROUNDS} раундов`);
       break;
     }
-    const command = chooseBattleCommand(state);
+    const command = choose(state);
     if (command === undefined) {
       problems.push("компьютер не выбрал команду");
       break;
