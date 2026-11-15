@@ -4,7 +4,7 @@
  */
 import type { SpellDefinition } from "../spells.ts";
 import type { BattleDraft } from "./draft.ts";
-import { immuneTo, isHypnotized } from "./effects.ts";
+import { immuneTo, isHypnotized, isPermanent } from "./effects.ts";
 import { BATTLE_HEIGHT, BATTLE_WIDTH, cellIndex, distance } from "./hex.ts";
 import type { Cell } from "./hex.ts";
 import { blockedCells } from "./queries.ts";
@@ -191,7 +191,10 @@ function raise(draft: BattleDraft, stack: DraftStack, amount: number, lasting: b
     stack.raised = (stack.raised ?? 0) + raised;
   }
   // Поднятый из погибших целиком встаёт без заклинаний; с живого снимаются вредные.
-  stack.effects = before === 0 ? [] : stack.effects.filter((effect) => !effect.negative);
+  // «Разрушающий луч» остаётся и после гибели (67-spells-plain.md).
+  stack.effects = stack.effects.filter(
+    (effect) => isPermanent(effect) || (before > 0 && !effect.negative),
+  );
   if (before === 0) {
     stack.defendBonus = 0;
   }

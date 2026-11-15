@@ -228,10 +228,10 @@ describe("«Телепорт»", () => {
     expect(codes(3)).toEqual(["принята", "принята", "принята"]);
   });
 
-  it("перенесённый в ров получает урон рва", () => {
+  it("перенесённого в ров ров не ранит", () => {
     const start = battle(2, siegeOf("castle"));
     const { events } = done(start, "teleport", { target: "a1", cell: { col: 10, row: 1 } });
-    expect(events).toContainEqual(expect.objectContaining({ type: "moatDamage", stackId: "a1" }));
+    expect(events.some((event) => event.type === "moatDamage")).toBe(false);
   });
 });
 

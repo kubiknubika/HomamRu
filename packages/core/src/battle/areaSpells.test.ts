@@ -3,7 +3,8 @@ import { describe, expect, it } from "vitest";
 import { ALL_SPELLS, spell } from "../spellKit.ts";
 import { spellAtMastery } from "../spells.ts";
 import { chooseCast } from "./aiSpells.ts";
-import { areaCells } from "./area.ts";
+import { createRng } from "../rng.ts";
+import { areaCells, areaVictims } from "./area.ts";
 import { conjure, mage, plainBattle } from "./castKit.ts";
 import { battleProblems } from "./invariants.ts";
 import { act, army, code, stack, startBattle, withStacks } from "./testkit.ts";
@@ -139,6 +140,21 @@ describe("«Цепная молния»", () => {
     );
     const result = act(state, { type: "battleCast", spell: "chain-lightning", target: "b1" });
     expect(hits(result.events).map(([id]) => id)).toEqual(["b1", "a1"]);
+  });
+
+  it("из равноудалённых следующую цель выбирает жребий: бывают оба; подсказка берёт первого", () => {
+    // a1 и b2 — оба в шаге от b1.
+    const tied = withStacks(field(), { a1: { col: 5, row: 5 }, b2: { col: 7, row: 5 } });
+    const second = new Set<string>();
+    for (let seed = 1; seed <= 40; seed += 1) {
+      const rolled = { ...tied, rng: createRng(seed) };
+      const result = act(rolled, { type: "battleCast", spell: "chain-lightning", target: "b1" });
+      second.add(hits(result.events)[1]?.[0] ?? "");
+    }
+    expect([...second].toSorted()).toEqual(["a1", "b2"]);
+    const alive = tied.stacks.filter((item) => item.count > 0);
+    const preview = areaVictims(alive, spell("chain-lightning"), { target: "b1" });
+    expect(preview[1]?.stack.id).toBe("a1");
   });
 
   it("отказы: свой отряд первой целью, нет цели", () => {

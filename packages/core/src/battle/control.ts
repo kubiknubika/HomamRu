@@ -97,16 +97,19 @@ export function takeRetaliation(stack: DraftStack): boolean {
 }
 
 /**
- * «Огненный щит» отряда `owner`: ударивший в ближнем бою получает долю нанесённого урона.
- * Это урон огнём: защита от огня на ударившем его уменьшает.
+ * «Огненный щит» отряда `owner`: ударивший в ближнем бою получает долю урона `unguarded` —
+ * удара без снижений от защиты (см. `strike`). Это урон заклинания огня: «Волшебство» героя
+ * хозяина щита его увеличивает, защита от огня на ударившем — уменьшает.
  */
 export function burn(
   draft: BattleDraft,
   owner: DraftStack,
   attacker: DraftStack,
-  dealt: number,
+  unguarded: number,
 ): void {
-  const raw = Math.floor((dealt * fireShieldOf(owner)) / 100);
+  const sorcery = draft.sides[owner.side].hero?.sorcery ?? 0;
+  const share = Math.floor((unguarded * fireShieldOf(owner)) / 100);
+  const raw = Math.floor((share * (100 + sorcery)) / 100);
   const damage = Math.floor((raw * spellDamagePercent(attacker, ["fire"])) / 100);
   if (damage <= 0 || attacker.count === 0) {
     return;

@@ -11,7 +11,7 @@ import { damagePercent, luckOf, moraleOf, speedOf } from "./effects.ts";
 import { renderBattle } from "./render.ts";
 import { isMachine } from "./siege.ts";
 import { siege } from "./siegeKit.ts";
-import { act, army, CREATURES, stack, startBattle } from "./testkit.ts";
+import { act, army, CREATURES, stack, startBattle, withStacks } from "./testkit.ts";
 import type { BattleState } from "./types.ts";
 
 const book = (...ids: readonly string[]) => ids.map((id) => spell(id));
@@ -139,10 +139,12 @@ describe("«Разрушающий луч»", () => {
     [0, "disrupting-ray", "b1"],
   );
 
-  it("складывается: три луча — защита −9, действие одно", () => {
-    expect(defenseOf(thrice, stack(thrice, "b1"))).toBe(-4);
+  it("складывается, но ниже нуля защиту не опускает: три луча при защите 5 — защита 0", () => {
+    const once = conjure(plainBattle(), 0, "disrupting-ray", "b1").state;
+    expect(defenseOf(once, stack(once, "b1"))).toBe(2);
+    expect(defenseOf(thrice, stack(thrice, "b1"))).toBe(0);
     expect(stack(thrice, "b1").effects).toMatchObject([
-      { spell: "disrupting-ray", value: 9, stacks: 3 },
+      { spell: "disrupting-ray", value: 5, stacks: 3 },
     ]);
     expect(renderBattle(thrice)).toContain("«Разрушающий луч» (до конца боя, ×3)");
   });
@@ -154,13 +156,27 @@ describe("«Разрушающий луч»", () => {
     for (let round = 0; round < 5; round += 1) {
       state = nextRound(state);
     }
-    expect(stack(state, "b1").effects).toMatchObject([{ value: 9, stacks: 3 }]);
+    expect(stack(state, "b1").effects).toMatchObject([{ value: 5, stacks: 3 }]);
   });
 
-  it("«Снять заклинания» и «Лечение» его снимают", () => {
+  it("защита уходит ниже нуля, когда кончается прибавка, бывшая на отряде", () => {
+    // Отряд защищается: защита 5 + 2. Три луча снимают 3, 3 и 1.
+    const braced = withStacks(plainBattle(), { b1: { defendBonus: 2 } });
+    const rayed = conjureAll(
+      braced,
+      [0, "disrupting-ray", "b1"],
+      [0, "disrupting-ray", "b1"],
+      [0, "disrupting-ray", "b1"],
+    );
+    expect(defenseOf(rayed, stack(rayed, "b1"))).toBe(0);
+    const relaxed = withStacks(rayed, { b1: { defendBonus: 0 } });
+    expect(defenseOf(relaxed, stack(relaxed, "b1"))).toBe(-2);
+  });
+
+  it("«Снять заклинания» и «Лечение» его не снимают", () => {
     for (const id of ["dispel", "cure"]) {
       const after = conjure(thrice, 1, id, "b1").state;
-      expect(stack(after, "b1").effects).toEqual([]);
+      expect(stack(after, "b1").effects).toMatchObject([{ spell: "disrupting-ray", value: 5 }]);
     }
   });
 });

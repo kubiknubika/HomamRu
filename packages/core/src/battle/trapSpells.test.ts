@@ -220,18 +220,24 @@ describe("стена огня", () => {
     expect(stack(state, "a1")).toMatchObject({ col: 3, row: 4, count: 18 });
   });
 
-  it("отряд, начавший ход в стене, горит ещё раз; стена стоит два раунда", () => {
+  it("отряд, закончивший ход в стене, горит ещё раз; ушедший из неё — нет; стена стоит два раунда", () => {
     const start = withStacks(battle(), { b1: { col: 12, row: 5 } });
     const placed = cast(start, "fire-wall", { cell: { col: 12, row: 6 } }).state;
     expect(placed.fields).toHaveLength(1);
     const burning = withFields(placed, [wall([{ col: 12, row: 5 }], 0)]);
+    // Начало хода в стене отряд не жжёт: a1 защищается, ход переходит к b1 без урона.
     const first = act(burning, { type: "battleDefend" });
-    expect(typesOf(first.events)).toContain("trapDamage");
-    expect(stack(first.state, "b1").count).toBe(18);
-    // b1 защищается, начинается второй раунд: стена ещё стоит.
+    expect(typesOf(first.events)).not.toContain("trapDamage");
+    expect(first.state.activeStack).toBe("b1");
+    // b1 защищается, стоя в стене: горит. Начинается второй раунд: стена ещё стоит.
     const second = act(first.state, { type: "battleDefend" });
+    expect(typesOf(second.events)).toContain("trapDamage");
+    expect(stack(second.state, "b1").count).toBe(18);
     expect(second.state.round).toBe(2);
     expect(second.state.fields.map((field) => field.rounds)).toEqual([1]);
+    // Отряд, который из стены ушёл, она не жжёт.
+    const left = act(first.state, { type: "battleMove", to: { col: 12, row: 3 } });
+    expect(typesOf(left.events)).not.toContain("trapDamage");
   });
 
   it("«Убрать препятствие»: стену огня — с продвинутого уровня, свои пески — только на экспертном", () => {
