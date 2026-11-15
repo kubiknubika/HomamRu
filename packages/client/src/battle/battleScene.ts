@@ -2,12 +2,12 @@
  * Сцена боя. Только показывает состояние и передаёт касания в бой;
  * правил боя здесь нет (догма 5). Спецификация: docs/mechanics/16-battle-screen.md.
  */
-import type { BattleEvent, BattleState, Cell } from "@homamru/core";
+import type { BattleEvent, BattleState, Cell, StackState } from "@homamru/core";
 import * as Phaser from "phaser";
 import type { FrameMeter } from "../game/frameMeter.ts";
 import { showLabel, showSpell, showStrike, tracePath } from "./battleEffects.ts";
 import { drawBattleField } from "./battleFieldView.ts";
-import { highlightsOf } from "./battleHighlights.ts";
+import { ghostIds, highlightsOf } from "./battleHighlights.ts";
 import { cellAt, cellCenter, cellCorners, layoutOf } from "./battleGeometry.ts";
 import type { BattleLayout } from "./battleGeometry.ts";
 import type { BattleSession, BattleSnapshot } from "./battleSession.ts";
@@ -30,6 +30,9 @@ const HOLD_SLOP = 12;
 
 const HIGHLIGHT_DEPTH = 1;
 const STACK_DEPTH = 2;
+const GHOST_DEPTH = 1.5;
+const GHOST_ALPHA = 0.35;
+const CLONE_ALPHA = 0.7;
 
 export class BattleScene extends Phaser.Scene {
   private readonly session: BattleSession;
@@ -101,12 +104,17 @@ export class BattleScene extends Phaser.Scene {
     }
     this.stubs.clear();
     for (const stack of state.stacks) {
-      const stub = createStackStub(this, stack, this.stackSize());
-      stub.container.setDepth(STACK_DEPTH);
-      this.stubs.set(stack.id, stub);
+      this.addStub(stack);
     }
     this.placeStacks(state);
     this.drawHighlights(this.session.getSnapshot());
+  }
+
+  private addStub(stack: StackState): StackStub {
+    const stub = createStackStub(this, stack, this.stackSize());
+    stub.container.setDepth(STACK_DEPTH);
+    this.stubs.set(stack.id, stub);
+    return stub;
   }
 
   private drawField(state: BattleState): void {
@@ -117,17 +125,20 @@ export class BattleScene extends Phaser.Scene {
 
   /** Ставит отряды по состоянию: место, число существ; погибшие скрыты. */
   private placeStacks(state: BattleState): void {
+    const ghosts = ghostIds(this.session.getSnapshot());
     for (const stack of state.stacks) {
-      const stub = this.stubs.get(stack.id);
-      if (stub === undefined) {
-        continue;
-      }
+      // Клон появляется посреди боя: значка у него ещё нет.
+      const stub = this.stubs.get(stack.id) ?? this.addStub(stack);
       const center = cellCenter(this.layout, stack);
+      const ghost = stack.count === 0 && ghosts.has(stack.id);
+      // Погибший, которого можно поднять, виден бледным; клон — полупрозрачным с буквой «к».
+      const alpha = ghost ? GHOST_ALPHA : stack.cloneOf === undefined ? 1 : CLONE_ALPHA;
       stub.container
         .setPosition(center.x, center.y)
-        .setVisible(stack.count > 0)
-        .setAlpha(1);
-      stub.count.setText(String(stack.count));
+        .setVisible(stack.count > 0 || ghost)
+        .setDepth(ghost ? GHOST_DEPTH : STACK_DEPTH)
+        .setAlpha(alpha);
+      stub.count.setText(stack.cloneOf === undefined ? String(stack.count) : `${stack.count}к`);
       stub.good.setVisible(stack.effects.some((effect) => !effect.negative));
       stub.bad.setVisible(stack.effects.some((effect) => effect.negative));
     }
@@ -170,6 +181,8 @@ export class BattleScene extends Phaser.Scene {
   ): void {
     if (events.length === 0) {
       if (!this.showing) {
+        // Выбор заклинания меняет и значки: погибшие, которых можно поднять, становятся видны.
+        this.placeStacks(snapshot.state);
         this.drawHighlights(snapshot);
       }
       return;

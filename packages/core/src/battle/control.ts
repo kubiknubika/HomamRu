@@ -3,7 +3,7 @@
  * Спецификация: docs/mechanics/69-spells-control.md.
  */
 import type { SpellEffect } from "../spells.ts";
-import { applyDamage } from "./damage.ts";
+import { wound } from "./damage.ts";
 import { rollInt } from "./draft.ts";
 import type { BattleDraft } from "./draft.ts";
 import { fireShieldOf, mirrorOf, spellDamagePercent } from "./effects.ts";
@@ -111,14 +111,7 @@ export function burn(
   if (damage <= 0 || attacker.count === 0) {
     return;
   }
-  const losses = applyDamage(
-    attacker.count,
-    attacker.firstHealth,
-    attacker.creature.health,
-    damage,
-  );
-  attacker.count = losses.count;
-  attacker.firstHealth = losses.firstHealth;
+  const losses = wound(attacker, damage);
   draft.events.push({
     type: "fireShield",
     stackId: owner.id,
@@ -128,7 +121,6 @@ export function burn(
     left: losses.count,
   });
   if (losses.count === 0) {
-    attacker.turn = "done";
     draft.events.push({ type: "stackDied", stackId: attacker.id });
   }
 }

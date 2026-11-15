@@ -48,6 +48,7 @@ export const commandSchema = z.discriminatedUnion("type", [
     spell: z.string(),
     target: z.string().optional(),
     cell: battleCellSchema.optional(),
+    victim: z.string().optional(),
   }),
   z.strictObject({ type: z.literal("battleMove"), side: battleSideSchema, to: battleCellSchema }),
   z.strictObject({

@@ -3,9 +3,10 @@
  * Спецификации: docs/mechanics/64-magic-screen.md, 68-spells-area.md.
  */
 import type { BattleState, Cell, SpellAim, SpellDefinition } from "@homamru/core";
-import { isFieldSpell } from "@homamru/core";
+import { isFieldSpell, isLifeSpell } from "@homamru/core";
 import { areaStart, areaTap } from "./battleArea.ts";
 import { fieldStart, fieldTap } from "./battleField.ts";
+import { lifeStart, lifeTap } from "./battleLife.ts";
 import { bookButton, massChoice, targetPreview } from "./battleSpells.ts";
 
 type Side = 0 | 1;
@@ -22,6 +23,8 @@ export interface SpellSelection {
   readonly aim?: SpellAim | null;
   readonly own?: number;
   readonly confirm?: boolean;
+  /** Заголовок окна подтверждения, если он не «Заденет ваши отряды». */
+  readonly confirmTitle?: string;
   readonly hint?: string;
 }
 
@@ -45,11 +48,13 @@ export function spellStart(
   ) {
     return null;
   }
-  const chosen = isFieldSpell(spell)
-    ? fieldStart(state, side, spell)
-    : spell.area === undefined
-      ? massChoice(state, side, spell)
-      : areaStart(state, side, spell);
+  const chosen = isLifeSpell(spell)
+    ? lifeStart(state, side, spell)
+    : isFieldSpell(spell)
+      ? fieldStart(state, side, spell)
+      : spell.area === undefined
+        ? massChoice(state, side, spell)
+        : areaStart(state, side, spell);
   return { kind: "spell", spell: id, name: spell.name, ...chosen };
 }
 
@@ -64,6 +69,14 @@ export function spellTap(
   cell: Cell,
 ): { readonly cast: SpellAim } | { readonly selection: SpellSelection | null } {
   const spell = spellOf(state, side, selection.spell);
+  if (spell !== undefined && isLifeSpell(spell)) {
+    const tapped = lifeTap(state, side, spell, selection, cell);
+    if ("cast" in tapped) {
+      return tapped;
+    }
+    const { spell: id, name, kind } = selection;
+    return { selection: { kind, spell: id, name, ...tapped.choice } };
+  }
   if (spell !== undefined && isFieldSpell(spell)) {
     const tapped = fieldTap(state, side, spell, selection, cell);
     return "cast" in tapped ? tapped : { selection: { ...selection, ...tapped.choice } };

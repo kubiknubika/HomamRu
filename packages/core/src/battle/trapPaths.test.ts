@@ -65,8 +65,8 @@ describe("компьютер", () => {
 });
 
 describe("автобой с полной книгой", () => {
-  it("48 заклинаний; бои заканчиваются без нарушений", () => {
-    expect(ALL_SPELLS).toHaveLength(48);
+  it("51 заклинаний; бои заканчиваются без нарушений", () => {
+    expect(ALL_SPELLS).toHaveLength(51);
     for (let seed = 101; seed <= 140; seed += 1) {
       const result = runAutoBattle(randomBattle(seed, CREATURES, ALL_SPELLS), CREATURES, seed);
       expect(result.problems).toEqual([]);

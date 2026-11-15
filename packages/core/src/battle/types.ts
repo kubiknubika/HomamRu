@@ -2,6 +2,7 @@
  * Типы боя: описание, состояние, команды, события.
  * Спецификации: docs/mechanics/10-battle-field.md … 13-battle-damage.md.
  */
+import type { LifeEvent } from "./lifeEvents.ts";
 import type { RngState } from "../rng.ts";
 import type { SpellDefinition, SpellEffect, SpellSchool } from "../spells.ts";
 import type { Cell } from "./hex.ts";
@@ -29,6 +30,8 @@ export interface CreatureDefinition {
   readonly price: number;
   /** Основной недельный прирост в жилище. */
   readonly growth: number;
+  /** Уровень существа, от 1 до 7; нет — 1. Нужен «Клону» (71-spells-life.md). */
+  readonly level?: number | undefined;
 }
 
 /** Герой в бою: прибавки отрядам и магия (62-battle-spells.md). */
@@ -122,6 +125,10 @@ export interface StackState {
   readonly defendBonus: number;
   /** Действия заклинаний на отряде. */
   readonly effects: readonly StackEffect[];
+  /** Сколько существ поднято «Воскрешением» только до конца боя (71-spells-life.md). */
+  readonly raised?: number | undefined;
+  /** Отряд — клон: идентификатор отряда, с которого он снят. */
+  readonly cloneOf?: string | undefined;
 }
 
 export interface BattleSideState {
@@ -202,6 +209,8 @@ export type BattleCommand =
       readonly target?: string | undefined;
       /** Клетка-цель заклинания по площади (68-spells-area.md). */
       readonly cell?: Cell | undefined;
+      /** «Жертва»: отряд, который отдают (71-spells-life.md). */
+      readonly victim?: string | undefined;
     };
 
 /** Чем кончилось заклинание. */
@@ -251,6 +260,7 @@ export type BattleEvent =
       readonly killed: number;
       readonly left: number;
     }
+  | LifeEvent
   /** Отряд увяз в зыбучих песках: ход кончен, пески теперь видны всем. */
   | { readonly type: "stackStuck"; readonly stackId: string; readonly cell: Cell }
   | {

@@ -210,6 +210,14 @@ export function formatBattleEvent(event: BattleEvent): string {
       return `${FIELD_NAMES[event.kind]} — ${REMOVAL_NAMES[event.reason]}: ${cellsText(event.cells)}`;
     case "trapDamage":
       return `${FIELD_NAMES[event.kind]} (${event.cell.col}, ${event.cell.row}) жжёт ${event.stackId}: урон ${event.damage}, убито ${event.killed}, осталось ${event.left}`;
+    case "stackRaised":
+      return `Отряд ${event.stackId} поднят: встало ${event.raised} (${event.lasting ? "насовсем" : "до конца боя"}), здоровья +${event.healed}, стало ${event.left}`;
+    case "cloneCreated":
+      return `Клон отряда ${event.stackId}: ${event.cloneId} в (${event.cell.col}, ${event.cell.row}), раундов ${event.rounds}`;
+    case "cloneGone":
+      return `Клон ${event.stackId} исчез: ${event.reason === "expired" ? "срок вышел" : "заклинание снято"}`;
+    case "stackSacrificed":
+      return `Отряд ${event.stackId} отдан в жертву`;
     case "stackStuck":
       return `Отряд ${event.stackId} увяз в зыбучих песках (${event.cell.col}, ${event.cell.row})`;
     case "obstacleRemoved":

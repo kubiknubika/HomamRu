@@ -30,6 +30,7 @@ const creatureFields = {
   speed: z.int().min(1),
   flying: z.boolean(),
   shots: z.int().min(0),
+  level: z.int().min(1).max(7).optional(),
 };
 
 /** Файл существа. Описание полей: docs/mechanics/14-creatures.md, 31-recruitment.md. */
@@ -257,6 +258,7 @@ export function battleStepSchemas<E extends z.ZodType>(expectError: E) {
         spell: z.string(),
         target: z.string().optional(),
         cell: cellSchema.optional(),
+        victim: z.string().optional(),
       }),
       expectError,
     }),

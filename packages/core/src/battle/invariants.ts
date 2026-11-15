@@ -47,6 +47,23 @@ export function battleProblems(state: BattleState): string[] {
     if (stack.firstHealth < 1 || stack.firstHealth > stack.creature.health) {
       problems.push(`${stack.id}: здоровье первого ${stack.firstHealth}`);
     }
+    if ((stack.raised ?? 0) < 0 || (stack.raised ?? 0) > stack.count) {
+      problems.push(
+        `${stack.id}: поднятых на время ${stack.raised ?? 0} при ${stack.count} существах`,
+      );
+    }
+    if (stack.cloneOf !== undefined) {
+      const original = state.stacks.find((other) => other.id === stack.cloneOf);
+      if (original === undefined || original.cloneOf !== undefined) {
+        problems.push(`${stack.id}: клон без настоящего отряда`);
+      }
+      if (alive.filter((other) => other.cloneOf === stack.cloneOf).length > 1) {
+        problems.push(`у отряда ${stack.cloneOf} больше одного клона`);
+      }
+      if (stack.count !== stack.initialCount || stack.firstHealth !== stack.creature.health) {
+        problems.push(`${stack.id}: раненый клон жив`);
+      }
+    }
     if (stack.count > stack.initialCount) {
       problems.push(`${stack.id}: существ стало больше, чем было`);
     }

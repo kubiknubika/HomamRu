@@ -232,7 +232,7 @@ export function BattleHud(props: BattleHudProps) {
         </button>
       </div>
       {selection?.kind === "spell" && selection.confirm === true && (
-        <Dialog title="Заденет ваши отряды">
+        <Dialog title={selection.confirmTitle ?? "Заденет ваши отряды"}>
           <div className="dialog-text">
             {selection.name}: {selection.preview}. Колдовать?
           </div>

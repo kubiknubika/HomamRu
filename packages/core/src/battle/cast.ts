@@ -3,10 +3,11 @@
  */
 import type { SpellDefinition } from "../spells.ts";
 import { aimsAtCell, areaVictims } from "./area.ts";
-import { applyDamage } from "./damage.ts";
+import { wound } from "./damage.ts";
 import type { BattleDraft } from "./draft.ts";
 import { reflect, wake } from "./control.ts";
 import { castField, fieldRefusal, isFieldSpell } from "./field.ts";
+import { castLife, dropClones, healthOf, isLifeSpell, lifeRefusal } from "./life.ts";
 import { castTrap, isTrapSpell } from "./traps.ts";
 import { immuneTo, isHypnotized, spellDamagePercent } from "./effects.ts";
 import { inField } from "./hex.ts";
@@ -68,10 +69,6 @@ export function hypnosisLimit(spell: SpellDefinition, hero: Caster): number {
   return spell.power * hero.spellPower + spell.value;
 }
 
-function totalHealth(stack: StackState): number {
-  return (stack.count - 1) * stack.creature.health + stack.firstHealth;
-}
-
 /**
  * Может ли заклинание лечь на этот отряд: свой или чужой, живой, не машина (кроме урона).
  * `caster` нужен «Гипнозу»: без него порог здоровья не проверяется.
@@ -82,6 +79,9 @@ export function canTarget(
   target: StackState,
   caster?: Caster,
 ): boolean {
+  if (isLifeSpell(spell)) {
+    return false;
+  }
   if (target.count === 0 || (spell.area !== undefined && spell.area !== "chain")) {
     return false;
   }
@@ -97,7 +97,7 @@ export function canTarget(
   if (
     spell.effect === "hypnosis" &&
     caster !== undefined &&
-    totalHealth(target) > hypnosisLimit(spell, caster)
+    healthOf(target) > hypnosisLimit(spell, caster)
   ) {
     return false;
   }
@@ -141,8 +141,10 @@ export function castRefusal(state: BattleState, command: CastCommand): Refusal |
   if (hero.mana < spell.cost) {
     return { code: "NOT_ENOUGH_MANA", message: `Нужно маны: ${spell.cost}.` };
   }
-  if (isFieldSpell(spell)) {
-    return fieldRefusal(state, command, spell);
+  if (isFieldSpell(spell) || isLifeSpell(spell)) {
+    return isLifeSpell(spell)
+      ? lifeRefusal(state, command, spell, hero)
+      : fieldRefusal(state, command, spell);
   }
   if (spell.area === "all") {
     return null;
@@ -182,9 +184,7 @@ function resolve(
   switch (spell.effect) {
     case "damage": {
       const damage = spellDamageTo(spell, hero, target, divisor);
-      const losses = applyDamage(target.count, target.firstHealth, health, damage);
-      target.count = losses.count;
-      target.firstHealth = losses.firstHealth;
+      const losses = wound(target, damage);
       return { kind: "damage", damage, killed: losses.killed, left: losses.count };
     }
     case "heal": {
@@ -244,8 +244,8 @@ export function cast(draft: BattleDraft, command: CastCommand): void {
   if (hero === null || spell === undefined) {
     return;
   }
-  if (isFieldSpell(spell)) {
-    // Заклинание поля: отрядов не задевает, событие одно — о самом колдовстве.
+  if (isFieldSpell(spell) || isLifeSpell(spell)) {
+    // Заклинание поля или жизни: событие о самом колдовстве одно, дальше — свои правила.
     hero.mana -= spell.cost;
     side.cast = true;
     draft.events.push({
@@ -255,7 +255,9 @@ export function cast(draft: BattleDraft, command: CastCommand): void {
       name: spell.name,
       manaLeft: hero.mana,
     });
-    if (isTrapSpell(spell)) {
+    if (isLifeSpell(spell)) {
+      castLife(draft, command, spell, hero);
+    } else if (isTrapSpell(spell)) {
       castTrap(draft, command, spell, hero);
     } else {
       castField(draft, command, spell);
@@ -315,10 +317,11 @@ export function cast(draft: BattleDraft, command: CastCommand): void {
       wake(draft, stack);
     }
     if (stack.count === 0) {
-      stack.turn = "done";
       draft.events.push({ type: "stackDied", stackId: stack.id });
     }
   }
+  // «Снять заклинания» по клону убирает его (71-spells-life.md).
+  dropClones(draft, "dispelled");
 }
 
 /** Начало раунда: герои снова могут колдовать, сроки действий убывают, истёкшие пропадают. */

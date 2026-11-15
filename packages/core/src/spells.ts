@@ -27,6 +27,9 @@ export type SpellSchool = (typeof SPELL_SCHOOLS)[number];
  * `fireWall` — клетки, жгущие вошедшего, `mine` — скрытые клетки, бьющие врага один раз:
  * у обоих число — прибавка к урону, а число клеток — в `chain`;
  * `quicksand` — скрытые клетки, где пеший отряд увязает; число клеток — в `chain`.
+ * Жизнь (71-spells-life.md): `resurrect` — поднимает погибших, число — прибавка к здоровью;
+ * `clone` — копия отряда, число — наибольший уровень существа; `sacrifice` — отдаёт один отряд,
+ * чтобы поднять другой, число — прибавка на каждое отданное существо.
  */
 export const SPELL_EFFECTS = [
   "damage",
@@ -65,6 +68,9 @@ export const SPELL_EFFECTS = [
   "fireWall",
   "quicksand",
   "mine",
+  "resurrect",
+  "clone",
+  "sacrifice",
 ] as const;
 export type SpellEffect = (typeof SPELL_EFFECTS)[number];
 
@@ -124,6 +130,11 @@ export interface SpellDefinition {
   readonly chain?: readonly [number, number, number, number] | undefined;
   /** Длина цепи у героя; в файле заклинаний этого поля нет: его ставит `spellAtMastery`. */
   readonly chainLength?: number | undefined;
+  /**
+   * «Воскрешение» поднимает насовсем, а не до конца боя. В файле заклинаний этого поля нет:
+   * его ставит `spellAtMastery` с продвинутого уровня школы.
+   */
+  readonly lasting?: boolean | undefined;
   /** Заклинания, действие которых это заклинание снимает. */
   readonly counters: readonly string[];
 }
@@ -140,9 +151,11 @@ export function spellAtMastery(spell: SpellDefinition, mastery: number): SpellDe
   if (mastery <= 0) {
     return { ...spell, mass: false, ...chain };
   }
+  const lasting = spell.effect === "resurrect" ? { lasting: mastery >= 2 } : {};
   return {
     ...spell,
     ...chain,
+    ...lasting,
     cost: spell.skilledCost,
     value: spell.values[Math.min(mastery, spell.values.length) - 1] ?? spell.value,
     mass: mastery >= 3 && spell.expertMass,

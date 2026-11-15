@@ -86,6 +86,33 @@ export function applyDamage(
   return { count: newCount, firstHealth: left - (newCount - 1) * health, killed: count - newCount };
 }
 
+/** Отряд, которому наносят урон: то, что при этом меняется. */
+interface Wounded {
+  count: number;
+  firstHealth: number;
+  readonly creature: { readonly health: number };
+  raised?: number | undefined;
+  readonly cloneOf?: string | undefined;
+}
+
+/**
+ * Наносит отряду урон и записывает потери в него самого. Клон от любого урона гибнет целиком;
+ * поднятые на время гибнут первыми (71-spells-life.md). Отметку о ходе гибель не меняет:
+ * поднятый в том же раунде отряд ходит, если ещё не ходил.
+ */
+export function wound(stack: Wounded, damage: number): Losses {
+  const fatal = stack.cloneOf !== undefined && damage > 0;
+  const losses = fatal
+    ? { count: 0, firstHealth: 0, killed: stack.count }
+    : applyDamage(stack.count, stack.firstHealth, stack.creature.health, damage);
+  stack.count = losses.count;
+  stack.firstHealth = losses.firstHealth;
+  if (stack.raised !== undefined) {
+    stack.raised = Math.max(0, stack.raised - losses.killed);
+  }
+  return losses;
+}
+
 /** Прибавка к защите от «защищаться»: 20 %, дробь отбрасывается, не меньше 1. */
 export function defendBonusOf(defense: number): number {
   return Math.max(1, Math.floor(defense / 5));

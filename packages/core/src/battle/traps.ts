@@ -3,7 +3,7 @@
  * Спецификация: docs/mechanics/70-spells-field.md.
  */
 import type { SpellDefinition } from "../spells.ts";
-import { applyDamage } from "./damage.ts";
+import { wound } from "./damage.ts";
 import { rollInt } from "./draft.ts";
 import type { BattleDraft } from "./draft.ts";
 import { immuneTo, spellDamagePercent } from "./effects.ts";
@@ -139,9 +139,7 @@ export function castTrap(
 
 function hurt(draft: BattleDraft, stack: DraftStack, field: FieldObject, cell: Cell): void {
   const damage = Math.floor(((field.damage ?? 0) * spellDamagePercent(stack, ["fire"])) / 100);
-  const losses = applyDamage(stack.count, stack.firstHealth, stack.creature.health, damage);
-  stack.count = losses.count;
-  stack.firstHealth = losses.firstHealth;
+  const losses = wound(stack, damage);
   draft.events.push({
     type: "trapDamage",
     kind: field.kind === "mine" ? "mine" : "fireWall",
@@ -152,7 +150,6 @@ function hurt(draft: BattleDraft, stack: DraftStack, field: FieldObject, cell: C
     left: losses.count,
   });
   if (losses.count === 0) {
-    stack.turn = "done";
     draft.events.push({ type: "stackDied", stackId: stack.id });
   }
 }
