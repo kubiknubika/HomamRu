@@ -18,7 +18,15 @@ describe("строительство", () => {
       },
     ]);
     const next = run(state, { build: "slinger-range" });
-    expect(next.players[0]?.resources).toEqual({ gold: 19_000, wood: 15, ore: 15 });
+    expect(next.players[0]?.resources).toEqual({
+      gold: 19_000,
+      wood: 15,
+      ore: 15,
+      mercury: 0,
+      sulfur: 0,
+      crystal: 0,
+      gems: 0,
+    });
     expect(town(next)).toMatchObject({ buildings: [...START, "slinger-range"], builtToday: true });
   });
 
@@ -89,13 +97,29 @@ describe("строительство", () => {
 
 describe("доход города", () => {
   it("500 золота в день, с ратушей 1000; вместе с шахтами — одним событием", () => {
-    expect(incomeOf(townGame(), 0)).toEqual({ gold: 500, wood: 0, ore: 0 });
+    expect(incomeOf(townGame(), 0)).toEqual({
+      gold: 500,
+      wood: 0,
+      ore: 0,
+      mercury: 0,
+      sulfur: 0,
+      crystal: 0,
+      gems: 0,
+    });
     const hall = run(townGame(), { build: "town-hall" });
-    expect(incomeOf(hall, 0)).toEqual({ gold: 1000, wood: 0, ore: 0 });
+    expect(incomeOf(hall, 0)).toEqual({
+      gold: 1000,
+      wood: 0,
+      ore: 0,
+      mercury: 0,
+      sulfur: 0,
+      crystal: 0,
+      gems: 0,
+    });
     expect(eventsOf(hall, "endTurn")).toContainEqual({
       type: "incomeReceived",
       player: 0,
-      income: { gold: 1000, wood: 0, ore: 0 },
+      income: { gold: 1000, wood: 0, ore: 0, mercury: 0, sulfur: 0, crystal: 0, gems: 0 },
     });
     expect(gold(run(hall, "endTurn"))).toBe(18_500);
   });

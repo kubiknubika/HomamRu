@@ -16,7 +16,7 @@ function game(gold: number, heroInTown: boolean): GameState {
       players: [
         {
           hero: { x: 0, y: 0, army: [{ creature: "militia", count: 10 }] },
-          resources: { gold, wood: 0, ore: 0 },
+          resources: { gold, wood: 0, ore: 0, mercury: 0, sulfur: 0, crystal: 0, gems: 0 },
         },
       ],
       objects: [{ type: "town", x: 1, y: 1, owner: 0, buildings: ["tavern", "mage-guild"] }],

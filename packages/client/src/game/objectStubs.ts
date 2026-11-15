@@ -8,8 +8,19 @@ import type * as Phaser from "phaser";
 import { TILE } from "./geometry.ts";
 import { playerColor } from "./stubs.ts";
 
-/** Цвета ресурсов: золото жёлтое, дерево коричневое, руда серая. */
-const RESOURCE_COLORS = { gold: 0xe9c53a, wood: 0x8b5a2b, ore: 0xa3a9b3 } as const;
+/**
+ * Цвета ресурсов: золото жёлтое, дерево коричневое, руда серая, ртуть серебристо-голубая,
+ * сера лимонная, кристаллы красные, самоцветы зелёные.
+ */
+const RESOURCE_COLORS = {
+  gold: 0xe9c53a,
+  wood: 0x8b5a2b,
+  ore: 0xa3a9b3,
+  mercury: 0x9fd3e6,
+  sulfur: 0xd8e04a,
+  crystal: 0xd9455f,
+  gems: 0x3fbf7a,
+} as const;
 const OUTLINE_COLOR = 0x1b1e24;
 /** Охранник никому не принадлежит: цвет не совпадает ни с одним игроком. */
 const GUARD_COLOR = 0x8a6fa8;

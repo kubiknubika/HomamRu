@@ -7,7 +7,15 @@ import type { TavernOffer } from "./tavernTypes.ts";
 import { RESOURCES } from "./types.ts";
 import type { ArmyStack, GameState, ResourceAmounts, TownState } from "./types.ts";
 
-const RESOURCE_NAMES = { gold: "золото", wood: "дерево", ore: "руда" } as const;
+const RESOURCE_NAMES = {
+  gold: "золото",
+  wood: "дерево",
+  ore: "руда",
+  mercury: "ртуть",
+  sulfur: "сера",
+  crystal: "кристаллы",
+  gems: "самоцветы",
+} as const;
 
 function armyText(state: GameState, army: readonly ArmyStack[]): string {
   if (army.length === 0) {

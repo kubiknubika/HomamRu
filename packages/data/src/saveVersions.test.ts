@@ -11,7 +11,7 @@ import {
   withChecksumOf,
 } from "./testkit.ts";
 
-const NO_RESOURCES = { gold: 0, wood: 0, ore: 0 };
+const NO_RESOURCES = { gold: 0, wood: 0, ore: 0, mercury: 0, sulfur: 0, crystal: 0, gems: 0 };
 
 /** Начальные значения параметров героя, появившихся на шаге 3.2. */
 const FRESH = {
@@ -216,13 +216,13 @@ describe("чего игра не знает — убирается", () => {
     players: FULL.players.map((player) => ({
       ...player,
       colour: "red",
-      resources: { ...player.resources, gems: 9 },
+      resources: { ...player.resources, amber: 9 },
     })),
     heroes: FULL.heroes.map((hero) => ({ ...hero, artifacts: ["sword"] })),
     objects: [
       { ...FULL.objects[0], guardedBy: "dragon" },
       { id: "o2", type: "dragon-lair", x: 1, y: 3 },
-      { id: "o9", type: "pile", x: 1, y: 2, resource: "gems", amount: 4 },
+      { id: "o9", type: "pile", x: 1, y: 2, resource: "amber", amount: 4 },
       FULL.objects[1],
       { id: "o10", type: "mine", x: 0, y: 2, kind: "sawmill", owner: null },
       { id: "o11", type: "mine", x: 40, y: 2, kind: "sawmill", owner: null },

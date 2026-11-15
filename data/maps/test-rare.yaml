@@ -1,0 +1,24 @@
+# Проверочная карта редких ресурсов и гильдии магов 2–4 (docs/mechanics/66-rare-resources.md).
+# В городе уже стоит гильдия первого уровня; на второй не хватает самоцветов — они в кучке рядом.
+id: test-rare
+name: Проверочная карта редких ресурсов
+terrain:
+  - "........"
+  - "........"
+  - "...##..."
+  - "........"
+  - "........"
+  - "........"
+  - "........"
+  - "........"
+players:
+  - hero: { x: 1, y: 1, army: [{ creature: militia, count: 10 }] }
+    resources: { gold: 20000, wood: 20, ore: 20, mercury: 4, sulfur: 4, crystal: 4, gems: 2 }
+objects:
+  - { type: town, x: 2, y: 2, owner: 0, buildings: [tavern, fort, militia-yard, mage-guild] }
+  - { type: pile, x: 4, y: 1, resource: gems, amount: 3 }
+  - { type: mine, x: 6, y: 1, kind: sulfur-dune }
+  - { type: mine, x: 1, y: 5, kind: alchemist-lab }
+  - { type: mine, x: 3, y: 5, kind: crystal-cavern }
+  - { type: mine, x: 5, y: 5, kind: gem-pond }
+  - { type: pile, x: 6, y: 4, resource: mercury }

@@ -42,6 +42,10 @@ export const NO_RESOURCES = {
   gold: DEFAULTS.resource,
   wood: DEFAULTS.resource,
   ore: DEFAULTS.resource,
+  mercury: DEFAULTS.resource,
+  sulfur: DEFAULTS.resource,
+  crystal: DEFAULTS.resource,
+  gems: DEFAULTS.resource,
 } as const;
 
 const UINT32_MAX = 0xff_ff_ff_ff;
@@ -54,7 +58,16 @@ const playerNumberSchema = z
 
 const playerSchema = z.object({
   resources: z
-    .object({ gold: amountSchema, wood: amountSchema, ore: amountSchema })
+    .object({
+      gold: amountSchema,
+      wood: amountSchema,
+      ore: amountSchema,
+      // Редких ресурсов в записях до версии 11 нет: тогда ноль (66-rare-resources.md).
+      mercury: amountSchema,
+      sulfur: amountSchema,
+      crystal: amountSchema,
+      gems: amountSchema,
+    })
     .catch(NO_RESOURCES),
   // Таверна сверяется с героями и существами партии при чтении (stateTavern.ts).
   tavern: z.unknown().optional(),

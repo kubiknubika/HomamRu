@@ -165,7 +165,7 @@
   skilledCost: 6
   power: 20
   value: 10
-  chance: 0
+  chance: 50
   effect: damage
   target: enemy
   values: [10, 20, 50]
@@ -177,7 +177,7 @@
   skilledCost: 8
   power: 25
   value: 10
-  chance: 0
+  chance: 4
   effect: damage
   target: enemy
   values: [10, 20, 50]
@@ -188,7 +188,7 @@
   cost: 7
   skilledCost: 5
   value: 70
-  chance: 0
+  chance: 2
   effect: spellDamagePercent
   target: ally
   values: [70, 50, 50]
@@ -201,7 +201,7 @@
   cost: 8
   skilledCost: 6
   value: 3
-  chance: 0
+  chance: 6
   effect: shotAttack
   target: ally
   values: [3, 6, 6]
@@ -213,7 +213,7 @@
   cost: 8
   skilledCost: 6
   value: 3
-  chance: 0
+  chance: 2
   effect: attackDown
   target: enemy
   values: [3, 6, 6]
@@ -226,7 +226,7 @@
   cost: 10
   skilledCost: 8
   value: 3
-  chance: 0
+  chance: 6
   effect: defenseDown
   target: enemy
   values: [3, 4, 5]
@@ -238,7 +238,7 @@
   cost: 7
   skilledCost: 5
   value: 1
-  chance: 0
+  chance: 4
   effect: luck
   target: ally
   values: [1, 2, 2]
@@ -251,7 +251,7 @@
   cost: 12
   skilledCost: 9
   value: 75
-  chance: 0
+  chance: 4
   effect: shotDamagePercent
   target: ally
   values: [75, 50, 50]
@@ -263,7 +263,7 @@
   cost: 12
   skilledCost: 9
   value: 70
-  chance: 0
+  chance: 4
   effect: spellDamagePercent
   target: ally
   values: [70, 50, 50]
@@ -276,7 +276,7 @@
   cost: 12
   skilledCost: 9
   value: 1
-  chance: 0
+  chance: 4
   effect: morale
   target: ally
   values: [1, 2, 2]
@@ -289,7 +289,7 @@
   cost: 12
   skilledCost: 9
   value: 1
-  chance: 0
+  chance: 4
   effect: luckDown
   target: enemy
   values: [1, 2, 2]
@@ -302,7 +302,7 @@
   cost: 16
   skilledCost: 12
   value: 2
-  chance: 0
+  chance: 10
   effect: prayer
   target: ally
   values: [2, 4, 4]
@@ -314,7 +314,7 @@
   cost: 16
   skilledCost: 12
   value: 1
-  chance: 0
+  chance: 5
   effect: moraleDown
   target: enemy
   values: [1, 2, 2]
@@ -344,7 +344,7 @@
   skilledCost: 9
   power: 10
   value: 15
-  chance: 0
+  chance: 16
   effect: damage
   target: enemy
   values: [15, 30, 60]
@@ -357,7 +357,7 @@
   skilledCost: 12
   power: 10
   value: 15
-  chance: 0
+  chance: 8
   effect: damage
   target: enemy
   values: [15, 30, 60]
@@ -370,7 +370,7 @@
   skilledCost: 12
   power: 10
   value: 20
-  chance: 0
+  chance: 5
   effect: damage
   target: enemy
   values: [20, 40, 80]
@@ -383,7 +383,7 @@
   skilledCost: 12
   power: 25
   value: 25
-  chance: 0
+  chance: 10
   effect: damage
   target: enemy
   values: [25, 50, 100]
@@ -396,7 +396,7 @@
   skilledCost: 20
   power: 40
   value: 25
-  chance: 0
+  chance: 10
   effect: damage
   target: enemy
   values: [25, 50, 100]
@@ -425,7 +425,7 @@
   cost: 10
   skilledCost: 8
   value: 50
-  chance: 0
+  chance: 4
   effect: blind
   target: enemy
   values: [50, 25, 0]
@@ -436,7 +436,7 @@
   cost: 12
   skilledCost: 9
   value: 50
-  chance: 0
+  chance: 8
   effect: shotDown
   target: enemy
   values: [50, 0, 0]
@@ -448,7 +448,7 @@
   cost: 15
   skilledCost: 12
   value: 3
-  chance: 0
+  chance: 12
   effect: spellImmunity
   target: ally
   values: [3, 4, 5]
@@ -459,7 +459,7 @@
   cost: 16
   skilledCost: 12
   value: 100
-  chance: 0
+  chance: 5
   effect: frenzy
   target: ally
   values: [100, 150, 200]
@@ -470,7 +470,7 @@
   cost: 24
   skilledCost: 20
   value: 1
-  chance: 0
+  chance: 5
   effect: retaliations
   target: ally
   values: [1, 2, 2]
@@ -482,7 +482,7 @@
   cost: 16
   skilledCost: 12
   value: 20
-  chance: 0
+  chance: 5
   effect: fireShield
   target: ally
   values: [20, 25, 30]
@@ -496,7 +496,7 @@
   skilledCost: 15
   power: 25
   value: 10
-  chance: 0
+  chance: 4
   effect: hypnosis
   target: enemy
   values: [10, 20, 50]
@@ -507,7 +507,7 @@
   schools: [fire]
   cost: 20
   skilledCost: 16
-  chance: 0
+  chance: 5
   effect: berserk
   target: enemy
   values: [0, 1, 2]
@@ -534,7 +534,7 @@
   schools: [water]
   cost: 7
   skilledCost: 5
-  chance: 0
+  chance: 4
   effect: removeObstacle
   target: enemy
   values: [0, 1, 2]
@@ -545,7 +545,7 @@
   cost: 12
   skilledCost: 9
   value: 2
-  chance: 0
+  chance: 4
   effect: forceField
   target: enemy
   values: [2, 3, 3]
@@ -556,7 +556,7 @@
   cost: 20
   skilledCost: 17
   value: 2
-  chance: 0
+  chance: 4
   effect: earthquake
   target: enemy
   values: [2, 3, 4]
@@ -566,7 +566,7 @@
   schools: [water]
   cost: 15
   skilledCost: 12
-  chance: 0
+  chance: 8
   effect: teleport
   target: ally
   values: [0, 1, 2]
@@ -577,7 +577,7 @@
   cost: 8
   skilledCost: 6
   value: 0
-  chance: 0
+  chance: 4
   effect: quicksand
   target: enemy
   values: [0, 0, 0]
@@ -590,7 +590,7 @@
   skilledCost: 6
   power: 10
   value: 10
-  chance: 0
+  chance: 4
   effect: fireWall
   target: enemy
   values: [10, 20, 50]
@@ -603,7 +603,7 @@
   skilledCost: 15
   power: 10
   value: 25
-  chance: 0
+  chance: 8
   effect: mine
   target: enemy
   values: [25, 50, 100]
@@ -616,7 +616,7 @@
   skilledCost: 16
   power: 50
   value: 40
-  chance: 0
+  chance: 10
   effect: resurrect
   target: ally
   values: [40, 80, 160]
@@ -627,7 +627,7 @@
   cost: 24
   skilledCost: 20
   value: 5
-  chance: 0
+  chance: 5
   effect: clone
   target: ally
   values: [5, 6, 7]

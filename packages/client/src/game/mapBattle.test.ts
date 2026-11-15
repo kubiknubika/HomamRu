@@ -90,9 +90,21 @@ describe("сообщения", () => {
     const state = session.getSnapshot().state;
     const events: GameEvent[] = [
       { type: "mineCaptured", objectId: "o2", owner: 0, previousOwner: null },
-      { type: "incomeReceived", player: 0, income: { gold: 1000, wood: 2, ore: 0 } },
-      { type: "incomeReceived", player: 0, income: { gold: 0, wood: 0, ore: 0 } },
-      { type: "incomeReceived", player: 1, income: { gold: 5, wood: 0, ore: 0 } },
+      {
+        type: "incomeReceived",
+        player: 0,
+        income: { gold: 1000, wood: 2, ore: 0, mercury: 0, sulfur: 0, crystal: 0, gems: 0 },
+      },
+      {
+        type: "incomeReceived",
+        player: 0,
+        income: { gold: 0, wood: 0, ore: 0, mercury: 0, sulfur: 0, crystal: 0, gems: 0 },
+      },
+      {
+        type: "incomeReceived",
+        player: 1,
+        income: { gold: 5, wood: 0, ore: 0, mercury: 0, sulfur: 0, crystal: 0, gems: 0 },
+      },
       { type: "levelGained", heroId: "A", level: 2, stat: "attack" },
       { type: "guardGrew", objectId: "o1", from: 5, to: 6 },
     ];

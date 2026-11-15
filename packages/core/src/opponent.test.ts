@@ -1,4 +1,5 @@
 // Правила из docs/mechanics/42-opponent.md: что компьютер делает в городе и куда идёт герой.
+import { NO_RESOURCES } from "./objects.ts";
 import { describe, expect, it } from "vitest";
 import { applyCommand } from "./commands.ts";
 import { army, duel, end, enemyTown, HOME, put, run, untilTurnOf, withoutHero } from "./duelKit.ts";
@@ -31,7 +32,10 @@ const heroGoes = (state: GameState): string => turn(state).hero;
 function withResources(state: GameState, gold: number, wood: number, ore: number): GameState {
   return {
     ...state,
-    players: state.players.map((player) => ({ ...player, resources: { gold, wood, ore } })),
+    players: state.players.map((player) => ({
+      ...player,
+      resources: { ...NO_RESOURCES, gold, wood, ore },
+    })),
   };
 }
 

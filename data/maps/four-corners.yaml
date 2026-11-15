@@ -102,3 +102,24 @@ objects:
   - { type: pile, x: 24, y: 33, resource: gold, amount: 800 }
   - { type: guard, x: 29, y: 34, creature: armsman, count: 30 }
   - { type: mine, x: 33, y: 34, kind: gold-mine }
+  # Редкие ресурсы (docs/mechanics/66-rare-resources.md) — предварительно, до шага 7.7:
+  # каждому игроку по шахте каждого редкого ресурса и по две кучки, всё под охраной.
+  # Четыре шахты и кучка стоят вокруг одного охранника у края карты; вторая кучка — со своим.
+  # Северо-запад.
+  - { type: mine, x: 0, y: 7, kind: alchemist-lab }
+  - { type: mine, x: 0, y: 9, kind: sulfur-dune }
+  - { type: mine, x: 2, y: 7, kind: crystal-cavern }
+  - { type: mine, x: 2, y: 9, kind: gem-pond }
+  - { type: pile, x: 0, y: 8, resource: sulfur, amount: 5 }
+  - { type: guard, x: 1, y: 8, creature: militia, count: 5 }
+  - { type: pile, x: 0, y: 12, resource: crystal, amount: 5 }
+  - { type: guard, x: 1, y: 12, creature: militia, count: 6 }
+  # Юго-восток.
+  - { type: mine, x: 35, y: 28, kind: alchemist-lab }
+  - { type: mine, x: 35, y: 30, kind: sulfur-dune }
+  - { type: mine, x: 33, y: 28, kind: crystal-cavern }
+  - { type: mine, x: 33, y: 30, kind: gem-pond }
+  - { type: pile, x: 35, y: 29, resource: sulfur, amount: 5 }
+  - { type: guard, x: 34, y: 29, creature: militia, count: 5 }
+  - { type: pile, x: 26, y: 35, resource: crystal, amount: 5 }
+  - { type: guard, x: 26, y: 34, creature: militia, count: 6 }

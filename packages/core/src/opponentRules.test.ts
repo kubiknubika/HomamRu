@@ -1,4 +1,5 @@
 // Два правила компьютера на карте, добавленные на шаге 7.2 (42-opponent.md): «враг рядом» и «за гарнизоном».
+import { NO_RESOURCES } from "./objects.ts";
 import { describe, expect, it } from "vitest";
 import { army, duel, HOME, put, withoutHero } from "./duelKit.ts";
 import { chooseMapCommand } from "./opponent.ts";
@@ -10,7 +11,7 @@ function heroGoes(initial: GameState): string {
     ...initial,
     players: initial.players.map((player) => ({
       ...player,
-      resources: { gold: 0, wood: 0, ore: 0 },
+      resources: { ...NO_RESOURCES, gold: 0, wood: 0, ore: 0 },
     })),
   };
   const command = chooseMapCommand(state);

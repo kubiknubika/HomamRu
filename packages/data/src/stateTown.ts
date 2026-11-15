@@ -106,6 +106,6 @@ export function readTown(
     buildings: built,
     available: readStacks(town.available, dwellers),
     garrison: readStacks(town.garrison, known),
-    spells: readSpellIds(town.spells, spells) ?? defaultGuild(spells),
+    spells: defaultGuild(spells, readSpellIds(town.spells, spells) ?? []),
   };
 }

@@ -138,7 +138,7 @@ describe("создание партии", () => {
     expect(createGame(mapOf({ players }), 42, CONTENT)).toEqual({
       ok: true,
       state: {
-        version: 10,
+        version: 11,
         rng: { s: 42 },
         map: {
           id: "test",
@@ -157,7 +157,7 @@ describe("создание партии", () => {
             kind: "human",
             eliminated: false,
             townlessDays: null,
-            resources: { gold: 0, wood: 0, ore: 0 },
+            resources: { gold: 0, wood: 0, ore: 0, mercury: 0, sulfur: 0, crystal: 0, gems: 0 },
             tavern: [],
           },
           {
@@ -165,7 +165,7 @@ describe("создание партии", () => {
             kind: "human",
             eliminated: false,
             townlessDays: null,
-            resources: { gold: 0, wood: 0, ore: 0 },
+            resources: { gold: 0, wood: 0, ore: 0, mercury: 0, sulfur: 0, crystal: 0, gems: 0 },
             tavern: [],
           },
         ],

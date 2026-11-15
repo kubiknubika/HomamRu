@@ -16,6 +16,9 @@ const BUILD_ORDER = [
   "citadel",
   "castle",
   "mage-guild",
+  "mage-guild-2",
+  "mage-guild-3",
+  "mage-guild-4",
 ] as const;
 
 /** Во сколько раз армия героя должна быть дороже охранника, чтобы проходчик напал. */
