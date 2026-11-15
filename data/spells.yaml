@@ -524,3 +524,49 @@
   effect: mirror
   target: ally
   values: [20, 30, 40]
+# Четвёртая группа: поле боя (docs/mechanics/70-spells-field.md).
+# removeObstacle — что можно убрать сверх препятствий (1 — стену огня, 2 — всё наколдованное);
+# forceField — сколько клеток; earthquake — сколько ударов; teleport — куда можно в осаде
+# (1 — в ров, 2 — и за стену). target у заклинаний в клетку ничего не значит.
+- id: remove-obstacle
+  name: Убрать препятствие
+  level: 2
+  schools: [water]
+  cost: 7
+  skilledCost: 5
+  chance: 0
+  effect: removeObstacle
+  target: enemy
+  values: [0, 1, 2]
+- id: force-field
+  name: Силовое поле
+  level: 3
+  schools: [earth]
+  cost: 12
+  skilledCost: 9
+  value: 2
+  chance: 0
+  effect: forceField
+  target: enemy
+  values: [2, 3, 3]
+- id: earthquake
+  name: Землетрясение
+  level: 3
+  schools: [earth]
+  cost: 20
+  skilledCost: 17
+  value: 2
+  chance: 0
+  effect: earthquake
+  target: enemy
+  values: [2, 3, 4]
+- id: teleport
+  name: Телепорт
+  level: 3
+  schools: [water]
+  cost: 15
+  skilledCost: 12
+  chance: 0
+  effect: teleport
+  target: ally
+  values: [0, 1, 2]

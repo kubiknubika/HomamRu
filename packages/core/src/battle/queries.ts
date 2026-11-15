@@ -9,7 +9,7 @@ import { isMachine, isMoat, siegeBlocked } from "./siege.ts";
 import type { BattleSide, BattleState, StackState } from "./types.ts";
 
 /** Поле боя: что на нём стоит. Запросам хватает этого, без очереди ходов и итога. */
-export type BattleField = Pick<BattleState, "obstacles" | "siege" | "stacks">;
+export type BattleField = Pick<BattleState, "obstacles" | "fields" | "siege" | "stacks">;
 
 export function isAlive(stack: StackState): boolean {
   return stack.count > 0;
@@ -30,9 +30,17 @@ export function commandingSide(state: BattleState): BattleSide | undefined {
   return active === undefined ? undefined : commanderOf(active);
 }
 
-/** Номера клеток, на которые отряду стороны `side` нельзя встать: препятствия, живые отряды, стена. */
-function blockedCells(state: BattleField, side: BattleSide): Set<number> {
+/**
+ * Номера клеток, на которые отряду стороны `side` нельзя встать: препятствия, живые отряды, стена,
+ * силовое поле.
+ */
+export function blockedCells(state: BattleField, side: BattleSide): Set<number> {
   const blocked = new Set(state.obstacles.map(cellIndex));
+  for (const field of state.fields) {
+    for (const cell of field.cells) {
+      blocked.add(cellIndex(cell));
+    }
+  }
   if (state.siege !== null) {
     for (const cell of siegeBlocked(state.siege, state.stacks, side)) {
       blocked.add(cellIndex(cell));

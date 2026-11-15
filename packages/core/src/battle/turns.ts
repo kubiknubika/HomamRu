@@ -8,6 +8,7 @@ import { calmDown } from "./control.ts";
 import { BAD_DICE } from "./damage.ts";
 import { rollChance } from "./draft.ts";
 import type { BattleDraft } from "./draft.ts";
+import { startFieldRound } from "./field.ts";
 import { isBerserk, isBlind, moraleOf, speedOf } from "./effects.ts";
 import { isMachine } from "./siege.ts";
 import { siegePhase } from "./siegeRound.ts";
@@ -75,6 +76,7 @@ function startRound(draft: BattleDraft): void {
   }
   draft.events.push({ type: "roundStarted", round: draft.round });
   startSpellRound(draft);
+  startFieldRound(draft);
 }
 
 /** Ход отряда в берсерке. Возвращает, закончен ли бой. */

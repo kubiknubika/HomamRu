@@ -3,9 +3,10 @@
  * рисует сцена. Без Phaser, чтобы проверять тестами.
  * Спецификация: docs/mechanics/16-battle-screen.md.
  */
-import { activeStackOf, findStack, reachableCells } from "@homamru/core";
+import { activeStackOf, findStack, isFieldSpell, reachableCells } from "@homamru/core";
 import type { Cell, StackState } from "@homamru/core";
 import { areaHits, areaMarks } from "./battleArea.ts";
+import { fieldMarks, teleportStacks } from "./battleField.ts";
 import { attackableTargets, playerStack } from "./battleSession.ts";
 import { spellTargets } from "./battleSpells.ts";
 import type { BattleSnapshot } from "./battleSession.ts";
@@ -68,6 +69,19 @@ export function highlightsOf(snapshot: BattleSnapshot): Highlights {
     // Выбрано заклинание: видны только отряды, на которые оно ложится.
     const hero = state.sides[snapshot.playerSide].hero;
     const spell = hero?.spells.find((item) => item.id === selection.spell);
+    if (spell !== undefined && isFieldSpell(spell)) {
+      // Заклинание поля: клетки, куда оно ляжет; у «Телепорта» — ещё и отряды, которые можно перенести.
+      const cells = fieldMarks(state, snapshot.playerSide, spell, selection).map((cell) => ({
+        cell,
+        mark: "spellArea" as const,
+      }));
+      if (spell.effect === "teleport") {
+        for (const stack of teleportStacks(state, snapshot.playerSide, spell)) {
+          rings.push({ stack, mark: stack.id === selection.targetId ? "target" : "spellAlly" });
+        }
+      }
+      return { cells, rings };
+    }
     if (spell?.area !== undefined && selection.aim) {
       // Заклинание по площади направлено: клетки под ним и все, кого оно заденет.
       for (const stack of areaHits(state, spell, selection.aim)) {

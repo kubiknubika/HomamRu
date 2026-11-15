@@ -9,7 +9,7 @@ import { SAVE_FORMAT } from "./save.ts";
 import type { SaveBody } from "./save.ts";
 import type { SaveDefaults } from "./defaults.ts";
 import { readState } from "./state.ts";
-import { commandSchema } from "./stateSchemas.ts";
+import { commandSchema } from "./commandSchemas.ts";
 
 /** В журнал дампа попадают события стольких последних команд. */
 export const DUMP_JOURNAL_COMMANDS = 200;

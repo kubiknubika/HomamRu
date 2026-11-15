@@ -35,7 +35,12 @@ export function moveTo(draft: BattleDraft, stack: DraftStack, to: Cell): void {
     from,
     to: { col: to.col, row: to.row },
   });
-  if (isMoat(draft.siege, to)) {
+  enterMoat(draft, stack);
+}
+
+/** Отряд встал в клетку: во рву он получает урон. */
+export function enterMoat(draft: BattleDraft, stack: DraftStack): void {
+  if (isMoat(draft.siege, stack)) {
     const losses = applyDamage(stack.count, stack.firstHealth, stack.creature.health, MOAT_DAMAGE);
     stack.count = losses.count;
     stack.firstHealth = losses.firstHealth;

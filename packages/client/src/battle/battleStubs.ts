@@ -11,6 +11,7 @@ export const FIELD_LINE_COLOR = 0x23361a;
 export const CELL_LOOK_COLORS = {
   field: 0x4f7a3a,
   obstacle: 0x2b2f36,
+  forceField: 0x8fd3e8,
   wall: 0x6f7178,
   segment: 0x9a9ca3,
   cracked: 0xb9a184,

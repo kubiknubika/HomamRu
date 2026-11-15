@@ -20,6 +20,7 @@ import type { BattleEvent, BattleState, Cell, StackState, Tower, WallPart } from
 export type CellLook =
   | "field"
   | "obstacle"
+  | "forceField"
   | "wall"
   | "segment"
   | "cracked"
@@ -69,6 +70,9 @@ export function cellLook(state: BattleState, cell: Cell): CellLook {
   if (state.obstacles.some((obstacle) => sameCell(obstacle, cell))) {
     return "obstacle";
   }
+  if (state.fields.some((field) => field.cells.some((item) => sameCell(item, cell)))) {
+    return "forceField";
+  }
   if (siege === null) {
     return "field";
   }
@@ -115,6 +119,10 @@ function damageText(low: number): string {
 /** Что сказать про клетку осады по удержанию пальца; `null` — клетка обычная. */
 export function cellNote(state: BattleState, cell: Cell): string | null {
   const { siege } = state;
+  const built = state.fields.find((field) => field.cells.some((item) => sameCell(item, cell)));
+  if (built !== undefined) {
+    return `Силовое поле: встать нельзя. Осталось раундов: ${built.rounds}.`;
+  }
   if (siege === null) {
     return null;
   }
@@ -126,7 +134,7 @@ export function cellNote(state: BattleState, cell: Cell): string | null {
   const segment = segmentAt(cell);
   if (segment !== undefined) {
     return siege.health[segment] > 0
-      ? `Стена, прочность ${siege.health[segment]}. Ломает её только катапульта.`
+      ? `Стена, прочность ${siege.health[segment]}. Ломают её катапульта и «Землетрясение».`
       : "Пролом: стена разрушена, проход свободен.";
   }
   if (isGate(cell)) {

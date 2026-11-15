@@ -20,6 +20,10 @@ export type SpellSchool = (typeof SPELL_SCHOOLS)[number];
  * `spellImmunity` — не ложатся заклинания кругов до этого числа;
  * `hypnosis` — отрядом командует колдовавший, число — прибавка к порогу здоровья;
  * `berserk` — отряд сам бьёт ближайшего, число — радиус площади; `mirror` — шанс отразить заклинание.
+ * Поле боя (70-spells-field.md): `forceField` — непроходимые клетки, число — сколько их;
+ * `removeObstacle` — убирает препятствие, число — что ещё можно убрать (1 — стену огня, 2 — всё наколдованное);
+ * `earthquake` — удары по стене города, число — сколько их; `teleport` — переносит свой отряд,
+ * число — куда можно в осаде (1 — в ров, 2 — и за стену).
  */
 export const SPELL_EFFECTS = [
   "damage",
@@ -51,6 +55,10 @@ export const SPELL_EFFECTS = [
   "hypnosis",
   "berserk",
   "mirror",
+  "forceField",
+  "removeObstacle",
+  "earthquake",
+  "teleport",
 ] as const;
 export type SpellEffect = (typeof SPELL_EFFECTS)[number];
 

@@ -205,6 +205,7 @@ export function createBattle(
     rng: createRng(seed),
     round: 1,
     obstacles: definition.obstacles.map((cell) => ({ col: cell.col, row: cell.row })),
+    fields: [],
     siege: siege === undefined ? null : createSiege(siege.fortification, siege.buildings),
     sides: [sideOf(definition.attacker), sideOf(definition.defender)],
     stacks: [

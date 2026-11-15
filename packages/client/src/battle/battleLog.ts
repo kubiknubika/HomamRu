@@ -61,6 +61,18 @@ function describeEvent(
       }
       return `Катапульта: ${PART_NAMES[event.hit]}, ${event.left === 0 ? "разрушено" : "повреждено"}`;
     }
+    case "fieldCast":
+      return `${event.side === playerSide ? "Вы колдуете" : "Противник колдует"} «${event.name}»`;
+    case "fieldPlaced":
+      return `Силовое поле: клеток — ${event.cells.length}, не пройти`;
+    case "fieldRemoved":
+      return event.reason === "expired" ? "Силовое поле исчезло" : "Силовое поле убрано";
+    case "obstacleRemoved":
+      return "Препятствие убрано";
+    case "wallShaken":
+      return `Землетрясение: ${PART_NAMES[event.part]}, ${event.left === 0 ? "разрушено" : "повреждено"}`;
+    case "stackTeleported":
+      return `${nameOf(event.stackId)} перенесён`;
     case "berserkTurn":
       return event.targetId === null
         ? `${nameOf(event.stackId)}: берсерк, бить некого`
