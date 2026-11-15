@@ -1,6 +1,6 @@
 /** Журнал боя для игрока: события одной команды одной строкой. */
 import {
-  attackBonus,
+  attackOf,
   defenseOf,
   findStack,
   isMachine,
@@ -61,6 +61,10 @@ function describeEvent(
       }
       return `Катапульта: ${PART_NAMES[event.hit]}, ${event.left === 0 ? "разрушено" : "повреждено"}`;
     }
+    case "stackBlind":
+      return `${nameOf(event.stackId)}: слепота, ход пропущен`;
+    case "fireShield":
+      return `Огненный щит: ${nameOf(event.targetId)}, урон ${event.damage}, погибло ${event.killed}`;
     case "moatDamage":
       return `${nameOf(event.stackId)} во рву: урон ${event.damage}, погибло ${event.killed}`;
     case "spellCast": {
@@ -73,9 +77,11 @@ function describeEvent(
             ? `вылечено ${outcome.healed}`
             : outcome.kind === "dispel"
               ? "заклинания сняты"
-              : outcome.rounds === 0
-                ? "действует до конца боя"
-                : `действует раундов: ${outcome.rounds}`;
+              : event.spell === "frenzy"
+                ? "действует до следующего действия отряда"
+                : outcome.rounds === 0
+                  ? "действует до конца боя"
+                  : `действует раундов: ${outcome.rounds}`;
       return `${who} «${event.name}»: ${nameOf(event.targetId)}, ${what}`;
     }
     case "spellMissed": {
@@ -140,11 +146,9 @@ export function describeStack(state: BattleState, stack: StackState): string {
   if (isMachine(stack)) {
     return `Катапульта: здоровье ${stack.firstHealth} из ${creature.health}, защита ${defenseOf(state, stack)}, выстрелов ${stack.shots}. Сама стреляет по стене в начале раунда. Не ходит и не отвечает на удар.`;
   }
-  const hero = state.sides[stack.side].hero;
-  const attack = creature.attack + (hero?.attack ?? 0);
   // «Жажда крови» прибавляет атаку только в ближнем бою, «Точность» — только при стрельбе.
-  const shot = attack + attackBonus(stack, "shot");
-  const melee = attack + attackBonus(stack, "melee");
+  const shot = attackOf(state, stack, "shot");
+  const melee = attackOf(state, stack, "melee");
   const parts = [
     `${creature.name}: ${stack.count} из ${stack.initialCount}`,
     melee === shot ? `атака ${shot}` : `атака ${shot} (в ближнем бою ${melee})`,

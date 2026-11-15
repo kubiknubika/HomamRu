@@ -14,6 +14,10 @@ export type SpellSchool = (typeof SPELL_SCHOOLS)[number];
  * остальные — действие на несколько раундов (67-spells-plain.md): `shotAttack` — атака при стрельбе,
  * `attackDown` и `defenseDown` — меньше атака и защита, `shotDamagePercent` — доля урона выстрела,
  * `prayer` — атака, защита и скорость, `luck`/`luckDown`, `morale`/`moraleDown` — удача и боевой дух отряда.
+ * Управление отрядом (69-spells-control.md): `blind` — не ходит до первого урона, число — доля ответного удара;
+ * `shotDown` — доля урона выстрела, 0 — не стреляет; `frenzy` — атака растёт на долю защиты, защита 0;
+ * `retaliations` — лишние ответные удары за раунд; `fireShield` — доля урона, возвращаемая ударившему;
+ * `spellImmunity` — не ложатся заклинания кругов до этого числа.
  */
 export const SPELL_EFFECTS = [
   "damage",
@@ -36,6 +40,12 @@ export const SPELL_EFFECTS = [
   "luckDown",
   "morale",
   "moraleDown",
+  "blind",
+  "shotDown",
+  "frenzy",
+  "retaliations",
+  "fireShield",
+  "spellImmunity",
 ] as const;
 export type SpellEffect = (typeof SPELL_EFFECTS)[number];
 

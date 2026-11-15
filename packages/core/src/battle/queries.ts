@@ -2,7 +2,7 @@
  * Запросы к состоянию боя: кто где стоит, куда можно пойти. Ничего не меняют.
  * Спецификация: docs/mechanics/12-battle-actions.md.
  */
-import { speedOf } from "./effects.ts";
+import { forgotShooting, speedOf } from "./effects.ts";
 import { BATTLE_HEIGHT, BATTLE_WIDTH, cellIndex, distance, neighbours, sameCell } from "./hex.ts";
 import type { Cell } from "./hex.ts";
 import { isMachine, isMoat, siegeBlocked } from "./siege.ts";
@@ -119,6 +119,9 @@ export function hasAdjacentEnemy(state: BattleField, stack: StackState): boolean
 
 /** Может ли отряд сейчас стрелять. */
 export function canShoot(state: BattleField, stack: StackState): boolean {
+  if (forgotShooting(stack)) {
+    return false;
+  }
   return stack.creature.shots > 0 && stack.shots > 0 && !hasAdjacentEnemy(state, stack);
 }
 

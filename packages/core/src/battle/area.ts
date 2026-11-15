@@ -3,6 +3,7 @@
  * Спецификация: docs/mechanics/68-spells-area.md.
  */
 import type { SpellDefinition } from "../spells.ts";
+import { immuneTo } from "./effects.ts";
 import { BATTLE_HEIGHT, BATTLE_WIDTH, distance, neighbours, sameCell } from "./hex.ts";
 import type { Cell } from "./hex.ts";
 import type { StackState } from "./types.ts";
@@ -75,12 +76,14 @@ function chainOf<T extends StackState>(
 /**
  * Отряды, которые заденет заклинание по площади; свои и чужие — одинаково.
  * `stacks` — живые отряды в порядке армий. Команда уже проверена.
+ * Отряд под «Антимагией» не задет, цепь идёт мимо него (69-spells-control.md).
  */
 export function areaVictims<T extends StackState>(
-  stacks: readonly T[],
+  everyone: readonly T[],
   spell: SpellDefinition,
   aim: SpellAim,
 ): Victim<T>[] {
+  const stacks = everyone.filter((stack) => !immuneTo(stack, spell.level));
   if (spell.area === "all") {
     return stacks.map((stack) => ({ stack, divisor: 1 }));
   }

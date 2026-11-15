@@ -35,6 +35,8 @@ export function roundsText(count: number): string {
     : `${count} раундов`;
 }
 
+const MAX_CIRCLE = 5;
+
 const LASTING: Partial<Record<SpellDefinition["effect"], (value: number) => string>> = {
   maxDamage: (value) => (value > 0 ? `наибольший урон +${value}` : "наибольший урон"),
   minDamage: (value) => (value > 0 ? `наименьший урон −${value}` : "наименьший урон"),
@@ -53,6 +55,18 @@ const LASTING: Partial<Record<SpellDefinition["effect"], (value: number) => stri
   luckDown: (value) => `удача −${value}`,
   morale: (value) => `боевой дух +${value}`,
   moraleDown: (value) => `боевой дух −${value}`,
+  blind: (value) =>
+    value === 0
+      ? "отряд не ходит до первого урона и на удар не отвечает"
+      : `отряд не ходит до первого урона, ответный удар × ${value} %`,
+  shotDown: (value) => (value === 0 ? "отряд не может стрелять" : `урон выстрела × ${value} %`),
+  frenzy: (value) => `атака + ${value} % защиты, защита 0`,
+  retaliations: (value) => `ответных ударов за раунд +${value}`,
+  fireShield: (value) => `ударивший в ближнем бою получает ${value} % своего урона`,
+  spellImmunity: (value) =>
+    value >= MAX_CIRCLE
+      ? "снимает вредные заклинания, никакие заклинания не ложатся"
+      : `снимает вредные заклинания, не ложатся заклинания кругов 1–${value}`,
 };
 
 /** Куда бьёт заклинание по площади (68-spells-area.md). */
@@ -82,7 +96,11 @@ function spellEffectText(spell: SpellDefinition, hero: Caster): string {
   const what = LASTING[spell.effect]?.(spell.value) ?? spell.effect;
   // Срок действия — сила магии, но не меньше раунда (62-battle-spells.md).
   const term =
-    spell.cumulative === true ? "до конца боя" : roundsText(Math.max(1, hero.spellPower));
+    spell.cumulative === true
+      ? "до конца боя"
+      : spell.effect === "frenzy"
+        ? "до следующего действия отряда"
+        : roundsText(Math.max(1, hero.spellPower));
   return `${what}, ${term}`;
 }
 

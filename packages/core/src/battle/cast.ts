@@ -5,7 +5,8 @@ import type { SpellDefinition } from "../spells.ts";
 import { aimsAtCell, areaVictims } from "./area.ts";
 import { applyDamage } from "./damage.ts";
 import type { BattleDraft } from "./draft.ts";
-import { spellDamagePercent } from "./effects.ts";
+import { wake } from "./control.ts";
+import { immuneTo, spellDamagePercent } from "./effects.ts";
 import { inField } from "./hex.ts";
 import { isMachine } from "./siege.ts";
 import type {
@@ -63,6 +64,13 @@ export function canTarget(spell: SpellDefinition, side: BattleSide, target: Stac
     return false;
   }
   if (isMachine(target) && (spell.effect !== "damage" || spell.spareMachines === true)) {
+    return false;
+  }
+  if (immuneTo(target, spell.level)) {
+    return false;
+  }
+  // «Забывчивость» — только тем, кому есть чем стрелять.
+  if (spell.effect === "shotDown" && target.shots === 0) {
     return false;
   }
   // «Точность» — только тем, у кого выстрелы от природы.
@@ -125,6 +133,8 @@ function remove(target: DraftStack, drop: (effect: StackState["effects"][number]
   return removed;
 }
 
+const FRENZY_ROUNDS = 2;
+
 function resolve(
   spell: SpellDefinition,
   hero: Caster,
@@ -153,8 +163,14 @@ function resolve(
     default: {
       // Действие на срок: то же заклинание заменяется, противоположные снимаются.
       // Срок — сила магии, но не меньше раунда: при силе 0 действие держится до конца раунда.
-      const rounds = Math.max(1, spellPower);
-      const removed = remove(target, (effect) => spell.counters.includes(effect.spell));
+      // «Бешенство» — до следующего действия отряда, но не дольше конца следующего раунда.
+      const rounds = spell.effect === "frenzy" ? FRENZY_ROUNDS : Math.max(1, spellPower);
+      // «Антимагия» снимает всё вредное.
+      const cleanses = spell.effect === "spellImmunity";
+      const removed = remove(
+        target,
+        (effect) => spell.counters.includes(effect.spell) || (cleanses && effect.negative),
+      );
       const old = target.effects.find((effect) => effect.spell === spell.id);
       remove(target, (effect) => effect.spell === spell.id);
       const added = {
@@ -222,6 +238,9 @@ export function cast(draft: BattleDraft, command: CastCommand): void {
       manaLeft: hero.mana,
       outcome,
     });
+    if (outcome.kind === "damage") {
+      wake(draft, stack);
+    }
     if (stack.count === 0) {
       stack.turn = "done";
       draft.events.push({ type: "stackDied", stackId: stack.id });
@@ -249,6 +268,8 @@ export function startSpellRound(draft: BattleDraft): void {
       .filter((effect) => effect.rounds > 1 || effect.stacks !== undefined)
       .map((effect) =>
         effect.stacks === undefined ? { ...effect, rounds: effect.rounds - 1 } : effect,
-      );
+      )
+      // «Контрудар»: лишние ответные удары в новом раунде снова целы.
+      .map((effect) => (effect.used === undefined ? effect : { ...effect, used: 0 }));
   }
 }

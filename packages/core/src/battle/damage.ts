@@ -3,7 +3,7 @@
  */
 import { nextInt } from "../rng.ts";
 import type { RngResult, RngState } from "../rng.ts";
-import { attackBonus, damagePercent, defenseBonus, fixedDamage } from "./effects.ts";
+import { attackBonus, defenseBonus, fixedDamage, frenzyOf, strikePercent } from "./effects.ts";
 import { distance } from "./hex.ts";
 import { hasWallPenalty, isMoat, MOAT_DEFENSE } from "./siege.ts";
 import type { BattleState, CreatureDefinition, StackState, StrikeKind } from "./types.ts";
@@ -97,14 +97,28 @@ type Combat = Pick<BattleState, "sides" | "siege">;
 /** Атака отряда с прибавками героя и заклинаний; «Жажда крови» — только в ближнем бою. */
 export function attackOf(combat: Combat, stack: StackState, kind: StrikeKind): number {
   const hero = combat.sides[stack.side].hero?.attack ?? 0;
-  return stack.creature.attack + hero + attackBonus(stack, kind);
+  const frenzy = frenzyOf(stack);
+  // «Бешенство»: к атаке — доля защиты отряда с героем и заклинаниями.
+  const fury =
+    frenzy === null ? 0 : Math.floor((Math.max(0, ownDefense(combat, stack)) * frenzy) / 100);
+  return stack.creature.attack + hero + attackBonus(stack, kind) + fury;
 }
 
-/** Защита отряда с прибавками героя, заклинаний и «защищаться»; во рву — меньше на 3. */
-export function defenseOf(combat: Combat, stack: StackState): number {
-  const moat = isMoat(combat.siege, stack) ? MOAT_DEFENSE : 0;
+function ownDefense(combat: Combat, stack: StackState): number {
   const hero = combat.sides[stack.side].hero?.defense ?? 0;
-  return stack.creature.defense + hero + defenseBonus(stack) + stack.defendBonus - moat;
+  return stack.creature.defense + hero + defenseBonus(stack);
+}
+
+/**
+ * Защита отряда с прибавками героя, заклинаний и «защищаться»; во рву — меньше на 3.
+ * Под «Бешенством» — 0.
+ */
+export function defenseOf(combat: Combat, stack: StackState): number {
+  if (frenzyOf(stack) !== null) {
+    return 0;
+  }
+  const moat = isMoat(combat.siege, stack) ? MOAT_DEFENSE : 0;
+  return ownDefense(combat, stack) + stack.defendBonus - moat;
 }
 
 /** Сколько раз урон делится пополам: стрелок в ближнем бою, выстрел дальше 10 клеток, выстрел через стену. */
@@ -135,7 +149,7 @@ export function damageRange(
   const attack = attackOf(combat, attacker, kind);
   const defense = defenseOf(combat, target);
   const halvings = halvingsOf(combat, kind, attacker, target);
-  const percent = damagePercent(target, kind);
+  const percent = strikePercent(attacker, target, kind);
   const { damageMin, damageMax } = attacker.creature;
   const fixed = fixedDamage(attacker);
   const of = (roll: number): number =>

@@ -4,6 +4,7 @@
  */
 import type { SpellDefinition, SpellEffect } from "../spells.ts";
 import { bestAreaCast, HEALTH } from "./aiArea.ts";
+import { controlWorth, immunityWorth, isMelee, strikeOf, strongest } from "./aiControl.ts";
 import type { SpellAim } from "./area.ts";
 import { canTarget, castableSpells, spellTargetsOf, spellValue } from "./cast.ts";
 import { GOOD_DICE } from "./damage.ts";
@@ -26,12 +27,6 @@ function gained(current: number, delta: number, floor: number): number {
   return Math.min(3, Math.max(floor, current + delta)) - current;
 }
 
-/** Средний урон удара отряда, в единицах пользы; поправки на атаку и защиту нет — цель неизвестна. */
-function strikeOf(stack: StackState): number {
-  const { damageMin, damageMax } = stack.creature;
-  return ((damageMin + damageMax) * stack.count * HEALTH) / 2;
-}
-
 /** Разница между наибольшим (или наименьшим) и средним уроном отряда. */
 function spreadOf(stack: StackState): number {
   const { damageMin, damageMax } = stack.creature;
@@ -43,16 +38,8 @@ function curseExtra(stack: StackState, value: number): number {
   return Math.min(value, Math.max(0, stack.creature.damageMin - 1)) * stack.count;
 }
 
-function isMelee(stack: StackState): boolean {
-  return stack.shots === 0;
-}
-
 function roundsOf(rounds: number): number {
   return Math.min(Math.max(1, rounds), MAX_ROUNDS);
-}
-
-function strongest(stacks: readonly StackState[]): number {
-  return Math.max(0, ...stacks.map(strikeOf));
 }
 
 interface Scene {
@@ -102,7 +89,8 @@ function worthOf(scene: Scene, stack: StackState, effect: Effect): number {
     moraleDown: () =>
       (strike * gained(moraleOf(scene.state, stack), -effect.value, -3) * -rounds) / GOOD_DICE,
   };
-  return Math.floor(kinds[effect.effect]?.() ?? 0);
+  const control = controlWorth(scene.state, stack, foes, effect, rounds);
+  return Math.floor(control ?? kinds[effect.effect]?.() ?? 0);
 }
 
 /** Отряд ближнего боя, ещё не дошедший до врага. */
@@ -180,12 +168,14 @@ function benefit(
                 HEALTH) /
                 PERCENT,
             )
-          : worthOf(scene, target, {
-              effect: spell.effect,
-              value: spell.value,
-              rounds: spellPower,
-              stacks: spell.cumulative === true ? 1 : undefined,
-            });
+          : spell.effect === "spellImmunity"
+            ? immunityWorth(scene.state, side === 0 ? 1 : 0, target, spell.value)
+            : worthOf(scene, target, {
+                effect: spell.effect,
+                value: spell.value,
+                rounds: spellPower,
+                stacks: spell.cumulative === true ? 1 : undefined,
+              });
       return own + sum(countered);
     }
   }

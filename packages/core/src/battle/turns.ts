@@ -6,7 +6,7 @@ import { startSpellRound } from "./cast.ts";
 import { BAD_DICE } from "./damage.ts";
 import { rollChance } from "./draft.ts";
 import type { BattleDraft } from "./draft.ts";
-import { moraleOf, speedOf } from "./effects.ts";
+import { isBlind, moraleOf, speedOf } from "./effects.ts";
 import { isMachine } from "./siege.ts";
 import { siegePhase } from "./siegeRound.ts";
 import type { BattleEndReason, BattleSide, StackState, StackTurn } from "./types.ts";
@@ -95,6 +95,12 @@ export function activateNext(draft: BattleDraft): void {
       // Живых отрядов нет: бой должен был закончиться раньше.
       draft.activeStack = null;
       return;
+    }
+    if (isBlind(next)) {
+      // Ослеплённый отряд хода не получает (69-spells-control.md).
+      next.turn = "done";
+      draft.events.push({ type: "stackBlind", stackId: next.id });
+      continue;
     }
     draft.lastActedSide = next.side;
     // Прибавка от «защищаться» действует до начала следующего хода отряда.

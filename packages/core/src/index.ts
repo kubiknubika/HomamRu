@@ -72,7 +72,7 @@ export type {
 export { applyBattleCommand, replayBattle } from "./battle/commands.ts";
 export type { BattleReplayResult } from "./battle/commands.ts";
 export { createBattle } from "./battle/create.ts";
-export { damageRange, defenseOf } from "./battle/damage.ts";
+export { attackOf, damageRange, defenseOf } from "./battle/damage.ts";
 export { turnQueue } from "./battle/turns.ts";
 export type { CreateBattleResult } from "./battle/create.ts";
 export { BATTLE_HEIGHT, BATTLE_WIDTH, distance, neighbours } from "./battle/hex.ts";
@@ -134,7 +134,7 @@ export { BOOK_PRICE, guildLevel, guildSpells, maxMana } from "./magic.ts";
 export { canTarget, castableSpells, spellTargetsOf, spellValue } from "./battle/cast.ts";
 export { aimsAtCell, areaCells, areaVictims } from "./battle/area.ts";
 export type { SpellAim } from "./battle/area.ts";
-export { attackBonus, luckOf, moraleOf, speedOf } from "./battle/effects.ts";
+export { luckOf, moraleOf, speedOf } from "./battle/effects.ts";
 export { randomBattle, randomSiege, runAutoBattle } from "./battle/autobattle.ts";
 export { TOWNLESS_DAYS } from "./players.ts";
 export { townsOf } from "./opponentTown.ts";

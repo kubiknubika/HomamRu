@@ -38,6 +38,40 @@ export function defenseBonus(stack: Affected): number {
   return sumOf(stack, "defense") + sumOf(stack, "prayer") - sumOf(stack, "defenseDown");
 }
 
+function valueOf(stack: Affected, effect: SpellEffect): number | null {
+  return stack.effects.find((item) => item.effect === effect)?.value ?? null;
+}
+
+/** Ослеплён: не ходит (69-spells-control.md). */
+export function isBlind(stack: Affected): boolean {
+  return valueOf(stack, "blind") !== null;
+}
+
+/** Доля ответного удара ослеплённого отряда, в процентах; `null` — не ослеплён. */
+export function blindRetaliation(stack: Affected): number | null {
+  return valueOf(stack, "blind");
+}
+
+/** «Забывчивость»: отряд не может стрелять. */
+export function forgotShooting(stack: Affected): boolean {
+  return valueOf(stack, "shotDown") === 0;
+}
+
+/** «Бешенство»: сколько процентов защиты уходит в атаку; `null` — его нет. */
+export function frenzyOf(stack: Affected): number | null {
+  return valueOf(stack, "frenzy");
+}
+
+/** «Огненный щит»: какая доля урона возвращается ударившему, в процентах; 0 — щита нет. */
+export function fireShieldOf(stack: Affected): number {
+  return valueOf(stack, "fireShield") ?? 0;
+}
+
+/** «Антимагия»: заклинание круга `level` на отряд не ложится и не задевает его. */
+export function immuneTo(stack: Affected, level: number): boolean {
+  return (valueOf(stack, "spellImmunity") ?? 0) >= level;
+}
+
 const MAX_LUCK = 3;
 const MAX_MORALE = 3;
 
@@ -75,6 +109,12 @@ export function fixedDamage(stack: Pick<StackState, "creature" | "effects">): nu
  */
 export function damagePercent(target: Affected, kind: StrikeKind): number {
   return percentOf(target, kind === "shot" ? "shotDamagePercent" : "meleeDamagePercent");
+}
+
+/** То же с «Забывчивостью» на стреляющем: его выстрел слабее. */
+export function strikePercent(attacker: Affected, target: Affected, kind: StrikeKind): number {
+  const own = kind === "shot" ? (valueOf(attacker, "shotDown") ?? 100) : 100;
+  return (damagePercent(target, kind) * own) / 100;
 }
 
 /**
