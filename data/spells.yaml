@@ -570,3 +570,41 @@
   effect: teleport
   target: ally
   values: [0, 1, 2]
+- id: quicksand
+  name: Зыбучие пески
+  level: 2
+  schools: [earth]
+  cost: 8
+  skilledCost: 6
+  value: 0
+  chance: 0
+  effect: quicksand
+  target: enemy
+  values: [0, 0, 0]
+  chain: [4, 4, 6, 8]
+- id: fire-wall
+  name: Стена огня
+  level: 2
+  schools: [fire]
+  cost: 8
+  skilledCost: 6
+  power: 10
+  value: 10
+  chance: 0
+  effect: fireWall
+  target: enemy
+  values: [10, 20, 50]
+  chain: [2, 2, 3, 3]
+- id: land-mine
+  name: Мины
+  level: 3
+  schools: [fire]
+  cost: 18
+  skilledCost: 15
+  power: 10
+  value: 25
+  chance: 0
+  effect: mine
+  target: enemy
+  values: [25, 50, 100]
+  chain: [4, 4, 6, 8]

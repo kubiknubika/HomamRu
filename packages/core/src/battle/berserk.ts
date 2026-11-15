@@ -63,8 +63,7 @@ export function berserkAct(draft: BattleDraft, stack: DraftStack): void {
   }
   const from = closest(attackCells(draft, stack, target), (cell) => distance(stack, cell));
   if (from !== undefined) {
-    moveTo(draft, stack, from);
-    if (stack.count > 0) {
+    if (moveTo(draft, stack, from)) {
       exchange(draft, stack, target);
       sober(draft, stack);
     }

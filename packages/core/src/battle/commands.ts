@@ -110,9 +110,8 @@ function applyAttack(
   const draft = toDraft(state);
   const stack = draftStack(draft, active.id);
   const victim = draftStack(draft, target.id);
-  moveTo(draft, stack, from);
-  if (stack.count === 0) {
-    // Погиб во рву, не дойдя до удара.
+  if (!moveTo(draft, stack, from)) {
+    // Погиб во рву или на ловушке либо увяз в песках: удара нет.
     finishAction(draft, stack);
     return accept(draft);
   }

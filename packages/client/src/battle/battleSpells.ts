@@ -10,6 +10,7 @@ import {
   sorceryPercent,
   spellAtMastery,
   spellValue,
+  trapCount,
 } from "@homamru/core";
 import type {
   BattleEvent,
@@ -104,6 +105,22 @@ const FIELD_TEXT: Partial<Record<SpellDefinition["effect"], (value: number) => s
 /** Площадь «Берсерка» по радиусу: клетка, клетка и соседние, два шага. */
 const RADIUS_TEXT = ["одна клетка", "клетка и соседние", "клетки в двух шагах"];
 
+/** Пески, мины, стена огня (70-spells-field.md): сколько клеток и какой урон. */
+function trapText(spell: SpellDefinition, hero: Caster): string | undefined {
+  const cells = trapCount(spell);
+  const harm = spell.power * hero.spellPower + spell.value;
+  const damage = Math.floor((harm * (100 + hero.sorcery)) / 100);
+  if (spell.effect === "quicksand") {
+    return `${cells} клеток в случайных местах, врагу не видны: пеший отряд увязает`;
+  }
+  if (spell.effect === "mine") {
+    return `${cells} мин в случайных клетках, урон ${damage} вражескому отряду`;
+  }
+  return spell.effect === "fireWall"
+    ? `${cells} клетки, урон ${damage} любому вошедшему, 2 раунда`
+    : undefined;
+}
+
 /** Что сделает заклинание на одном отряде: «урон 30», «наибольший урон, 2 раунда». */
 function spellEffectText(spell: SpellDefinition, hero: Caster): string {
   if (spell.effect === "damage") {
@@ -122,6 +139,10 @@ function spellEffectText(spell: SpellDefinition, hero: Caster): string {
   const field = FIELD_TEXT[spell.effect]?.(spell.value);
   if (field !== undefined) {
     return field;
+  }
+  const trap = trapText(spell, hero);
+  if (trap !== undefined) {
+    return trap;
   }
   if (spell.effect === "berserk") {
     const where = RADIUS_TEXT[spell.value] ?? RADIUS_TEXT[0];

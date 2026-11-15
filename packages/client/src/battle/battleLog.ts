@@ -30,6 +30,13 @@ const PART_NAMES = {
   lowerTower: "нижняя башня",
 } as const;
 
+const FIELD_NAMES = {
+  forceField: "Силовое поле",
+  fireWall: "Стена огня",
+  quicksand: "Зыбучие пески",
+  mine: "Мина",
+} as const;
+
 function describeEvent(
   event: BattleEvent,
   nameOf: (id: string) => string,
@@ -64,9 +71,22 @@ function describeEvent(
     case "fieldCast":
       return `${event.side === playerSide ? "Вы колдуете" : "Противник колдует"} «${event.name}»`;
     case "fieldPlaced":
-      return `Силовое поле: клеток — ${event.cells.length}, не пройти`;
+      // Чужие пески и мины скрыты: где они и сколько их, журнал не говорит.
+      if (event.kind === "quicksand" || event.kind === "mine") {
+        return event.side === playerSide
+          ? `${FIELD_NAMES[event.kind]}: клеток — ${event.cells.length}`
+          : null;
+      }
+      return `${FIELD_NAMES[event.kind]}: клеток — ${event.cells.length}`;
     case "fieldRemoved":
-      return event.reason === "expired" ? "Силовое поле исчезло" : "Силовое поле убрано";
+      if (event.kind === "quicksand" || event.kind === "mine") {
+        return null;
+      }
+      return `${FIELD_NAMES[event.kind]}: ${event.reason === "expired" ? "срок вышел" : "убрано"}`;
+    case "trapDamage":
+      return `${FIELD_NAMES[event.kind]}: ${nameOf(event.stackId)}, урон ${event.damage}, погибло ${event.killed}`;
+    case "stackStuck":
+      return `${nameOf(event.stackId)} увяз в зыбучих песках`;
     case "obstacleRemoved":
       return "Препятствие убрано";
     case "wallShaken":

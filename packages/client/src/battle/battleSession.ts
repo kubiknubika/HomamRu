@@ -297,7 +297,7 @@ export function createBattleSession(
     },
     inspectCell: (cell) => {
       const target = stackAt(snapshot.state, cell);
-      const note = target === undefined ? cellNote(snapshot.state, cell) : null;
+      const note = target === undefined ? cellNote(snapshot.state, cell, playerSide) : null;
       if (target !== undefined || note !== null) {
         publish({ inspected: target?.id ?? null, note });
       }

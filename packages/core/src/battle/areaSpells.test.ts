@@ -217,7 +217,7 @@ describe("компьютер", () => {
     expect(chooseCast(duel("armageddon", ["militia:20"], ["militia:1"]), 0)).toBeUndefined();
   });
 
-  it("в книге 45 заклинаний", () => {
-    expect(ALL_SPELLS).toHaveLength(45);
+  it("в книге 48 заклинаний", () => {
+    expect(ALL_SPELLS).toHaveLength(48);
   });
 });

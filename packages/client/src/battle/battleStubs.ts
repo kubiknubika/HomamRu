@@ -12,6 +12,9 @@ export const CELL_LOOK_COLORS = {
   field: 0x4f7a3a,
   obstacle: 0x2b2f36,
   forceField: 0x8fd3e8,
+  fireWall: 0xd9541e,
+  quicksand: 0xc9b26b,
+  mine: 0x5a2d2d,
   wall: 0x6f7178,
   segment: 0x9a9ca3,
   cracked: 0xb9a184,
@@ -30,6 +33,8 @@ export const CELL_MARK_STYLES = {
   reach: { color: 0xfff3a0, alpha: 0.28 },
   otherReach: { color: 0x3aa0ff, alpha: 0.45 },
   overlap: { color: 0xb04ad8, alpha: 0.6 },
+  /** Клетки пути к выбранной клетке. */
+  path: { color: 0xffffff, alpha: 0.3 },
   moveChoice: { color: 0xffffff, alpha: 0.55 },
   attackCell: { color: 0xe2463c, alpha: 0.55 },
   attackChoice: { color: 0xff9a1f, alpha: 0.9 },

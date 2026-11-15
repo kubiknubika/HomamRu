@@ -1,5 +1,5 @@
 /**
- * Компьютер и заклинания поля боя: «Землетрясение» и «Телепорт»; остальные он не колдует.
+ * Компьютер и заклинания поля боя: «Землетрясение», «Телепорт», «Мины», «Зыбучие пески»; остальные он не колдует.
  * Спецификация: docs/mechanics/70-spells-field.md.
  */
 import type { SpellDefinition } from "../spells.ts";
@@ -10,7 +10,8 @@ import { teleportCells } from "./field.ts";
 import { distance } from "./hex.ts";
 import { attackCells, isAlive } from "./queries.ts";
 import { isMachine, SEGMENTS } from "./siege.ts";
-import type { BattleSide, BattleState, StackState } from "./types.ts";
+import { trapDamage } from "./traps.ts";
+import type { BattleHero, BattleSide, BattleState, StackState } from "./types.ts";
 
 type Found = { aim: SpellAim; worth: number } | undefined;
 
@@ -51,8 +52,42 @@ function teleportCast(state: BattleState, side: BattleSide, spell: SpellDefiniti
   return best;
 }
 
+/**
+ * «Мины» и «Зыбучие пески»: у врага есть пешие отряды, не стоящие вплотную к нашим.
+ * Мины — урон мины × число таких отрядов ÷ 4; пески — удар таких отрядов ближнего боя ÷ 4.
+ * Второй раз, пока свои ловушки того же вида стоят, не колдует.
+ */
+function trapCast(
+  state: BattleState,
+  side: BattleSide,
+  spell: SpellDefinition,
+  hero: Pick<BattleHero, "spellPower" | "sorcery">,
+): Found {
+  const kind = spell.effect === "mine" ? "mine" : "quicksand";
+  if (state.fields.some((field) => field.kind === kind && field.side === side)) {
+    return undefined;
+  }
+  const alive = state.stacks.filter((stack) => isAlive(stack) && !isMachine(stack));
+  const ours = alive.filter((stack) => stack.side === side);
+  const walkers = alive.filter(
+    (stack) =>
+      stack.side !== side &&
+      !stack.creature.flying &&
+      !ours.some((mine) => distance(mine, stack) === 1),
+  );
+  const worth =
+    kind === "mine"
+      ? Math.floor((trapDamage(spell, hero) * walkers.length) / 4)
+      : Math.floor(walkers.filter(isMelee).reduce((sum, stack) => sum + strikeOf(stack), 0) / 4);
+  return worth > 0 ? { aim: {}, worth } : undefined;
+}
+
 /** Лучшая цель заклинания поля и её польза; `undefined` — колдовать незачем. */
 export function bestFieldCast(state: BattleState, side: BattleSide, spell: SpellDefinition): Found {
+  const { hero } = state.sides[side];
+  if (hero !== null && (spell.effect === "mine" || spell.effect === "quicksand")) {
+    return trapCast(state, side, spell, hero);
+  }
   if (spell.effect === "earthquake") {
     return quakeCast(state, side, spell);
   }

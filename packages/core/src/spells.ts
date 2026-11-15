@@ -23,7 +23,10 @@ export type SpellSchool = (typeof SPELL_SCHOOLS)[number];
  * Поле боя (70-spells-field.md): `forceField` — непроходимые клетки, число — сколько их;
  * `removeObstacle` — убирает препятствие, число — что ещё можно убрать (1 — стену огня, 2 — всё наколдованное);
  * `earthquake` — удары по стене города, число — сколько их; `teleport` — переносит свой отряд,
- * число — куда можно в осаде (1 — в ров, 2 — и за стену).
+ * число — куда можно в осаде (1 — в ров, 2 — и за стену);
+ * `fireWall` — клетки, жгущие вошедшего, `mine` — скрытые клетки, бьющие врага один раз:
+ * у обоих число — прибавка к урону, а число клеток — в `chain`;
+ * `quicksand` — скрытые клетки, где пеший отряд увязает; число клеток — в `chain`.
  */
 export const SPELL_EFFECTS = [
   "damage",
@@ -59,6 +62,9 @@ export const SPELL_EFFECTS = [
   "removeObstacle",
   "earthquake",
   "teleport",
+  "fireWall",
+  "quicksand",
+  "mine",
 ] as const;
 export type SpellEffect = (typeof SPELL_EFFECTS)[number];
 
@@ -111,7 +117,10 @@ export interface SpellDefinition {
    * `radius` — клетка и всё не дальше числа заклинания («Берсерк»).
    */
   readonly area?: SpellArea | undefined;
-  /** Для `chain`: сколько отрядов в цепи без навыка, на базовом, продвинутом и экспертном уровне. */
+  /**
+   * Для `chain`: сколько отрядов в цепи без навыка, на базовом, продвинутом и экспертном уровне.
+   * У стены огня, мин и песков — сколько клеток.
+   */
   readonly chain?: readonly [number, number, number, number] | undefined;
   /** Длина цепи у героя; в файле заклинаний этого поля нет: его ставит `spellAtMastery`. */
   readonly chainLength?: number | undefined;

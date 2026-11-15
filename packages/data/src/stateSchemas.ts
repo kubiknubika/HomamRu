@@ -228,10 +228,13 @@ const battleStateSchema = z.strictObject({
   fields: z
     .array(
       z.strictObject({
-        kind: z.literal("forceField"),
+        kind: z.enum(["forceField", "fireWall", "quicksand", "mine"]),
         cells: z.array(battleCellSchema).min(1),
         side: battleSideSchema,
-        rounds: z.int().min(1),
+        rounds: z.int().min(0),
+        hidden: z.literal(true).optional(),
+        damage: z.int().min(0).optional(),
+        level: z.int().min(1).optional(),
       }),
     )
     .default([]),
