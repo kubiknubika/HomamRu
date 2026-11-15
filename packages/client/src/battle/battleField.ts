@@ -9,6 +9,7 @@ import {
   forceFieldCells,
   removableAt,
   teleportCells,
+  trapCount,
 } from "@homamru/core";
 import type { BattleState, Cell, SpellAim, SpellDefinition, StackState } from "@homamru/core";
 
@@ -55,11 +56,11 @@ export function teleportStacks(
 }
 
 /** Клетки, с которых «Убрать препятствие» что-нибудь уберёт. */
-function removableCells(state: BattleState, spell: SpellDefinition): Cell[] {
+function removableCells(state: BattleState, side: Side, spell: SpellDefinition): Cell[] {
   const cells: Cell[] = [];
   for (let row = 0; row < BATTLE_HEIGHT; row += 1) {
     for (let col = 0; col < BATTLE_WIDTH; col += 1) {
-      if (removableAt(state, { col, row }, spell.value) !== undefined) {
+      if (removableAt(state, { col, row }, spell.value, side) !== undefined) {
         cells.push({ col, row });
       }
     }
@@ -77,11 +78,19 @@ export function fieldStart(state: BattleState, side: Side, spell: SpellDefinitio
             {},
           )
         : choice(`${spell.name}: колдуют только в осаде, пока есть что ломать.`);
+    case "quicksand":
+    case "mine":
+      return choice(
+        `${spell.name}: клеток — ${trapCount(spell)}, в случайных местах. Коснитесь поля, чтобы колдовать.`,
+        {},
+      );
     case "forceField":
       return choice(`${spell.name}: коснитесь свободной клетки — поле встанет в ней и выше.`);
+    case "fireWall":
+      return choice(`${spell.name}: коснитесь свободной клетки — стена встанет в ней и выше.`);
     case "removeObstacle":
       return choice(
-        removableCells(state, spell).length > 0
+        removableCells(state, side, spell).length > 0
           ? `${spell.name}: коснитесь подсвеченной клетки.`
           : `${spell.name}: убирать на поле нечего.`,
       );
@@ -111,6 +120,9 @@ export function fieldTap(
   current: { readonly targetId: string | null; readonly aim?: SpellAim | null },
   cell: Cell,
 ): { readonly cast: SpellAim } | { readonly choice: FieldChoice } {
+  if (spell.effect === "quicksand" || spell.effect === "mine") {
+    return { cast: {} };
+  }
   if (spell.effect === "earthquake") {
     return accepted(state, side, spell, {})
       ? { cast: {} }
@@ -149,14 +161,14 @@ export function fieldTap(
   }
   const aim = { cell };
   if (!accepted(state, side, spell, aim)) {
-    const why = spell.effect === "forceField" ? "здесь не поставить" : "здесь убирать нечего";
+    const why = spell.effect === "removeObstacle" ? "здесь убирать нечего" : "здесь не поставить";
     return { choice: choice(`${spell.name}: ${why}.`) };
   }
   if (sameAim(current.aim, aim)) {
     return { cast: aim };
   }
   const what =
-    spell.effect === "forceField" ? "поле встанет в подсвеченных клетках" : "будет убрано";
+    spell.effect === "removeObstacle" ? "будет убрано" : "встанет в подсвеченных клетках";
   return { choice: choice(`${spell.name}: ${what}. ${AGAIN}`, aim) };
 }
 
@@ -168,14 +180,19 @@ export function fieldMarks(
   current: { readonly targetId: string | null; readonly aim?: SpellAim | null },
 ): Cell[] {
   const aimed = current.aim?.cell;
-  if (spell.effect === "forceField") {
-    return aimed === undefined ? [] : forceFieldCells(side, aimed, spell.value);
+  if (spell.effect === "forceField" || spell.effect === "fireWall") {
+    const count = spell.effect === "fireWall" ? trapCount(spell) : spell.value;
+    return aimed === undefined ? [] : forceFieldCells(side, aimed, count);
   }
   if (spell.effect === "removeObstacle") {
     if (aimed === undefined) {
-      return removableCells(state, spell);
+      return removableCells(state, side, spell);
     }
-    const built = state.fields.find((field) => field.cells.some((item) => sameCell(item, aimed)));
+    const built = state.fields.find(
+      (field) =>
+        (field.hidden !== true || field.side === side) &&
+        field.cells.some((item) => sameCell(item, aimed)),
+    );
     return built === undefined ? [aimed] : [...built.cells];
   }
   const stack = state.stacks.find((item) => item.id === current.targetId);

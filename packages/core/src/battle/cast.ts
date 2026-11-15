@@ -7,6 +7,7 @@ import { applyDamage } from "./damage.ts";
 import type { BattleDraft } from "./draft.ts";
 import { reflect, wake } from "./control.ts";
 import { castField, fieldRefusal, isFieldSpell } from "./field.ts";
+import { castTrap, isTrapSpell } from "./traps.ts";
 import { immuneTo, isHypnotized, spellDamagePercent } from "./effects.ts";
 import { inField } from "./hex.ts";
 import { isMachine } from "./siege.ts";
@@ -254,7 +255,11 @@ export function cast(draft: BattleDraft, command: CastCommand): void {
       name: spell.name,
       manaLeft: hero.mana,
     });
-    castField(draft, command, spell);
+    if (isTrapSpell(spell)) {
+      castTrap(draft, command, spell, hero);
+    } else {
+      castField(draft, command, spell);
+    }
     return;
   }
   const target = draft.stacks.find((stack) => stack.id === command.target);

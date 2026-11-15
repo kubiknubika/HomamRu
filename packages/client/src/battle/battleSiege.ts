@@ -21,6 +21,9 @@ export type CellLook =
   | "field"
   | "obstacle"
   | "forceField"
+  | "fireWall"
+  | "quicksand"
+  | "mine"
   | "wall"
   | "segment"
   | "cracked"
@@ -65,13 +68,26 @@ function isGate(cell: Cell): boolean {
 }
 
 /** Как выглядит клетка: препятствие, стена, участок (целый или с прочностью 1), ворота, ров. */
-export function cellLook(state: BattleState, cell: Cell): CellLook {
+/**
+ * Постройка в клетке, которую игрок видит: свою — всегда, чужие пески и мины — только открытые
+ * (70-spells-field.md).
+ */
+function fieldAt(state: BattleState, cell: Cell, playerSide: 0 | 1) {
+  return state.fields.find(
+    (field) =>
+      (field.hidden !== true || field.side === playerSide) &&
+      field.cells.some((item) => sameCell(item, cell)),
+  );
+}
+
+export function cellLook(state: BattleState, cell: Cell, playerSide: 0 | 1 = 0): CellLook {
   const { siege } = state;
   if (state.obstacles.some((obstacle) => sameCell(obstacle, cell))) {
     return "obstacle";
   }
-  if (state.fields.some((field) => field.cells.some((item) => sameCell(item, cell)))) {
-    return "forceField";
+  const built = fieldAt(state, cell, playerSide);
+  if (built !== undefined) {
+    return built.kind;
   }
   if (siege === null) {
     return "field";
@@ -117,11 +133,27 @@ function damageText(low: number): string {
 }
 
 /** Что сказать про клетку осады по удержанию пальца; `null` — клетка обычная. */
-export function cellNote(state: BattleState, cell: Cell): string | null {
+function fieldNote(field: BattleState["fields"][number], playerSide: 0 | 1): string {
+  const whose = field.side === playerSide ? "ваша" : "чужая";
+  switch (field.kind) {
+    case "forceField":
+      return `Силовое поле: встать нельзя. Осталось раундов: ${field.rounds}.`;
+    case "fireWall":
+      return `Стена огня: жжёт любой отряд, вошедший в клетку, урон ${field.damage ?? 0}. Осталось раундов: ${field.rounds}.`;
+    case "quicksand":
+      return field.hidden === true
+        ? "Зыбучие пески (ваши, врагу не видны): пеший отряд увязает и теряет ход."
+        : "Зыбучие пески: пеший отряд увязает и теряет ход.";
+    default:
+      return `Мина (${whose}${field.hidden === true ? ", врагу не видна" : ""}): урон ${field.damage ?? 0} вражескому отряду.`;
+  }
+}
+
+export function cellNote(state: BattleState, cell: Cell, playerSide: 0 | 1 = 0): string | null {
   const { siege } = state;
-  const built = state.fields.find((field) => field.cells.some((item) => sameCell(item, cell)));
+  const built = fieldAt(state, cell, playerSide);
   if (built !== undefined) {
-    return `Силовое поле: встать нельзя. Осталось раундов: ${built.rounds}.`;
+    return fieldNote(built, playerSide);
   }
   if (siege === null) {
     return null;

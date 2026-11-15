@@ -17,7 +17,7 @@ players:
       spellPower: 3
       knowledge: 6
       book: true
-      spells: [force-field, teleport, earthquake, remove-obstacle]
+      spells: [force-field, teleport, earthquake, remove-obstacle, fire-wall, land-mine, quicksand]
       army:
         - { creature: falcon, count: 20 }
     resources: { gold: 20000, wood: 20, ore: 20 }

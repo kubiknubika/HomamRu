@@ -6,28 +6,29 @@ import type { SpellDefinition } from "../spells.ts";
 import { rollInt } from "./draft.ts";
 import type { BattleDraft } from "./draft.ts";
 import { immuneTo } from "./effects.ts";
-import { BATTLE_HEIGHT, BATTLE_WIDTH, cellIndex, inField, sameCell } from "./hex.ts";
+import { BATTLE_HEIGHT, BATTLE_WIDTH, cellIndex, sameCell } from "./hex.ts";
 import type { Cell } from "./hex.ts";
 import { blockedCells } from "./queries.ts";
 import type { BattleField } from "./queries.ts";
-import {
-  GATE_BRIDGE,
-  GATE_INNER,
-  GATE_OUTER,
-  isInside,
-  isMachine,
-  isMoat,
-  WALL_PARTS,
-  wallCells,
-} from "./siege.ts";
+import { isInside, isMachine, isMoat, WALL_PARTS } from "./siege.ts";
 import type { WallPart } from "./siege.ts";
 import { enterMoat } from "./strike.ts";
+import { build, springTrap, trapCount } from "./traps.ts";
+import { buildable, forceFieldCells, seenFieldAt } from "./fieldCells.ts";
 import type { BattleCommand, BattleRejectCode, BattleSide, StackState } from "./types.ts";
 
 type CastCommand = Extract<BattleCommand, { type: "battleCast" }>;
 type Refusal = { readonly code: BattleRejectCode; readonly message: string };
 
-const FIELD_EFFECTS = ["forceField", "removeObstacle", "earthquake", "teleport"] as const;
+const FIELD_EFFECTS = [
+  "forceField",
+  "removeObstacle",
+  "earthquake",
+  "teleport",
+  "fireWall",
+  "quicksand",
+  "mine",
+] as const;
 type FieldEffect = (typeof FIELD_EFFECTS)[number];
 
 /** Сколько раундов стоит силовое поле: раунд, в котором наколдовано, и следующий. */
@@ -40,41 +41,6 @@ function fieldEffect(spell: SpellDefinition): FieldEffect | undefined {
 /** Заклинание меняет поле, а не отряд. */
 export function isFieldSpell(spell: SpellDefinition): boolean {
   return fieldEffect(spell) !== undefined;
-}
-
-/** Клетка выше: правее (`right`) или левее. Чётные ряды сдвинуты вправо. */
-function above(cell: Cell, right: boolean): Cell {
-  const even = cell.row % 2 === 0;
-  const shift = right ? (even ? 1 : 0) : even ? 0 : -1;
-  return { col: cell.col + shift, row: cell.row - 1 };
-}
-
-/**
- * Клетки силового поля, поставленного в `cell`: сама клетка, клетка выше (у нападающего — правее,
- * у обороняющегося — левее) и, если клеток три, клетка над ними.
- */
-export function forceFieldCells(side: BattleSide, cell: Cell, count: number): Cell[] {
-  const second = above(cell, side === 0);
-  return [cell, second, above(second, side !== 0)].slice(0, count);
-}
-
-/** Можно ли поставить постройку на клетку: свободна, не стена города, не ров, не ворота. */
-function buildable(state: BattleField, cell: Cell): boolean {
-  if (!inField(cell) || state.obstacles.some((item) => sameCell(item, cell))) {
-    return false;
-  }
-  if (state.stacks.some((stack) => stack.count > 0 && sameCell(stack, cell))) {
-    return false;
-  }
-  if (state.fields.some((field) => field.cells.some((item) => sameCell(item, cell)))) {
-    return false;
-  }
-  const { siege } = state;
-  if (siege === null) {
-    return true;
-  }
-  const taken = [...wallCells(siege), GATE_BRIDGE, GATE_OUTER, GATE_INNER];
-  return !isMoat(siege, cell) && !taken.some((item) => sameCell(item, cell));
 }
 
 /** Части укреплений, которые ещё стоят. */
@@ -111,12 +77,15 @@ export function removableAt(
   state: BattleField,
   cell: Cell,
   tier: number,
+  side: BattleSide,
 ): "obstacle" | "field" | undefined {
   if (state.obstacles.some((item) => sameCell(item, cell))) {
     return "obstacle";
   }
-  const built = state.fields.some((field) => field.cells.some((item) => sameCell(item, cell)));
-  return built && tier >= 2 ? "field" : undefined;
+  // Скрытую ловушку врага убрать нельзя: о ней не знают.
+  const built = seenFieldAt(state, cell, side);
+  const enough = built?.kind === "fireWall" ? tier >= 1 : tier >= 2;
+  return built !== undefined && enough ? "field" : undefined;
 }
 
 const BAD_CELL: BattleRejectCode = "BAD_SPELL_CELL";
@@ -137,12 +106,17 @@ export function fieldRefusal(
         ? null
         : { code: "BAD_SPELL_TARGET", message: "Ломать больше нечего." };
     case "forceField":
+    case "fireWall": {
+      const count = spell.effect === "fireWall" ? trapCount(spell) : spell.value;
       return cell !== undefined &&
-        forceFieldCells(command.side, cell, spell.value).every((item) => buildable(state, item))
+        forceFieldCells(command.side, cell, count).every((item) =>
+          buildable(state, item, command.side),
+        )
         ? null
         : { code: BAD_CELL, message: `«${spell.name}» здесь не поставить: клетки заняты.` };
+    }
     case "removeObstacle":
-      return cell !== undefined && removableAt(state, cell, spell.value) !== undefined
+      return cell !== undefined && removableAt(state, cell, spell.value, command.side) !== undefined
         ? null
         : { code: BAD_CELL, message: "В этой клетке убирать нечего." };
     case "teleport": {
@@ -193,19 +167,16 @@ export function castField(draft: BattleDraft, command: CastCommand, spell: Spell
   }
   if (effect === "forceField") {
     const cells = forceFieldCells(command.side, cell, spell.value);
-    draft.fields = [
-      ...draft.fields,
-      { kind: "forceField", cells, side: command.side, rounds: FORCE_FIELD_ROUNDS },
-    ];
+    build(draft, { kind: "forceField", cells, side: command.side, rounds: FORCE_FIELD_ROUNDS });
     draft.events.push({ type: "fieldPlaced", kind: "forceField", cells, side: command.side });
   } else if (effect === "removeObstacle") {
-    if (removableAt(draft, cell, spell.value) === "obstacle") {
+    if (removableAt(draft, cell, spell.value, command.side) === "obstacle") {
       draft.obstacles = draft.obstacles.filter((item) => !sameCell(item, cell));
       draft.events.push({ type: "obstacleRemoved", cell });
       return;
     }
-    const covers = (field: BattleDraft["fields"][number]): boolean =>
-      field.cells.some((item) => sameCell(item, cell));
+    const found = seenFieldAt(draft, cell, command.side);
+    const covers = (field: BattleDraft["fields"][number]): boolean => field === found;
     for (const field of draft.fields.filter(covers)) {
       draft.events.push({
         type: "fieldRemoved",
@@ -224,14 +195,18 @@ export function castField(draft: BattleDraft, command: CastCommand, spell: Spell
     stack.col = cell.col;
     stack.row = cell.row;
     draft.events.push({ type: "stackTeleported", stackId: stack.id, from, to: cell });
-    enterMoat(draft, stack);
+    // Перенесённый отряд «сел» в клетку, как летающий: мина и стена огня срабатывают, пески — нет.
+    springTrap(draft, stack, true);
+    if (stack.count > 0) {
+      enterMoat(draft, stack);
+    }
   }
 }
 
 /** Начало раунда: срок построек убывает, истёкшие пропадают. */
 export function startFieldRound(draft: BattleDraft): void {
   for (const field of draft.fields) {
-    if (field.rounds <= 1) {
+    if (field.rounds === 1) {
       draft.events.push({
         type: "fieldRemoved",
         kind: field.kind,
@@ -241,6 +216,6 @@ export function startFieldRound(draft: BattleDraft): void {
     }
   }
   draft.fields = draft.fields
-    .filter((field) => field.rounds > 1)
-    .map((field) => ({ ...field, rounds: field.rounds - 1 }));
+    .filter((field) => field.rounds !== 1)
+    .map((field) => (field.rounds === 0 ? field : { ...field, rounds: field.rounds - 1 }));
 }

@@ -111,7 +111,7 @@ export class BattleScene extends Phaser.Scene {
 
   private drawField(state: BattleState): void {
     if (this.field !== undefined) {
-      drawBattleField(this.field, this.layout, state);
+      drawBattleField(this.field, this.layout, state, this.session.getSnapshot().playerSide);
     }
   }
 
@@ -224,9 +224,11 @@ export class BattleScene extends Phaser.Scene {
       const stub = this.stubs.get(event.stackId);
       if (stub !== undefined) {
         // Путь известен — идём по нему; иначе сразу в конечную клетку.
-        const last = this.route.at(-1);
-        const known = last !== undefined && last.col === event.to.col && last.row === event.to.row;
-        this.walk(stub, known ? this.route : [event.to], next);
+        // Отряд мог не дойти: увяз в песках или погиб на ловушке — путь обрывается там, где он встал.
+        const end = this.route.findIndex(
+          (cell) => cell.col === event.to.col && cell.row === event.to.row,
+        );
+        this.walk(stub, end === -1 ? [event.to] : this.route.slice(0, end + 1), next);
         return;
       }
     }

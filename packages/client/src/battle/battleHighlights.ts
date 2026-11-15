@@ -3,7 +3,7 @@
  * рисует сцена. Без Phaser, чтобы проверять тестами.
  * Спецификация: docs/mechanics/16-battle-screen.md.
  */
-import { activeStackOf, findStack, isFieldSpell, reachableCells } from "@homamru/core";
+import { activeStackOf, findStack, isFieldSpell, reachableCells, walkRoute } from "@homamru/core";
 import type { Cell, StackState } from "@homamru/core";
 import { areaHits, areaMarks } from "./battleArea.ts";
 import { fieldMarks, teleportStacks } from "./battleField.ts";
@@ -18,6 +18,8 @@ type CellMark =
   | "otherReach"
   /** Сюда могут пойти оба. */
   | "overlap"
+  /** Клетка пути, которым отряд пойдёт в выбранную клетку. */
+  | "path"
   /** Клетка, выбранная для хода. */
   | "moveChoice"
   /** Клетка, с которой можно ударить выбранного врага. */
@@ -121,7 +123,14 @@ export function highlightsOf(snapshot: BattleSnapshot): Highlights {
   if (me === undefined || selection === null) {
     return { cells: [...marks.values()], rings };
   }
+  // Путь до хода: тот же, каким отряд пойдёт (70-spells-field.md). У летающего пути по клеткам нет.
+  const showPath = (to: Cell): void => {
+    for (const cell of walkRoute(state, me, to).slice(0, -1)) {
+      put(cell, "path");
+    }
+  };
   if (selection.kind === "move") {
+    showPath(selection.cell);
     put(selection.cell, "moveChoice");
     return { cells: [...marks.values()], rings };
   }
@@ -134,6 +143,7 @@ export function highlightsOf(snapshot: BattleSnapshot): Highlights {
       put(cell, "attackCell");
     }
     if (selection.from !== null) {
+      showPath(selection.from);
       put(selection.from, "attackChoice");
     }
   }

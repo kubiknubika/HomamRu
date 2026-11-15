@@ -225,4 +225,13 @@ export const PLAIN_SPELLS: readonly SpellDefinition[] = [
     [2, 3, 4],
   ),
   plain(["teleport", "Телепорт", 3, "water"], [15, 12, 0, 0], "teleport", "ally", [0, 1, 2]),
+  plain(["quicksand", "Зыбучие пески", 2, "earth"], [8, 6, 0, 0], "quicksand", "enemy", [0, 0, 0], {
+    chain: [4, 4, 6, 8],
+  }),
+  plain(["fire-wall", "Стена огня", 2, "fire"], [8, 6, 10, 10], "fireWall", "enemy", [10, 20, 50], {
+    chain: [2, 2, 3, 3],
+  }),
+  plain(["land-mine", "Мины", 3, "fire"], [18, 15, 10, 25], "mine", "enemy", [25, 50, 100], {
+    chain: [4, 4, 6, 8],
+  }),
 ];

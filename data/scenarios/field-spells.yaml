@@ -1,4 +1,4 @@
-name: Заклинания поля боя — силовое поле, телепорт, отказы
+name: Заклинания поля боя — силовое поле, телепорт, стена огня, мины, отказы
 map: test-field
 seed: 1
 steps:
@@ -21,6 +21,16 @@ steps:
   - cast: { spell: teleport, target: b1, cell: [9, 5] }
     expectError: BAD_SPELL_TARGET
   - cast: { spell: teleport, target: a1, cell: [9, 5] }
+  - defend: {}
+  - defend: {}
+  # Третий раунд. «Стена огня» — в свободную клетку; на клетку своего отряда нельзя. Мана 33 − 8.
+  - cast: { spell: fire-wall, cell: [9, 5] }
+    expectError: BAD_SPELL_CELL
+  - cast: { spell: fire-wall, cell: [3, 9] }
+  - defend: {}
+  - defend: {}
+  # Четвёртый раунд. «Мины» — без цели, клетки случайные. Мана 25 − 18.
+  - cast: { spell: land-mine }
   - fight: {}
 expect:
   battle: false

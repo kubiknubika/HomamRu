@@ -143,14 +143,23 @@ export interface BattleResult {
 }
 
 /** Постройка на поле, поставленная заклинанием (70-spells-field.md). */
-interface FieldObject {
-  /** `forceField` — силовое поле: на его клетки нельзя встать. */
-  readonly kind: "forceField";
+export interface FieldObject {
+  /**
+   * `forceField` — силовое поле: на его клетки нельзя встать; `fireWall` — стена огня: жжёт вошедшего;
+   * `quicksand` — пески: пеший увязает; `mine` — мина: бьёт врага и исчезает.
+   */
+  readonly kind: "forceField" | "fireWall" | "quicksand" | "mine";
   readonly cells: readonly Cell[];
   /** Чей герой её поставил. */
   readonly side: BattleSide;
-  /** Сколько начал раунда постройка ещё переживёт. */
+  /** Сколько начал раунда постройка ещё переживёт; 0 — стоит до конца боя. */
   readonly rounds: number;
+  /** Врагу не видна: пески, пока никто не увяз, и мины. */
+  readonly hidden?: true | undefined;
+  /** Урон стены огня и мины до защиты отряда. */
+  readonly damage?: number | undefined;
+  /** Круг заклинания: отряд под «Антимагией» этого круга постройку не замечает. */
+  readonly level?: number | undefined;
 }
 
 export interface BattleState {
@@ -230,8 +239,20 @@ export type BattleEvent =
       readonly type: "fieldRemoved";
       readonly kind: FieldObject["kind"];
       readonly cells: readonly Cell[];
-      readonly reason: "expired" | "removed";
+      readonly reason: "expired" | "removed" | "exploded";
     }
+  | {
+      /** Мина или стена огня обожгла отряд в клетке `cell`. */
+      readonly type: "trapDamage";
+      readonly kind: "mine" | "fireWall";
+      readonly stackId: string;
+      readonly cell: Cell;
+      readonly damage: number;
+      readonly killed: number;
+      readonly left: number;
+    }
+  /** Отряд увяз в зыбучих песках: ход кончен, пески теперь видны всем. */
+  | { readonly type: "stackStuck"; readonly stackId: string; readonly cell: Cell }
   | {
       /** Герой наколдовал заклинание поля; что оно сделало — в следующих событиях. */
       readonly type: "fieldCast";

@@ -9,6 +9,7 @@ import { BAD_DICE } from "./damage.ts";
 import { rollChance } from "./draft.ts";
 import type { BattleDraft } from "./draft.ts";
 import { startFieldRound } from "./field.ts";
+import { scorch } from "./traps.ts";
 import { isBerserk, isBlind, moraleOf, speedOf } from "./effects.ts";
 import { isMachine } from "./siege.ts";
 import { siegePhase } from "./siegeRound.ts";
@@ -122,6 +123,13 @@ export function activateNext(draft: BattleDraft): void {
     if (next.turn === "ready" && morale < 0 && rollChance(draft, -morale, BAD_DICE)) {
       next.turn = "done";
       draft.events.push({ type: "stackFroze", stackId: next.id });
+      continue;
+    }
+    // Отряд, начавший ход в стене огня, горит ещё раз — один раз за раунд (70-spells-field.md).
+    if (next.turn === "ready" && scorch(draft, next)) {
+      if (endIfDestroyed(draft)) {
+        return;
+      }
       continue;
     }
     if (isBerserk(next)) {

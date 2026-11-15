@@ -17,12 +17,13 @@ export function drawBattleField(
   graphics: Phaser.GameObjects.Graphics,
   layout: BattleLayout,
   state: BattleState,
+  playerSide: 0 | 1 = 0,
 ): void {
   graphics.clear();
   graphics.lineStyle(1.5, FIELD_LINE_COLOR, 0.9);
   for (let row = 0; row < BATTLE_HEIGHT; row += 1) {
     for (let col = 0; col < BATTLE_WIDTH; col += 1) {
-      graphics.fillStyle(CELL_LOOK_COLORS[cellLook(state, { col, row })], 1);
+      graphics.fillStyle(CELL_LOOK_COLORS[cellLook(state, { col, row }, playerSide)], 1);
       tracePath(graphics, cellCorners(layout, { col, row }));
       graphics.fillPath();
       graphics.strokePath();

@@ -16,12 +16,21 @@ export function battleProblems(state: BattleState): string[] {
     problems.push("два отряда в одной клетке");
   }
   for (const field of state.fields) {
-    if (field.rounds < 1) {
-      problems.push("постройка с истёкшим сроком осталась на поле");
+    if (field.rounds < 0 || field.rounds > 2) {
+      problems.push(`постройка со сроком ${field.rounds}`);
     }
     for (const cell of field.cells) {
-      if (alive.some((stack) => stack.col === cell.col && stack.row === cell.row)) {
-        problems.push(`отряд стоит на постройке (${cell.col}, ${cell.row})`);
+      const others = state.fields.filter((other) =>
+        other.cells.some((item) => item.col === cell.col && item.row === cell.row),
+      );
+      if (others.length > 1) {
+        problems.push(`две постройки в клетке (${cell.col}, ${cell.row})`);
+      }
+      if (
+        field.kind === "forceField" &&
+        alive.some((stack) => stack.col === cell.col && stack.row === cell.row)
+      ) {
+        problems.push(`отряд стоит на силовом поле (${cell.col}, ${cell.row})`);
       }
       if (state.obstacles.some((item) => item.col === cell.col && item.row === cell.row)) {
         problems.push(`постройка на препятствии (${cell.col}, ${cell.row})`);

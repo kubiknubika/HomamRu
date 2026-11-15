@@ -6,7 +6,7 @@ import { chooseCast } from "./aiSpells.ts";
 import { randomBattle, runAutoBattle } from "./autobattle.ts";
 import { applyBattleCommand } from "./commands.ts";
 import { mage } from "./castKit.ts";
-import { forceFieldCells } from "./field.ts";
+import { forceFieldCells } from "./fieldCells.ts";
 import { reachableCells } from "./queries.ts";
 import { cellIndex } from "./hex.ts";
 import type { Cell } from "./hex.ts";
@@ -280,8 +280,8 @@ describe("компьютер", () => {
 });
 
 describe("автобой с полной книгой", () => {
-  it("45 заклинаний; бои заканчиваются без нарушений", () => {
-    expect(ALL_SPELLS).toHaveLength(45);
+  it("48 заклинаний; бои заканчиваются без нарушений", () => {
+    expect(ALL_SPELLS).toHaveLength(48);
     for (let seed = 1; seed <= 40; seed += 1) {
       const run = runAutoBattle(randomBattle(seed, CREATURES, ALL_SPELLS), CREATURES, seed);
       expect(run.problems).toEqual([]);

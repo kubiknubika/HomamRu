@@ -16,26 +16,44 @@ import type { BattleDraft } from "./draft.ts";
 import { blindRetaliation, fixedDamage, luckOf, strikePercent } from "./effects.ts";
 import { sameCell } from "./hex.ts";
 import type { Cell } from "./hex.ts";
+import { walkRoute } from "./queries.ts";
 import { isMachine, isMoat, MOAT_DAMAGE } from "./siege.ts";
+import { springTrap } from "./traps.ts";
 import type { StrikeKind } from "./types.ts";
 
 type DraftStack = BattleDraft["stacks"][number];
 
-/** Переставляет отряд; вставший в ров получает урон. */
-export function moveTo(draft: BattleDraft, stack: DraftStack, to: Cell): void {
+/**
+ * Ведёт отряд в клетку `to` по пути из `walkRoute`: в каждой клетке пути срабатывают ловушки
+ * (70-spells-field.md); вставший в ров получает урон. Ответ — дошёл ли отряд живым и не увяз ли:
+ * увязший в песках или погибший по дороге не бьёт.
+ */
+export function moveTo(draft: BattleDraft, stack: DraftStack, to: Cell): boolean {
   if (sameCell(stack, to)) {
-    return;
+    return true;
   }
   const from = { col: stack.col, row: stack.row };
-  stack.col = to.col;
-  stack.row = to.row;
-  draft.events.push({
+  // Событие о переходе встаёт перед событиями ловушек: сначала отряд идёт, потом видно, что случилось.
+  const mark = draft.events.length;
+  let stuck = false;
+  for (const cell of walkRoute(draft, stack, to)) {
+    stack.col = cell.col;
+    stack.row = cell.row;
+    stuck = springTrap(draft, stack);
+    if (stuck || stack.count === 0) {
+      break;
+    }
+  }
+  draft.events.splice(mark, 0, {
     type: "stackMoved",
     stackId: stack.id,
     from,
-    to: { col: to.col, row: to.row },
+    to: { col: stack.col, row: stack.row },
   });
-  enterMoat(draft, stack);
+  if (stack.count > 0) {
+    enterMoat(draft, stack);
+  }
+  return !stuck && stack.count > 0 && sameCell(stack, to);
 }
 
 /** Отряд встал в клетку: во рву он получает урон. */

@@ -160,6 +160,15 @@ function cellsText(cells: readonly { col: number; row: number }[]): string {
   return cells.map((cell) => `(${cell.col}, ${cell.row})`).join(", ");
 }
 
+const FIELD_NAMES = {
+  forceField: "Силовое поле",
+  fireWall: "Стена огня",
+  quicksand: "Зыбучие пески",
+  mine: "Мина",
+} as const;
+
+const REMOVAL_NAMES = { expired: "срок вышел", removed: "убрано", exploded: "взрыв" } as const;
+
 export function formatBattleEvent(event: BattleEvent): string {
   switch (event.type) {
     case "roundStarted":
@@ -196,9 +205,13 @@ export function formatBattleEvent(event: BattleEvent): string {
     case "fieldCast":
       return `Герой (${sideName(event.side)}) колдует «${event.name}»; маны осталось ${event.manaLeft}`;
     case "fieldPlaced":
-      return `Силовое поле (${sideName(event.side)}): ${cellsText(event.cells)}`;
+      return `${FIELD_NAMES[event.kind]} (${sideName(event.side)}): ${cellsText(event.cells)}`;
     case "fieldRemoved":
-      return `Силовое поле ${event.reason === "expired" ? "исчезло" : "убрано"}: ${cellsText(event.cells)}`;
+      return `${FIELD_NAMES[event.kind]} — ${REMOVAL_NAMES[event.reason]}: ${cellsText(event.cells)}`;
+    case "trapDamage":
+      return `${FIELD_NAMES[event.kind]} (${event.cell.col}, ${event.cell.row}) жжёт ${event.stackId}: урон ${event.damage}, убито ${event.killed}, осталось ${event.left}`;
+    case "stackStuck":
+      return `Отряд ${event.stackId} увяз в зыбучих песках (${event.cell.col}, ${event.cell.row})`;
     case "obstacleRemoved":
       return `Препятствие убрано: (${event.cell.col}, ${event.cell.row})`;
     case "wallShaken":
