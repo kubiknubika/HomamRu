@@ -49,6 +49,9 @@ function hintOf(selection: BattleSelection | null, wall: string): string | null 
     return null;
   }
   if (selection.kind === "spell") {
+    if (selection.hint !== undefined) {
+      return selection.hint;
+    }
     return selection.preview === null
       ? `${selection.name}: выберите цель — отряд в зелёном или красном кольце.`
       : `${selection.name} — ${selection.preview}. Коснитесь отряда ещё раз.`;
@@ -65,6 +68,9 @@ function hintOf(selection: BattleSelection | null, wall: string): string | null 
 
 function reasonOf(result: BattleResult, playerSide: 0 | 1): string {
   const won = result.winner === playerSide;
+  if (result.reason === "bothDestroyed") {
+    return "Обе армии погибли. Победителя нет.";
+  }
   if (result.reason === "fled") {
     return won ? "Противник бежал." : "Вы бежали с поля боя.";
   }
@@ -111,7 +117,8 @@ export function BattleHud(props: BattleHudProps) {
   const [journal, setJournal] = useState(false);
   const portrait = usePortrait();
   const { state, selection, locked, log, history, inspected, note, playerSide } = snapshot;
-  const won = state.result?.winner === playerSide;
+  // Когда обе армии погибли, победителя нет: окно — как при поражении.
+  const won = state.result?.winner === playerSide && state.result.reason !== "bothDestroyed";
 
   if (portrait) {
     return (
@@ -217,6 +224,15 @@ export function BattleHud(props: BattleHudProps) {
           Бежать
         </button>
       </div>
+      {selection?.kind === "spell" && selection.confirm === true && (
+        <Dialog title="Заденет ваши отряды">
+          <div className="dialog-text">
+            {selection.name}: {selection.preview}. Колдовать?
+          </div>
+          <DialogButton label="Колдовать" onClick={battle.confirmCast} />
+          <DialogButton label="Отмена" onClick={battle.cancel} />
+        </Dialog>
+      )}
       {confirmFlee && (
         <Dialog title="Бежать?">
           <div className="dialog-text">Бой будет проигран, армия потеряна.</div>

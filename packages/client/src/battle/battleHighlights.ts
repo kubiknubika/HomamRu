@@ -5,6 +5,7 @@
  */
 import { activeStackOf, findStack, reachableCells } from "@homamru/core";
 import type { Cell, StackState } from "@homamru/core";
+import { areaHits, areaMarks } from "./battleArea.ts";
 import { attackableTargets, playerStack } from "./battleSession.ts";
 import { spellTargets } from "./battleSpells.ts";
 import type { BattleSnapshot } from "./battleSession.ts";
@@ -21,7 +22,9 @@ type CellMark =
   /** Клетка, с которой можно ударить выбранного врага. */
   | "attackCell"
   /** Клетка, выбранная для удара. */
-  | "attackChoice";
+  | "attackChoice"
+  /** Клетка под заклинанием по площади. */
+  | "spellArea";
 
 type RingMark =
   /** Отряд, чей ход. */
@@ -34,6 +37,8 @@ type RingMark =
   | "spellEnemy"
   /** Свой отряд, на который ляжет выбранное заклинание. */
   | "spellAlly"
+  /** Свой отряд, который заденет заклинание по площади. */
+  | "spellOwn"
   /** Отряд, который игрок рассматривает. */
   | "inspected";
 
@@ -63,6 +68,17 @@ export function highlightsOf(snapshot: BattleSnapshot): Highlights {
     // Выбрано заклинание: видны только отряды, на которые оно ложится.
     const hero = state.sides[snapshot.playerSide].hero;
     const spell = hero?.spells.find((item) => item.id === selection.spell);
+    if (spell?.area !== undefined && selection.aim) {
+      // Заклинание по площади направлено: клетки под ним и все, кого оно заденет.
+      for (const stack of areaHits(state, spell, selection.aim)) {
+        rings.push({ stack, mark: stack.side === snapshot.playerSide ? "spellOwn" : "spellEnemy" });
+      }
+      const cells = areaMarks(spell, selection.aim).map((cell) => ({
+        cell,
+        mark: "spellArea" as const,
+      }));
+      return { cells, rings };
+    }
     const targets = spell === undefined ? [] : spellTargets(state, snapshot.playerSide, spell);
     for (const stack of targets) {
       const mark = stack.side === snapshot.playerSide ? "spellAlly" : "spellEnemy";

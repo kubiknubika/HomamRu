@@ -115,7 +115,7 @@ export type {
   StackState,
 } from "./battle/types.ts";
 export { chooseBattleCommand } from "./battle/ai.ts";
-export { SPELL_EFFECTS, SPELL_SCHOOLS, spellAtMastery } from "./spells.ts";
+export { SPELL_AREAS, SPELL_EFFECTS, SPELL_SCHOOLS, spellAtMastery } from "./spells.ts";
 export {
   manaPerDay,
   masteryOf,
@@ -132,6 +132,8 @@ export { heroChoosingSkill } from "./hero.ts";
 export type { SpellDefinition } from "./spells.ts";
 export { BOOK_PRICE, guildLevel, guildSpells, maxMana } from "./magic.ts";
 export { canTarget, castableSpells, spellTargetsOf, spellValue } from "./battle/cast.ts";
+export { aimsAtCell, areaCells, areaVictims } from "./battle/area.ts";
+export type { SpellAim } from "./battle/area.ts";
 export { attackBonus, luckOf, moraleOf, speedOf } from "./battle/effects.ts";
 export { randomBattle, randomSiege, runAutoBattle } from "./battle/autobattle.ts";
 export { TOWNLESS_DAYS } from "./players.ts";

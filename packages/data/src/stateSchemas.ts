@@ -326,7 +326,8 @@ export const commandSchema = z.discriminatedUnion("type", [
     type: z.literal("battleCast"),
     side: battleSideSchema,
     spell: z.string(),
-    target: z.string(),
+    target: z.string().optional(),
+    cell: battleCellSchema.optional(),
   }),
   z.strictObject({ type: z.literal("battleMove"), side: battleSideSchema, to: battleCellSchema }),
   z.strictObject({

@@ -20,7 +20,7 @@ import { cellIndex, distance, inField, sameCell } from "./hex.ts";
 import type { Cell } from "./hex.ts";
 import { findStack, hasAdjacentEnemy, isAlive, reachableCells } from "./queries.ts";
 import { isMachine, isMoat, MOAT_DAMAGE } from "./siege.ts";
-import { activateNext, endBattle, endIfDestroyed } from "./turns.ts";
+import { activateNext, endAfterCast, endBattle, endIfDestroyed } from "./turns.ts";
 import type {
   BattleCommand,
   BattleCommandResult,
@@ -276,7 +276,7 @@ function applyCast(
   }
   const draft = toDraft(state);
   cast(draft, command);
-  endIfDestroyed(draft);
+  endAfterCast(draft);
   return accept(draft);
 }
 

@@ -16,6 +16,9 @@ function sideName(side: BattleSide): string {
 
 function headerOf(state: BattleState): string {
   if (state.result !== null) {
+    if (state.result.reason === "bothDestroyed") {
+      return `Бой окончен в раунде ${state.round}. Обе армии погибли: победителя нет.`;
+    }
     const how = state.result.reason === "fled" ? "противник бежал" : "противник уничтожен";
     return `Бой окончен в раунде ${state.round}. Победил ${sideName(state.result.winner)}: ${how}.`;
   }
@@ -190,11 +193,15 @@ export function formatBattleEvent(event: BattleEvent): string {
       return `Отряд ${event.stackId} во рву: урон ${event.damage}, убито ${event.killed}, осталось ${event.left}`;
     case "spellCast":
       return `Герой (${sideName(event.side)}) колдует «${event.name}» на ${event.targetId}: ${formatOutcome(event.outcome)}; маны осталось ${event.manaLeft}`;
+    case "spellMissed":
+      return `Герой (${sideName(event.side)}) колдует «${event.name}» впустую; маны осталось ${event.manaLeft}`;
     case "effectEnded":
       return `Отряд ${event.stackId}: «${event.name}» больше не действует`;
     case "sideFled":
       return `Бежит ${sideName(event.side)}`;
     case "battleEnded":
-      return `Бой окончен. Победил ${sideName(event.result.winner)}`;
+      return event.result.reason === "bothDestroyed"
+        ? "Бой окончен. Обе армии погибли"
+        : `Бой окончен. Победил ${sideName(event.result.winner)}`;
   }
 }

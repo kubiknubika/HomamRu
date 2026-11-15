@@ -15,7 +15,8 @@ import {
 } from "@homamru/core";
 import type { BattleCommand, BattleEvent, BattleState, Cell, StackState } from "@homamru/core";
 import { describeEvents } from "./battleLog.ts";
-import { bookButton, massChoice, targetPreview } from "./battleSpells.ts";
+import { spellStart, spellTap } from "./battleCasting.ts";
+import type { SpellSelection } from "./battleCasting.ts";
 import { routeOf } from "./battleRoute.ts";
 
 type Side = 0 | 1;
@@ -28,15 +29,7 @@ interface DamageRange {
 /** Что выбрал игрок первым касанием. */
 export type BattleSelection =
   | { readonly kind: "move"; readonly cell: Cell }
-  | {
-      /** Заклинание выбрано в книге; `targetId` — отряд, выбранный первым касанием. */
-      readonly kind: "spell";
-      readonly spell: string;
-      readonly name: string;
-      readonly targetId: string | null;
-      /** Что будет с выбранным отрядом: «Ополченец (враг): урон 30, погибнет 2». */
-      readonly preview: string | null;
-    }
+  | SpellSelection
   | { readonly kind: "shoot"; readonly targetId: string; readonly damage: DamageRange }
   | {
       readonly kind: "attack";
@@ -89,6 +82,8 @@ export interface BattleSession {
   chooseSpell(spell: string): void;
   /** Снять выбор — заклинания или обычный. */
   cancel(): void;
+  /** «Колдовать» в окне подтверждения: заклинание заденет своих (68-spells-area.md). */
+  confirmCast(): void;
   wait(): void;
   defend(): void;
   flee(): void;
@@ -248,23 +243,13 @@ export function createBattleSession(
     publish({ selection: reachable ? { kind: "move", cell } : null });
   }
 
-  /** Касание при выбранном заклинании: отряд под ним выбирается, повторное — колдует. */
-  function tapSpell(selection: BattleSelection & { kind: "spell" }, cell: Cell): void {
-    const { state } = snapshot;
-    const spell = state.sides[playerSide].hero?.spells.find((item) => item.id === selection.spell);
-    const target = stackAt(state, cell);
-    const preview =
-      spell === undefined || target === undefined
-        ? null
-        : targetPreview(state, playerSide, spell, target);
-    // У заклинания «на всех» цель выбрана с самого начала: касание любой цели колдует.
-    const again = spell?.mass === true ? selection.targetId !== null : undefined;
-    if (target === undefined || preview === null) {
-      publish({ selection: null });
-    } else if (again ?? selection.targetId === target.id) {
-      send({ type: "battleCast", side: playerSide, spell: selection.spell, target: target.id });
+  /** Касание при выбранном заклинании: цель выбирается, повторное касание колдует. */
+  function tapSpell(selection: SpellSelection, cell: Cell): void {
+    const tapped = spellTap(snapshot.state, playerSide, selection, cell);
+    if ("cast" in tapped) {
+      send({ type: "battleCast", side: playerSide, spell: selection.spell, ...tapped.cast });
     } else {
-      publish({ selection: { ...selection, targetId: target.id, preview } });
+      publish({ selection: tapped.selection });
     }
   }
 
@@ -314,26 +299,20 @@ export function createBattleSession(
       }
     },
     chooseSpell: (id) => {
-      const { state } = snapshot;
       const myTurn = playerStack(snapshot) !== undefined;
-      const hero = state.sides[playerSide].hero;
-      const spell = hero?.spells.find((item) => item.id === id);
-      if (
-        spell === undefined ||
-        spell.cost > (hero?.mana ?? 0) ||
-        bookButton(state, playerSide, myTurn)?.reason !== null
-      ) {
-        return;
+      const selection = spellStart(snapshot.state, playerSide, myTurn, id);
+      if (selection !== null) {
+        publish({ selection, inspected: null, note: null });
       }
-      const chosen = massChoice(state, playerSide, spell);
-      publish({
-        selection: { kind: "spell", spell: id, name: spell.name, ...chosen },
-        inspected: null,
-        note: null,
-      });
     },
     cancel: () => {
       publish({ selection: null });
+    },
+    confirmCast: () => {
+      const { selection } = snapshot;
+      if (selection?.kind === "spell" && selection.confirm === true && selection.aim) {
+        send({ type: "battleCast", side: playerSide, spell: selection.spell, ...selection.aim });
+      }
     },
     wait: () => {
       simple("battleWait");

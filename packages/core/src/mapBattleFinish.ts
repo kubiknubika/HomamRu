@@ -158,12 +158,26 @@ function finishLost(
     };
     const experience =
       killExperience(battle.state, 0) + (reason === "fled" ? 0 : HERO_DEFEATED_EXPERIENCE);
-    state = reward(withHero(state, kept), kept, experience, events);
+    // Погибшему вместе с противником опыт не нужен.
+    state =
+      battle.state.result?.reason === "bothDestroyed"
+        ? state
+        : reward(withHero(state, kept), kept, experience, events);
+  }
+  const both = battle.state.result?.reason === "bothDestroyed";
+  if (both && defender !== undefined) {
+    // Обе армии погибли разом: героя нет и у обороняющегося (68-spells-area.md).
+    events.push({ type: "heroDied", heroId: defender.id, reason: "destroyed" });
+    state = withoutHero(state, defender.id);
   }
   const left = battle.state.stacks.find((stack) => stack.side === 1)?.count ?? 0;
   state = {
     ...state,
-    objects: state.objects.map((object) => {
+    // Охранник, погибший вместе с героем, с карты пропадает.
+    objects: (both
+      ? state.objects.filter((object) => object.id !== battle.guardId)
+      : state.objects
+    ).map((object) => {
       if (object.id === battle.guardId && object.type === "guard") {
         return { ...object, count: left, power: left * POWER_PER_CREATURE };
       }

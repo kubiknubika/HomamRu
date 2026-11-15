@@ -19,8 +19,8 @@ describe("карты из папки data/maps", () => {
 describe("файл заклинаний data/spells.yaml", () => {
   const { spells } = loadDefaults();
 
-  it("26 заклинаний: первый круг и первая группа кругов 2–5; набор тестов ядра — тот же", () => {
-    expect(spells).toHaveLength(26);
+  it("32 заклинания: первый круг и две группы кругов 2–5; набор тестов ядра — тот же", () => {
+    expect(spells).toHaveLength(32);
     expect(spells).toEqual(ALL_SPELLS);
   });
 
@@ -59,6 +59,12 @@ describe("файл заклинаний data/spells.yaml", () => {
       ["prayer", 16, 0, 2, 0],
       ["sorrow", 16, 0, 1, 0],
       ["implosion", 30, 75, 100, 0],
+      ["frost-ring", 12, 10, 15, 0],
+      ["fireball", 15, 10, 15, 0],
+      ["inferno", 16, 10, 20, 0],
+      ["meteor-shower", 16, 25, 25, 0],
+      ["chain-lightning", 24, 40, 25, 0],
+      ["armageddon", 24, 50, 30, 0],
     ]);
   });
 });

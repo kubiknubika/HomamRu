@@ -39,6 +39,9 @@ export const SPELL_EFFECTS = [
 ] as const;
 export type SpellEffect = (typeof SPELL_EFFECTS)[number];
 
+export const SPELL_AREAS = ["ball", "ring", "inferno", "all", "chain"] as const;
+type SpellArea = (typeof SPELL_AREAS)[number];
+
 /**
  * Заклинание: то же, что в файле заклинаний. `cost` и `value` — для героя без навыка школы;
  * числа с навыком — `skilledCost` и `values` (65-hero-skills.md).
@@ -79,6 +82,15 @@ export interface SpellDefinition {
   readonly cumulative?: boolean | undefined;
   /** Не действует на катапульту и башни («Взрыв»). */
   readonly spareMachines?: boolean | undefined;
+  /**
+   * Урон по площади (68-spells-area.md): `ball` — клетка и соседние, `ring` — только соседние,
+   * `inferno` — два шага, `all` — все отряды, `chain` — цепь ближайших отрядов.
+   */
+  readonly area?: SpellArea | undefined;
+  /** Для `chain`: сколько отрядов в цепи без навыка, на базовом, продвинутом и экспертном уровне. */
+  readonly chain?: readonly [number, number, number, number] | undefined;
+  /** Длина цепи у героя; в файле заклинаний этого поля нет: его ставит `spellAtMastery`. */
+  readonly chainLength?: number | undefined;
   /** Заклинания, действие которых это заклинание снимает. */
   readonly counters: readonly string[];
 }
@@ -88,11 +100,16 @@ export interface SpellDefinition {
  * цена, число и цели уже с учётом навыка. Таким оно хранится в состоянии боя.
  */
 export function spellAtMastery(spell: SpellDefinition, mastery: number): SpellDefinition {
+  const chain =
+    spell.chain === undefined
+      ? {}
+      : { chainLength: spell.chain[Math.min(Math.max(mastery, 0), 3)] };
   if (mastery <= 0) {
-    return { ...spell, mass: false };
+    return { ...spell, mass: false, ...chain };
   }
   return {
     ...spell,
+    ...chain,
     cost: spell.skilledCost,
     value: spell.values[Math.min(mastery, spell.values.length) - 1] ?? spell.value,
     mass: mastery >= 3 && spell.expertMass,

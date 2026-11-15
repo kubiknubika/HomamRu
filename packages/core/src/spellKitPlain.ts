@@ -2,7 +2,10 @@
 import type { SpellDefinition, SpellEffect, SpellSchool } from "./spells.ts";
 
 type Extra = Partial<
-  Pick<SpellDefinition, "expertMass" | "protects" | "cumulative" | "spareMachines" | "counters">
+  Pick<
+    SpellDefinition,
+    "expertMass" | "protects" | "cumulative" | "spareMachines" | "area" | "chain" | "counters"
+  >
 >;
 
 /** Порядок полей — как в файле заклинаний: тест сравнивает наборы целиком. */
@@ -32,6 +35,8 @@ function plain(
     ...(extra.protects === undefined ? {} : { protects: extra.protects }),
     ...(extra.cumulative === undefined ? {} : { cumulative: extra.cumulative }),
     ...(extra.spareMachines === undefined ? {} : { spareMachines: extra.spareMachines }),
+    ...(extra.area === undefined ? {} : { area: extra.area }),
+    ...(extra.chain === undefined ? {} : { chain: extra.chain }),
     counters: extra.counters ?? [],
   };
 }
@@ -106,4 +111,48 @@ export const PLAIN_SPELLS: readonly SpellDefinition[] = [
   plain(["implosion", "Взрыв", 5, "earth"], [30, 25, 75, 100], "damage", "enemy", [100, 200, 300], {
     spareMachines: true,
   }),
+  // Урон по площади (68-spells-area.md).
+  plain(
+    ["frost-ring", "Кольцо холода", 3, "water"],
+    [12, 9, 10, 15],
+    "damage",
+    "enemy",
+    [15, 30, 60],
+    { area: "ring" },
+  ),
+  plain(
+    ["fireball", "Огненный шар", 3, "fire"],
+    [15, 12, 10, 15],
+    "damage",
+    "enemy",
+    [15, 30, 60],
+    { area: "ball" },
+  ),
+  plain(["inferno", "Инферно", 4, "fire"], [16, 12, 10, 20], "damage", "enemy", [20, 40, 80], {
+    area: "inferno",
+  }),
+  plain(
+    ["meteor-shower", "Метеоритный дождь", 4, "earth"],
+    [16, 12, 25, 25],
+    "damage",
+    "enemy",
+    [25, 50, 100],
+    { area: "ball" },
+  ),
+  plain(
+    ["chain-lightning", "Цепная молния", 4, "air"],
+    [24, 20, 40, 25],
+    "damage",
+    "enemy",
+    [25, 50, 100],
+    { area: "chain", chain: [4, 4, 5, 5] },
+  ),
+  plain(
+    ["armageddon", "Армагеддон", 4, "fire"],
+    [24, 20, 50, 30],
+    "damage",
+    "enemy",
+    [30, 60, 120],
+    { area: "all" },
+  ),
 ];
