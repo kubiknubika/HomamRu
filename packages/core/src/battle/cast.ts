@@ -5,8 +5,8 @@ import type { SpellDefinition } from "../spells.ts";
 import { aimsAtCell, areaVictims } from "./area.ts";
 import { applyDamage } from "./damage.ts";
 import type { BattleDraft } from "./draft.ts";
-import { wake } from "./control.ts";
-import { immuneTo, spellDamagePercent } from "./effects.ts";
+import { reflect, wake } from "./control.ts";
+import { immuneTo, isHypnotized, spellDamagePercent } from "./effects.ts";
 import { inField } from "./hex.ts";
 import { isMachine } from "./siege.ts";
 import type {
@@ -55,11 +55,31 @@ export function spellTargetsOf<T extends StackState>(
   side: BattleSide,
   target: T,
 ): T[] {
-  return spell.mass === true ? stacks.filter((stack) => canTarget(spell, side, stack)) : [target];
+  // Заклинание «на всех» отряды под гипнозом пропускает (69-spells-control.md).
+  return spell.mass === true
+    ? stacks.filter((stack) => canTarget(spell, side, stack) && !isHypnotized(stack))
+    : [target];
 }
 
-/** Может ли заклинание лечь на этот отряд: свой или чужой, живой, не машина (кроме урона). */
-export function canTarget(spell: SpellDefinition, side: BattleSide, target: StackState): boolean {
+/** Наибольшее здоровье отряда, который возьмёт «Гипноз»: 25 × сила магии + прибавка. */
+export function hypnosisLimit(spell: SpellDefinition, hero: Caster): number {
+  return spell.power * hero.spellPower + spell.value;
+}
+
+function totalHealth(stack: StackState): number {
+  return (stack.count - 1) * stack.creature.health + stack.firstHealth;
+}
+
+/**
+ * Может ли заклинание лечь на этот отряд: свой или чужой, живой, не машина (кроме урона).
+ * `caster` нужен «Гипнозу»: без него порог здоровья не проверяется.
+ */
+export function canTarget(
+  spell: SpellDefinition,
+  side: BattleSide,
+  target: StackState,
+  caster?: Caster,
+): boolean {
   if (target.count === 0 || (spell.area !== undefined && spell.area !== "chain")) {
     return false;
   }
@@ -67,6 +87,13 @@ export function canTarget(spell: SpellDefinition, side: BattleSide, target: Stac
     return false;
   }
   if (immuneTo(target, spell.level)) {
+    return false;
+  }
+  if (
+    spell.effect === "hypnosis" &&
+    caster !== undefined &&
+    totalHealth(target) > hypnosisLimit(spell, caster)
+  ) {
     return false;
   }
   // «Забывчивость» — только тем, кому есть чем стрелять.
@@ -121,7 +148,7 @@ export function castRefusal(state: BattleState, command: CastCommand): Refusal |
   if (target === undefined || target.count === 0) {
     return { code: "UNKNOWN_TARGET", message: `Отряда «${command.target ?? ""}» нет на поле.` };
   }
-  if (!canTarget(spell, command.side, target)) {
+  if (!canTarget(spell, command.side, target, hero)) {
     return { code: "BAD_SPELL_TARGET", message: `«${spell.name}» на этот отряд не накладывается.` };
   }
   return null;
@@ -163,8 +190,14 @@ function resolve(
     default: {
       // Действие на срок: то же заклинание заменяется, противоположные снимаются.
       // Срок — сила магии, но не меньше раунда: при силе 0 действие держится до конца раунда.
-      // «Бешенство» — до следующего действия отряда, но не дольше конца следующего раунда.
-      const rounds = spell.effect === "frenzy" ? FRENZY_ROUNDS : Math.max(1, spellPower);
+      // «Бешенство» — до следующего действия отряда, но не дольше конца следующего раунда;
+      // «Берсерк» — до удара отряда, но не дольше конца раунда.
+      const rounds =
+        spell.effect === "frenzy"
+          ? FRENZY_ROUNDS
+          : spell.effect === "berserk"
+            ? 1
+            : Math.max(1, spellPower);
       // «Антимагия» снимает всё вредное.
       const cleanses = spell.effect === "spellImmunity";
       const removed = remove(
@@ -179,7 +212,7 @@ function resolve(
         effect: spell.effect,
         value: spell.value,
         school: spell.protects ?? null,
-        negative: target.side !== side,
+        negative: target.side !== side || spell.effect === "berserk",
         rounds,
       };
       if (spell.cumulative === true) {
@@ -205,7 +238,7 @@ export function cast(draft: BattleDraft, command: CastCommand): void {
   }
   const target = draft.stacks.find((stack) => stack.id === command.target);
   const alive = draft.stacks.filter((stack) => stack.count > 0);
-  const victims =
+  let victims =
     spell.area !== undefined
       ? areaVictims(alive, spell, command)
       : target === undefined
@@ -214,8 +247,22 @@ export function cast(draft: BattleDraft, command: CastCommand): void {
             stack,
             divisor: 1,
           }));
+  if (spell.effect !== "damage") {
+    // «Берсерк» по площади: катапульту не берёт.
+    victims = victims.filter(({ stack }) => !isMachine(stack));
+  }
   hero.mana -= spell.cost;
   side.cast = true;
+  // Отражённое заклинание ложится на отряд колдовавшего как вражеское.
+  let from = command.side;
+  const mirrored =
+    spell.area === undefined && spell.mass !== true && target !== undefined
+      ? reflect(draft, command.side, target, spell)
+      : undefined;
+  if (mirrored !== undefined) {
+    from = command.side === 0 ? 1 : 0;
+    victims = canTarget(spell, from, mirrored, hero) ? [{ stack: mirrored, divisor: 1 }] : [];
+  }
   if (victims.length === 0) {
     // Заклинание по площади никого не задело: мана потрачена.
     draft.events.push({
@@ -228,7 +275,7 @@ export function cast(draft: BattleDraft, command: CastCommand): void {
   }
   // По событию на каждый отряд: в порядке армий, у цепной молнии — в порядке цепи.
   for (const { stack, divisor } of victims) {
-    const outcome = resolve(spell, hero, command.side, stack, divisor);
+    const outcome = resolve(spell, hero, from, stack, divisor);
     draft.events.push({
       type: "spellCast",
       side: command.side,

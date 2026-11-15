@@ -2,7 +2,7 @@
  * Запросы к состоянию боя: кто где стоит, куда можно пойти. Ничего не меняют.
  * Спецификация: docs/mechanics/12-battle-actions.md.
  */
-import { forgotShooting, speedOf } from "./effects.ts";
+import { commanderOf, forgotShooting, isBerserk, speedOf } from "./effects.ts";
 import { BATTLE_HEIGHT, BATTLE_WIDTH, cellIndex, distance, neighbours, sameCell } from "./hex.ts";
 import type { Cell } from "./hex.ts";
 import { isMachine, isMoat, siegeBlocked } from "./siege.ts";
@@ -22,6 +22,12 @@ export function findStack(state: BattleState, id: string): StackState | undefine
 /** Отряд, чей сейчас ход. */
 export function activeStackOf(state: BattleState): StackState | undefined {
   return state.activeStack === null ? undefined : findStack(state, state.activeStack);
+}
+
+/** Сторона, которая сейчас даёт команду: под гипнозом отрядом командует чужая (69-spells-control.md). */
+export function commandingSide(state: BattleState): BattleSide | undefined {
+  const active = activeStackOf(state);
+  return active === undefined ? undefined : commanderOf(active);
 }
 
 /** Номера клеток, на которые отряду стороны `side` нельзя встать: препятствия, живые отряды, стена. */
@@ -110,10 +116,15 @@ export function walkSteps(state: BattleField, from: Cell, mover: StackState): Ma
   return steps;
 }
 
-/** Стоит ли рядом с отрядом живой враг. */
+/** Стоит ли рядом с отрядом живой враг. Под гипнозом враги — прежние товарищи; в берсерке — все. */
 export function hasAdjacentEnemy(state: BattleField, stack: StackState): boolean {
+  const mine = commanderOf(stack);
   return state.stacks.some(
-    (other) => isAlive(other) && other.side !== stack.side && distance(stack, other) === 1,
+    (other) =>
+      isAlive(other) &&
+      other.id !== stack.id &&
+      (isBerserk(stack) || commanderOf(other) !== mine) &&
+      distance(stack, other) === 1,
   );
 }
 

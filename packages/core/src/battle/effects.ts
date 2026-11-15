@@ -67,6 +67,29 @@ export function fireShieldOf(stack: Affected): number {
   return valueOf(stack, "fireShield") ?? 0;
 }
 
+/** «Волшебное зеркало»: шанс отразить заклинание, в процентах; 0 — зеркала нет. */
+export function mirrorOf(stack: Affected): number {
+  return valueOf(stack, "mirror") ?? 0;
+}
+
+/** Отряд в берсерке: сам бьёт ближайшего. */
+export function isBerserk(stack: Affected): boolean {
+  return valueOf(stack, "berserk") !== null;
+}
+
+/** Отряд под гипнозом. */
+export function isHypnotized(stack: Affected): boolean {
+  return valueOf(stack, "hypnosis") !== null;
+}
+
+/** Сторона, которая сейчас командует отрядом: под гипнозом — чужая (69-spells-control.md). */
+export function commanderOf(stack: Pick<StackState, "effects" | "side">): 0 | 1 {
+  if (!isHypnotized(stack)) {
+    return stack.side;
+  }
+  return stack.side === 0 ? 1 : 0;
+}
+
 /** «Антимагия»: заклинание круга `level` на отряд не ложится и не задевает его. */
 export function immuneTo(stack: Affected, level: number): boolean {
   return (valueOf(stack, "spellImmunity") ?? 0) >= level;

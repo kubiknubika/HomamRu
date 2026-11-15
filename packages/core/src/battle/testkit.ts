@@ -4,7 +4,7 @@
 import { applyBattleCommand } from "./commands.ts";
 import { createBattle } from "./create.ts";
 import type { Cell } from "./hex.ts";
-import { activeStackOf, findStack } from "./queries.ts";
+import { commandingSide, findStack } from "./queries.ts";
 import type {
   ArmyDefinition,
   BattleCommand,
@@ -154,7 +154,7 @@ export function act(
   state: BattleState,
   command: WithoutSide<BattleCommand>,
 ): { state: BattleState; events: readonly BattleEvent[] } {
-  const side = activeStackOf(state)?.side ?? 0;
+  const side = commandingSide(state) ?? 0;
   const result = applyBattleCommand(state, { ...command, side } as BattleCommand);
   if (!result.ok) {
     throw new Error(`Отказ ${result.code}: ${result.message}`);

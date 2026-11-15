@@ -188,4 +188,18 @@ export const PLAIN_SPELLS: readonly SpellDefinition[] = [
     "ally",
     [20, 25, 30],
   ),
+  plain(["hypnotize", "Гипноз", 3, "air"], [18, 15, 25, 10], "hypnosis", "enemy", [10, 20, 50], {
+    counters: ["berserk"],
+  }),
+  plain(["berserk", "Берсерк", 4, "fire"], [20, 16, 0, 0], "berserk", "enemy", [0, 1, 2], {
+    area: "radius",
+    counters: ["hypnotize"],
+  }),
+  plain(
+    ["magic-mirror", "Волшебное зеркало", 5, "air"],
+    [25, 20, 0, 20],
+    "mirror",
+    "ally",
+    [20, 30, 40],
+  ),
 ];

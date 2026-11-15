@@ -17,7 +17,9 @@ export type SpellSchool = (typeof SPELL_SCHOOLS)[number];
  * Управление отрядом (69-spells-control.md): `blind` — не ходит до первого урона, число — доля ответного удара;
  * `shotDown` — доля урона выстрела, 0 — не стреляет; `frenzy` — атака растёт на долю защиты, защита 0;
  * `retaliations` — лишние ответные удары за раунд; `fireShield` — доля урона, возвращаемая ударившему;
- * `spellImmunity` — не ложатся заклинания кругов до этого числа.
+ * `spellImmunity` — не ложатся заклинания кругов до этого числа;
+ * `hypnosis` — отрядом командует колдовавший, число — прибавка к порогу здоровья;
+ * `berserk` — отряд сам бьёт ближайшего, число — радиус площади; `mirror` — шанс отразить заклинание.
  */
 export const SPELL_EFFECTS = [
   "damage",
@@ -46,10 +48,13 @@ export const SPELL_EFFECTS = [
   "retaliations",
   "fireShield",
   "spellImmunity",
+  "hypnosis",
+  "berserk",
+  "mirror",
 ] as const;
 export type SpellEffect = (typeof SPELL_EFFECTS)[number];
 
-export const SPELL_AREAS = ["ball", "ring", "inferno", "all", "chain"] as const;
+export const SPELL_AREAS = ["ball", "ring", "inferno", "all", "chain", "radius"] as const;
 type SpellArea = (typeof SPELL_AREAS)[number];
 
 /**
@@ -94,7 +99,8 @@ export interface SpellDefinition {
   readonly spareMachines?: boolean | undefined;
   /**
    * Урон по площади (68-spells-area.md): `ball` — клетка и соседние, `ring` — только соседние,
-   * `inferno` — два шага, `all` — все отряды, `chain` — цепь ближайших отрядов.
+   * `inferno` — два шага, `all` — все отряды, `chain` — цепь ближайших отрядов,
+   * `radius` — клетка и всё не дальше числа заклинания («Берсерк»).
    */
   readonly area?: SpellArea | undefined;
   /** Для `chain`: сколько отрядов в цепи без навыка, на базовом, продвинутом и экспертном уровне. */

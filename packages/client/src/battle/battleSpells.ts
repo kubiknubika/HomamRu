@@ -5,6 +5,7 @@
 import {
   applyBattleCommand,
   canTarget,
+  hypnosisLimit,
   masteryOf,
   sorceryPercent,
   spellAtMastery,
@@ -63,6 +64,7 @@ const LASTING: Partial<Record<SpellDefinition["effect"], (value: number) => stri
   frenzy: (value) => `атака + ${value} % защиты, защита 0`,
   retaliations: (value) => `ответных ударов за раунд +${value}`,
   fireShield: (value) => `ударивший в ближнем бою получает ${value} % своего урона`,
+  mirror: (value) => `вражеское заклинание на этот отряд отражается с шансом ${value} %`,
   spellImmunity: (value) =>
     value >= MAX_CIRCLE
       ? "снимает вредные заклинания, никакие заклинания не ложатся"
@@ -76,7 +78,11 @@ const AREA_TEXT: Record<NonNullable<SpellDefinition["area"]>, (chain: number) =>
   inferno: () => "клетки в двух шагах",
   all: () => "все отряды на поле",
   chain: (chain) => `цепь до ${chain} отрядов, каждому следующему вдвое меньше`,
+  radius: () => "",
 };
+
+/** Площадь «Берсерка» по радиусу: клетка, клетка и соседние, два шага. */
+const RADIUS_TEXT = ["одна клетка", "клетка и соседние", "клетки в двух шагах"];
 
 /** Что сделает заклинание на одном отряде: «урон 30», «наибольший урон, 2 раунда». */
 function spellEffectText(spell: SpellDefinition, hero: Caster): string {
@@ -92,6 +98,14 @@ function spellEffectText(spell: SpellDefinition, hero: Caster): string {
   }
   if (spell.effect === "dispel") {
     return "снимает все заклинания";
+  }
+  if (spell.effect === "berserk") {
+    const where = RADIUS_TEXT[spell.value] ?? RADIUS_TEXT[0];
+    return `отряды в площади сами бьют ближайшего, своего или чужого; ${where}; до их удара`;
+  }
+  if (spell.effect === "hypnosis") {
+    const term = roundsText(Math.max(1, hero.spellPower));
+    return `отряд под вашей командой, здоровье не больше ${hypnosisLimit(spell, hero)}, ${term}`;
   }
   const what = LASTING[spell.effect]?.(spell.value) ?? spell.effect;
   // Срок действия — сила магии, но не меньше раунда (62-battle-spells.md).
@@ -176,7 +190,8 @@ export function bookButton(state: BattleState, side: Side, myTurn: boolean): Boo
 
 /** Отряды, на которые заклинание игрока может лечь. */
 export function spellTargets(state: BattleState, side: Side, spell: SpellDefinition): StackState[] {
-  return state.stacks.filter((stack) => stack.count > 0 && canTarget(spell, side, stack));
+  const hero = state.sides[side].hero ?? undefined;
+  return state.stacks.filter((stack) => stack.count > 0 && canTarget(spell, side, stack, hero));
 }
 
 function outcomeText(outcome: CastOutcome, spell: SpellDefinition, hero: Caster): string {
@@ -206,6 +221,10 @@ function massText(spell: SpellDefinition, outcomes: readonly CastOutcome[], hero
   return `${spell.name} — ${MASS_TEXT[spell.target]} (${outcomes.length}): ${what}`;
 }
 
+function isMirror(effect: StackState["effects"][number]): boolean {
+  return effect.effect === "mirror";
+}
+
 /**
  * Что будет, если наколдовать заклинание на отряд: «Ополченец (враг): урон 30, погибнет 2».
  * У заклинания «на всех» — одна строка на всех, какой бы отряд ни выбрали.
@@ -217,7 +236,20 @@ function castPreview(
   spell: SpellDefinition,
   target: StackState,
 ): string | null {
-  const result = applyBattleCommand(state, {
+  // Жребий «Волшебного зеркала» заранее не показываем: считаем, будто зеркала нет.
+  const mirror = target.side === side ? undefined : target.effects.find(isMirror);
+  const plainState =
+    mirror === undefined
+      ? state
+      : {
+          ...state,
+          stacks: state.stacks.map((stack) =>
+            stack.id === target.id
+              ? { ...stack, effects: stack.effects.filter((effect) => !isMirror(effect)) }
+              : stack,
+          ),
+        };
+  const result = applyBattleCommand(plainState, {
     type: "battleCast",
     side,
     spell: spell.id,
@@ -237,7 +269,8 @@ function castPreview(
     );
   }
   const whose = target.side === side ? "ваш" : "враг";
-  return `${target.creature.name} (${whose}): ${outcomeText(cast.outcome, spell, hero)}`;
+  const risk = mirror === undefined ? "" : `; может отразиться на ваш отряд (${mirror.value} %)`;
+  return `${target.creature.name} (${whose}): ${outcomeText(cast.outcome, spell, hero)}${risk}`;
 }
 
 /** То же, что `castPreview`, но `null` и для отряда, на который заклинание не ложится. */

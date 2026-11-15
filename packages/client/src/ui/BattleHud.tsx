@@ -1,5 +1,12 @@
 import type { BattleSummary } from "../game/messages.ts";
-import { activeStackOf, canShoot, findStack, isMachine, turnQueue } from "@homamru/core";
+import {
+  activeStackOf,
+  canShoot,
+  commanderOf,
+  findStack,
+  isMachine,
+  turnQueue,
+} from "@homamru/core";
 import type { BattleResult, BattleState } from "@homamru/core";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { describeStack, lostCount } from "../battle/battleLog.ts";
@@ -158,7 +165,7 @@ export function BattleHud(props: BattleHudProps) {
           Раунд {state.round}
           {active !== undefined && (
             <div className="battle-turn">
-              {active.side === playerSide ? "Ваш ход" : "Ход врага"}
+              {commanderOf(active) === playerSide ? "Ваш ход" : "Ход врага"}
             </div>
           )}
         </div>

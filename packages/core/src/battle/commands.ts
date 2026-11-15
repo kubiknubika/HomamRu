@@ -6,19 +6,18 @@ import { cast, castRefusal } from "./cast.ts";
 import { rollChance, toDraft, toState } from "./draft.ts";
 import type { BattleDraft } from "./draft.ts";
 import { calmDown } from "./control.ts";
-import { applyDamage, defendBonusOf, GOOD_DICE } from "./damage.ts";
-import { forgotShooting, moraleOf } from "./effects.ts";
+import { defendBonusOf, GOOD_DICE } from "./damage.ts";
+import { commanderOf, forgotShooting, moraleOf } from "./effects.ts";
 import { cellIndex, distance, inField, sameCell } from "./hex.ts";
-import type { Cell } from "./hex.ts";
 import { findStack, hasAdjacentEnemy, isAlive, reachableCells } from "./queries.ts";
-import { isMoat, MOAT_DAMAGE } from "./siege.ts";
-import { exchange, strike } from "./strike.ts";
+import { exchange, moveTo, strike } from "./strike.ts";
 import { activateNext, endAfterCast, endBattle, endIfDestroyed } from "./turns.ts";
 import type {
   BattleCommand,
   BattleCommandResult,
   BattleEvent,
   BattleRejectCode,
+  BattleSide,
   BattleState,
   StackState,
 } from "./types.ts";
@@ -35,37 +34,6 @@ function draftStack(draft: BattleDraft, id: string): DraftStack {
     throw new Error(`Отряда ${id} нет в бою.`);
   }
   return stack;
-}
-
-function moveTo(draft: BattleDraft, stack: DraftStack, to: Cell): void {
-  if (sameCell(stack, to)) {
-    return;
-  }
-  const from = { col: stack.col, row: stack.row };
-  stack.col = to.col;
-  stack.row = to.row;
-  draft.events.push({
-    type: "stackMoved",
-    stackId: stack.id,
-    from,
-    to: { col: to.col, row: to.row },
-  });
-  if (isMoat(draft.siege, to)) {
-    const losses = applyDamage(stack.count, stack.firstHealth, stack.creature.health, MOAT_DAMAGE);
-    stack.count = losses.count;
-    stack.firstHealth = losses.firstHealth;
-    draft.events.push({
-      type: "moatDamage",
-      stackId: stack.id,
-      damage: MOAT_DAMAGE,
-      killed: losses.killed,
-      left: losses.count,
-    });
-    if (losses.count === 0) {
-      stack.turn = "done";
-      draft.events.push({ type: "stackDied", stackId: stack.id });
-    }
-  }
 }
 
 /**
@@ -117,7 +85,7 @@ function checkTarget(
   if (target === undefined || !isAlive(target)) {
     return reject("UNKNOWN_TARGET", `Отряда «${targetId}» нет на поле.`);
   }
-  if (target.side === active.side) {
+  if (commanderOf(target) === commanderOf(active)) {
     return reject("TARGET_IS_ALLY", "Нельзя бить свой отряд.");
   }
   return target;
@@ -208,13 +176,13 @@ function applyDefend(state: BattleState, active: StackState): BattleCommandResul
   return accept(draft);
 }
 
-function applyFlee(state: BattleState, active: StackState): BattleCommandResult {
-  if (state.sides[active.side].hero === null) {
+function applyFlee(state: BattleState, side: BattleSide): BattleCommandResult {
+  if (state.sides[side].hero === null) {
     return reject("NO_HERO", "Бежать некому: у стороны нет героя.");
   }
   const draft = toDraft(state);
-  draft.events.push({ type: "sideFled", side: active.side });
-  endBattle(draft, active.side === 0 ? 1 : 0, "fled");
+  draft.events.push({ type: "sideFled", side });
+  endBattle(draft, side === 0 ? 1 : 0, "fled");
   return accept(draft);
 }
 
@@ -245,7 +213,8 @@ export function applyBattleCommand(
   if (state.result !== null || active === undefined) {
     return reject("BATTLE_OVER", "Бой уже закончен.");
   }
-  if (command.side !== active.side) {
+  // Отрядом под гипнозом командует другая сторона (69-spells-control.md).
+  if (command.side !== commanderOf(active)) {
     return reject("NOT_YOUR_STACK", "Сейчас ход отряда другой стороны.");
   }
   switch (command.type) {
@@ -260,7 +229,7 @@ export function applyBattleCommand(
     case "battleDefend":
       return applyDefend(state, active);
     case "battleFlee":
-      return applyFlee(state, active);
+      return applyFlee(state, command.side);
     case "battleCast":
       return applyCast(state, command);
   }

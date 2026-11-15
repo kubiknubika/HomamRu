@@ -98,9 +98,17 @@ export function eventProblems(before: BattleState, events: readonly BattleEvent[
       problems.push(`удар ${event.attackerId} с уроном меньше 1`);
     }
   }
-  const strikes = events.filter((event) => event.type === "strike");
-  if (strikes.filter((event) => event.kind === "retaliation").length > 1) {
-    problems.push("два ответных удара за одну команду");
+  // Ответ — один на удар; отряд в берсерке ходит сам, внутри той же команды, и его удар считается отдельно.
+  let answers = 0;
+  for (const event of events) {
+    if (event.type === "berserkTurn") {
+      answers = 0;
+    } else if (event.type === "strike" && event.kind === "retaliation") {
+      answers += 1;
+      if (answers === 2) {
+        problems.push("два ответных удара за одну команду");
+      }
+    }
   }
   return problems;
 }

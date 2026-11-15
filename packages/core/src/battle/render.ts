@@ -189,6 +189,12 @@ export function formatBattleEvent(event: BattleEvent): string {
         event.left === 0 && event.damage > 0 ? "разрушено" : `прочность ${event.left}`;
       return `Катапульта попадает: ${where}, урон ${event.damage}, ${outcome}`;
     }
+    case "berserkTurn":
+      return event.targetId === null
+        ? `Отряд ${event.stackId} в берсерке: бить некого`
+        : `Отряд ${event.stackId} в берсерке: нападает на ${event.targetId}`;
+    case "spellReflected":
+      return `Волшебное зеркало отряда ${event.stackId} отражает «${event.name}» на ${event.toId}`;
     case "stackBlind":
       return `Отряд ${event.stackId} ослеплён и пропускает ход`;
     case "fireShield":

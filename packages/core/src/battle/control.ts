@@ -4,8 +4,11 @@
  */
 import type { SpellEffect } from "../spells.ts";
 import { applyDamage } from "./damage.ts";
+import { rollInt } from "./draft.ts";
 import type { BattleDraft } from "./draft.ts";
-import { fireShieldOf, spellDamagePercent } from "./effects.ts";
+import { fireShieldOf, mirrorOf, spellDamagePercent } from "./effects.ts";
+import { isMachine } from "./siege.ts";
+import type { BattleSide } from "./types.ts";
 
 type DraftStack = BattleDraft["stacks"][number];
 
@@ -27,6 +30,44 @@ function drop(draft: BattleDraft, stack: DraftStack, kind: SpellEffect): void {
 /** Отряд получил урон: слепота проходит. */
 export function wake(draft: BattleDraft, stack: DraftStack): void {
   drop(draft, stack, "blind");
+}
+
+/** Отряд в берсерке ударил: берсерк проходит. */
+export function sober(draft: BattleDraft, stack: DraftStack): void {
+  drop(draft, stack, "berserk");
+}
+
+const PERCENT_DICE = 100;
+
+/**
+ * «Волшебное зеркало»: заклинание стороны `side`, направленное на чужой отряд `target`,
+ * может отразиться на случайный живой отряд колдовавшего. Возвращает новую цель;
+ * `undefined` — не отразилось. Жребий бросается, только когда зеркало есть.
+ */
+export function reflect(
+  draft: BattleDraft,
+  side: BattleSide,
+  target: DraftStack,
+  spell: { readonly id: string; readonly name: string },
+): DraftStack | undefined {
+  const chance = mirrorOf(target);
+  if (target.side === side || chance === 0 || rollInt(draft, 1, PERCENT_DICE) > chance) {
+    return undefined;
+  }
+  const own = draft.stacks.filter(
+    (stack) => stack.side === side && stack.count > 0 && !isMachine(stack),
+  );
+  const to = own[rollInt(draft, 0, own.length - 1)];
+  if (to !== undefined) {
+    draft.events.push({
+      type: "spellReflected",
+      stackId: target.id,
+      toId: to.id,
+      spell: spell.id,
+      name: spell.name,
+    });
+  }
+  return to;
 }
 
 /** Отряд сделал своё действие: «Бешенство» проходит. */
