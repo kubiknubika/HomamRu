@@ -69,12 +69,47 @@ describe("курс", () => {
   it("два рынка — таблица из документа", () => {
     expect(rate("gold", "ore", 2)).toBe("1667 за 1");
     expect(rate("gold", "mercury", 2)).toBe("3333 за 1");
-    expect(rate("wood", "gold", 2)).toBe("1 за 38");
+    expect(rate("wood", "gold", 2)).toBe("1 за 37");
     expect(rate("wood", "ore", 2)).toBe("7 за 1");
     expect(rate("wood", "gems", 2)).toBe("13 за 1");
     expect(rate("gems", "gold", 2)).toBe("1 за 75");
     expect(rate("gems", "wood", 2)).toBe("3 за 1");
     expect(rate("gems", "sulfur", 2)).toBe("7 за 1");
+  });
+
+  it("все курсы при 1–9 рынках — как в таблице Heroes 3", () => {
+    // Столбцы: золото → простой, золото → редкий, простой → золото, простой → простой,
+    // простой → редкий, редкий → золото, редкий → простой, редкий → редкий.
+    const pairs = [
+      ["gold", "wood"],
+      ["gold", "gems"],
+      ["ore", "gold"],
+      ["wood", "ore"],
+      ["ore", "mercury"],
+      ["sulfur", "gold"],
+      ["crystal", "wood"],
+      ["gems", "sulfur"],
+    ] as const;
+    const table = [
+      [2500, 5000, 25, 10, 20, 50, 5, 10],
+      [1667, 3333, 37, 7, 13, 75, 3, 7],
+      [1250, 2500, 50, 5, 10, 100, 3, 5],
+      [1000, 2000, 62, 4, 8, 125, 2, 4],
+      [833, 1667, 75, 3, 7, 150, 2, 3],
+      [714, 1429, 88, 3, 6, 175, 1, 3],
+      [625, 1250, 100, 3, 5, 200, 1, 3],
+      [556, 1111, 112, 2, 4, 225, 1, 2],
+      [500, 1000, 125, 2, 4, 250, 1, 2],
+    ];
+    // Третий и шестой столбцы — «1 за столько», остальные — «столько за 1».
+    const ours = table.map((_, markets) =>
+      pairs.map(([give, want], column) => {
+        const { give: given, get } = marketRate(give, want, markets + 1);
+        const selling = column === 2 || column === 5;
+        return (selling ? given : get) === 1 ? (selling ? get : given) : -1;
+      }),
+    );
+    expect(ours).toEqual(table);
   });
 
   it("выгодность не растёт после девяти рынков", () => {

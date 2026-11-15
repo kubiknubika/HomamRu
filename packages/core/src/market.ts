@@ -36,6 +36,11 @@ export const RESOURCE_WEIGHT: Readonly<Record<Resource, number>> = {
 /** Выгодность — `(рынков + 1) / 20`, не больше половины; считается в двадцатых долях. */
 const SHARES = 20;
 const MAX_SHARES = 10;
+/**
+ * Сколько золота дают за дерево или руду при 1–9 рынках — таблица Heroes 3. По формуле выходит
+ * 12,5 × (рынков + 1); половину игра отбрасывает (37, 62, 112), но при шести рынках даёт 88.
+ */
+const GOLD_FOR_BASIC = [25, 37, 50, 62, 75, 88, 100, 112, 125] as const;
 
 function hasMarket(state: GameState, town: TownState): boolean {
   return state.buildings.some(
@@ -51,9 +56,9 @@ export function marketCount(state: GameState, player: number): number {
 }
 
 /**
- * Курс обмена при данном числе рынков. Целые числа: `цена = вес желаемого × 20 / доли`,
- * дорогой отдаваемый ресурс даёт несколько единиц за одну (вверх), иначе несколько единиц
- * отдаётся за одну (до ближайшего, половина — вверх).
+ * Курс обмена при данном числе рынков; сверен с таблицей Heroes 3 для 1–9 рынков. Целые числа:
+ * `цена = вес желаемого × 20 / доли`; дорогой отдаваемый ресурс даёт несколько единиц за одну,
+ * иначе несколько единиц отдаётся за одну (до ближайшего, половина — вверх).
  */
 export function marketRate(give: Resource, want: Resource, markets: number): MarketRate {
   const shares = Math.min(markets + 1, MAX_SHARES);
@@ -61,7 +66,9 @@ export function marketRate(give: Resource, want: Resource, markets: number): Mar
   const given = RESOURCE_WEIGHT[give] * shares;
   const wanted = RESOURCE_WEIGHT[want] * SHARES;
   if (given > wanted) {
-    return { give: 1, get: Math.ceil(given / wanted) };
+    // Дробь бывает только у «дерево или руда → золото»: там число берётся из таблицы игры.
+    const exact = given % wanted === 0;
+    return { give: 1, get: exact ? given / wanted : (GOLD_FOR_BASIC[shares - 2] ?? 0) };
   }
   return { give: Math.floor((2 * wanted + given) / (2 * given)), get: 1 };
 }
