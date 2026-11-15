@@ -6,6 +6,8 @@
 import { beforeOpening, cellNote, isSiegeShot, openingLine } from "./battleSiege.ts";
 import {
   activeStackOf,
+  commanderOf,
+  commandingSide,
   applyBattleCommand,
   attackCells,
   canShoot,
@@ -105,7 +107,9 @@ function stackAt(state: BattleState, cell: Cell): StackState | undefined {
 /** Отряд игрока, которым он сейчас может управлять. */
 export function playerStack(snapshot: BattleSnapshot): StackState | undefined {
   const active = activeStackOf(snapshot.state);
-  return snapshot.locked || active?.side !== snapshot.playerSide ? undefined : active;
+  return snapshot.locked || commandingSide(snapshot.state) !== snapshot.playerSide
+    ? undefined
+    : active;
 }
 
 /** Выбор по первому касанию врага. */
@@ -136,7 +140,7 @@ export function attackableTargets(snapshot: BattleSnapshot): StackState[] {
   }
   const { state } = snapshot;
   const enemies = state.stacks.filter(
-    (stack) => stack.count > 0 && stack.side !== snapshot.playerSide,
+    (stack) => stack.count > 0 && commanderOf(stack) !== snapshot.playerSide,
   );
   return canShoot(state, me)
     ? enemies
@@ -282,7 +286,7 @@ export function createBattleSession(
       }
       const { state } = snapshot;
       const target = stackAt(state, cell);
-      if (target !== undefined && target.side !== playerSide) {
+      if (target !== undefined && commanderOf(target) !== playerSide) {
         tapEnemy(state, me, target);
       } else if (target === undefined || sameCell(target, me)) {
         // Своя клетка годится для удара с места.
@@ -331,8 +335,7 @@ export function createBattleSession(
         return;
       }
       const { state } = snapshot;
-      const command =
-        activeStackOf(state)?.side === playerSide ? undefined : chooseBattleCommand(state);
+      const command = commandingSide(state) === playerSide ? undefined : chooseBattleCommand(state);
       if (command === undefined) {
         // Ход игрока или бой окончен.
         publish({ locked: false });

@@ -16,7 +16,12 @@ export interface SpellAim {
 
 /** Целью заклинания служит клетка, а не отряд. */
 export function aimsAtCell(spell: SpellDefinition): boolean {
-  return spell.area === "ball" || spell.area === "ring" || spell.area === "inferno";
+  return (
+    spell.area === "ball" ||
+    spell.area === "ring" ||
+    spell.area === "inferno" ||
+    spell.area === "radius"
+  );
 }
 
 /** Клетки, которые накроет заклинание, наколдованное в клетку `cell`. */
@@ -26,11 +31,13 @@ export function areaCells(spell: SpellDefinition, cell: Cell): Cell[] {
       return [cell, ...neighbours(cell)];
     case "ring":
       return neighbours(cell);
+    case "radius":
     case "inferno": {
+      const reach = spell.area === "inferno" ? 2 : spell.value;
       const cells: Cell[] = [];
       for (let row = 0; row < BATTLE_HEIGHT; row += 1) {
         for (let col = 0; col < BATTLE_WIDTH; col += 1) {
-          if (distance(cell, { col, row }) <= 2) {
+          if (distance(cell, { col, row }) <= reach) {
             cells.push({ col, row });
           }
         }

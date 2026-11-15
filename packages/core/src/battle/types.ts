@@ -205,6 +205,16 @@ export type BattleEvent =
   | { readonly type: "roundStarted"; readonly round: number }
   | { readonly type: "stackTurn"; readonly stackId: string }
   | { readonly type: "stackFroze"; readonly stackId: string }
+  /** Отряд в берсерке действует сам: дальше идут его шаг, удар или выстрел. */
+  | { readonly type: "berserkTurn"; readonly stackId: string; readonly targetId: string | null }
+  | {
+      /** «Волшебное зеркало» отряда `stackId` отразило заклинание на отряд `toId`. */
+      readonly type: "spellReflected";
+      readonly stackId: string;
+      readonly toId: string;
+      readonly spell: string;
+      readonly name: string;
+    }
   /** Ослеплённый отряд пропустил ход (69-spells-control.md). */
   | { readonly type: "stackBlind"; readonly stackId: string }
   | {

@@ -19,8 +19,8 @@ describe("карты из папки data/maps", () => {
 describe("файл заклинаний data/spells.yaml", () => {
   const { spells } = loadDefaults();
 
-  it("38 заклинаний: первый круг и три группы кругов 2–5; набор тестов ядра — тот же", () => {
-    expect(spells).toHaveLength(38);
+  it("41 заклинание: первый круг и три группы кругов 2–5; набор тестов ядра — тот же", () => {
+    expect(spells).toHaveLength(41);
     expect(spells).toEqual(ALL_SPELLS);
   });
 
@@ -71,6 +71,9 @@ describe("файл заклинаний data/spells.yaml", () => {
       ["frenzy", 16, 0, 100, 0],
       ["counterstrike", 24, 0, 1, 0],
       ["fire-shield", 16, 0, 20, 0],
+      ["hypnotize", 18, 25, 10, 0],
+      ["berserk", 20, 0, 0, 0],
+      ["magic-mirror", 25, 0, 20, 0],
     ]);
   });
 });

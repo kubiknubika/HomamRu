@@ -2,11 +2,13 @@
  * Очерёдность ходов, раунды, боевой дух, конец боя.
  * Спецификация: docs/mechanics/11-battle-turns.md.
  */
+import { berserkAct } from "./berserk.ts";
 import { startSpellRound } from "./cast.ts";
+import { calmDown } from "./control.ts";
 import { BAD_DICE } from "./damage.ts";
 import { rollChance } from "./draft.ts";
 import type { BattleDraft } from "./draft.ts";
-import { isBlind, moraleOf, speedOf } from "./effects.ts";
+import { isBerserk, isBlind, moraleOf, speedOf } from "./effects.ts";
 import { isMachine } from "./siege.ts";
 import { siegePhase } from "./siegeRound.ts";
 import type { BattleEndReason, BattleSide, StackState, StackTurn } from "./types.ts";
@@ -75,6 +77,14 @@ function startRound(draft: BattleDraft): void {
   startSpellRound(draft);
 }
 
+/** Ход отряда в берсерке. Возвращает, закончен ли бой. */
+function rage(draft: BattleDraft, stack: BattleDraft["stacks"][number]): boolean {
+  berserkAct(draft, stack);
+  calmDown(draft, stack);
+  stack.turn = "done";
+  return endIfDestroyed(draft);
+}
+
 /**
  * Передаёт ход следующему отряду. Начинает новый раунд, если в этом ходить некому.
  * Отряд с низким боевым духом может оцепенеть — тогда ход уходит дальше.
@@ -110,6 +120,14 @@ export function activateNext(draft: BattleDraft): void {
     if (next.turn === "ready" && morale < 0 && rollChance(draft, -morale, BAD_DICE)) {
       next.turn = "done";
       draft.events.push({ type: "stackFroze", stackId: next.id });
+      continue;
+    }
+    if (isBerserk(next)) {
+      // Отряд в берсерке действует сам, без команды (69-spells-control.md).
+      draft.activeStack = next.id;
+      if (rage(draft, next)) {
+        return;
+      }
       continue;
     }
     draft.activeStack = next.id;
@@ -162,7 +180,13 @@ export function endAfterCast(draft: BattleDraft): void {
     return;
   }
   const active = draft.stacks.find((stack) => stack.id === draft.activeStack);
-  if (active !== undefined && active.count === 0) {
+  if (active === undefined) {
+    return;
+  }
+  if (active.count === 0) {
+    activateNext(draft);
+  } else if (isBerserk(active) && !rage(draft, active)) {
+    // «Берсерк» накрыл отряд, чей был ход: он тут же действует сам.
     activateNext(draft);
   }
 }

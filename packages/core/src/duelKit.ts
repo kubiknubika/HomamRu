@@ -1,6 +1,6 @@
 // Помощники тестов этапа 5: партия на двоих и короткая запись команд.
 import { chooseBattleCommand } from "./battle/ai.ts";
-import { activeStackOf } from "./battle/queries.ts";
+import { commandingSide } from "./battle/queries.ts";
 import { applyCommand } from "./commands.ts";
 import { createGame } from "./game.ts";
 import { formatEvent } from "./render.ts";
@@ -102,7 +102,7 @@ export function passDays(initial: GameState, count: number): GameState {
 /** Бой идёт компьютером, пока ход не перейдёт к отряду данной стороны. */
 export function untilTurnOf(initial: GameState, side: 0 | 1): GameState {
   let state = initial;
-  while (state.battle !== null && activeStackOf(state.battle.state)?.side !== side) {
+  while (state.battle !== null && commandingSide(state.battle.state) !== side) {
     const command = chooseBattleCommand(state.battle.state);
     if (command === undefined) {
       break;

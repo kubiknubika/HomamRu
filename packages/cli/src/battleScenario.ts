@@ -1,6 +1,6 @@
 /** Проигрывает сценарий боя и печатает ход боя. */
 import {
-  activeStackOf,
+  commandingSide,
   applyBattleCommand,
   createBattle,
   findStack,
@@ -121,7 +121,7 @@ export function runBattleScenario(
   ];
   const failures: string[] = [];
   for (const [index, step] of scenario.steps.entries()) {
-    const command = battleStepCommand(step, activeStackOf(state)?.side ?? 0);
+    const command = battleStepCommand(step, commandingSide(state) ?? 0);
     const result = applyBattleCommand(state, command);
     lines.push("", `Команда ${index + 1}: ${describeBattleCommand(command)}`);
     if (result.ok) {

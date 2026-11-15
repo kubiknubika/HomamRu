@@ -486,3 +486,41 @@
   effect: fireShield
   target: ally
   values: [20, 25, 30]
+# hypnosis — прибавка к порогу здоровья (25 × сила магии + число); berserk — радиус площади;
+# mirror — шанс отразить заклинание, в процентах.
+- id: hypnotize
+  name: Гипноз
+  level: 3
+  schools: [air]
+  cost: 18
+  skilledCost: 15
+  power: 25
+  value: 10
+  chance: 0
+  effect: hypnosis
+  target: enemy
+  values: [10, 20, 50]
+  counters: [berserk]
+- id: berserk
+  name: Берсерк
+  level: 4
+  schools: [fire]
+  cost: 20
+  skilledCost: 16
+  chance: 0
+  effect: berserk
+  target: enemy
+  values: [0, 1, 2]
+  area: radius
+  counters: [hypnotize]
+- id: magic-mirror
+  name: Волшебное зеркало
+  level: 5
+  schools: [air]
+  cost: 25
+  skilledCost: 20
+  value: 20
+  chance: 0
+  effect: mirror
+  target: ally
+  values: [20, 30, 40]

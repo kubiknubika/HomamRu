@@ -14,10 +14,44 @@ import {
 import { rollChance } from "./draft.ts";
 import type { BattleDraft } from "./draft.ts";
 import { blindRetaliation, fixedDamage, luckOf, strikePercent } from "./effects.ts";
-import { isMachine } from "./siege.ts";
+import { sameCell } from "./hex.ts";
+import type { Cell } from "./hex.ts";
+import { isMachine, isMoat, MOAT_DAMAGE } from "./siege.ts";
 import type { StrikeKind } from "./types.ts";
 
 type DraftStack = BattleDraft["stacks"][number];
+
+/** Переставляет отряд; вставший в ров получает урон. */
+export function moveTo(draft: BattleDraft, stack: DraftStack, to: Cell): void {
+  if (sameCell(stack, to)) {
+    return;
+  }
+  const from = { col: stack.col, row: stack.row };
+  stack.col = to.col;
+  stack.row = to.row;
+  draft.events.push({
+    type: "stackMoved",
+    stackId: stack.id,
+    from,
+    to: { col: to.col, row: to.row },
+  });
+  if (isMoat(draft.siege, to)) {
+    const losses = applyDamage(stack.count, stack.firstHealth, stack.creature.health, MOAT_DAMAGE);
+    stack.count = losses.count;
+    stack.firstHealth = losses.firstHealth;
+    draft.events.push({
+      type: "moatDamage",
+      stackId: stack.id,
+      damage: MOAT_DAMAGE,
+      killed: losses.killed,
+      left: losses.count,
+    });
+    if (losses.count === 0) {
+      stack.turn = "done";
+      draft.events.push({ type: "stackDied", stackId: stack.id });
+    }
+  }
+}
 
 /**
  * Один удар: жребий удачи, броски урона, потери цели. Возвращает нанесённый урон.

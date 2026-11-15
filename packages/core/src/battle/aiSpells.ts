@@ -16,6 +16,7 @@ import type { BattleCommand, BattleHero, BattleSide, BattleState, StackState } f
 /** Дальше стольких раундов компьютер не заглядывает. */
 const MAX_ROUNDS = 3;
 const PERCENT = 100;
+const MAX_CIRCLE = 5;
 /** Очко атаки — 5 % урона, очко защиты — 2,5 % (13-battle-damage.md). */
 const ATTACK_POINT = 5;
 const DEFENSE_POINT_X2 = 5;
@@ -170,12 +171,18 @@ function benefit(
             )
           : spell.effect === "spellImmunity"
             ? immunityWorth(scene.state, side === 0 ? 1 : 0, target, spell.value)
-            : worthOf(scene, target, {
-                effect: spell.effect,
-                value: spell.value,
-                rounds: spellPower,
-                stacks: spell.cumulative === true ? 1 : undefined,
-              });
+            : spell.effect === "mirror"
+              ? Math.floor(
+                  (immunityWorth(scene.state, side === 0 ? 1 : 0, target, MAX_CIRCLE) *
+                    spell.value) /
+                    PERCENT,
+                )
+              : worthOf(scene, target, {
+                  effect: spell.effect,
+                  value: spell.value,
+                  rounds: spellPower,
+                  stacks: spell.cumulative === true ? 1 : undefined,
+                });
       return own + sum(countered);
     }
   }
@@ -211,7 +218,7 @@ export function chooseCast(state: BattleState, side: BattleSide): BattleCommand 
       continue;
     }
     // Заклинание «на всех» считается один раз: его польза — сумма по всем отрядам.
-    const targets = alive.filter((stack) => canTarget(spell, side, stack));
+    const targets = alive.filter((stack) => canTarget(spell, side, stack, hero));
     for (const target of spell.mass === true ? targets.slice(0, 1) : targets) {
       const worth = spellTargetsOf(alive, spell, side, target).reduce(
         (total, stack) => total + benefit(scene, side, hero, spell, stack),

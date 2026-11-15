@@ -3,7 +3,7 @@
  * Здесь нет работы с файлами: сценарий и карта приходят готовыми.
  */
 import {
-  activeStackOf,
+  commandingSide,
   applyCommand,
   createGame,
   formatEvent,
@@ -67,7 +67,7 @@ function toCommand(step: Exclude<ScenarioStep, { fight: object }>, state: GameSt
     return { type: "transfer", player, townId: town, from, creature, count };
   }
   const battle = state.battle?.state;
-  const side = battle === undefined ? 0 : (activeStackOf(battle)?.side ?? 0);
+  const side = battle === undefined ? 0 : (commandingSide(battle) ?? 0);
   return battleStepCommand(step as BattleScenarioStep, side);
 }
 

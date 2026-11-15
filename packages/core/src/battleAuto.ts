@@ -3,7 +3,7 @@
  * Спецификации: docs/mechanics/15-battle-ai.md, 23-map-battle.md («Кто ходит», «Сценарии»).
  */
 import { chooseBattleCommand } from "./battle/ai.ts";
-import { activeStackOf } from "./battle/queries.ts";
+import { commandingSide } from "./battle/queries.ts";
 import type { BattleCommand } from "./battle/types.ts";
 import { applyCommand } from "./commands.ts";
 import type { GameEvent } from "./events.ts";
@@ -29,7 +29,7 @@ function sideIsComputer(state: GameState, side: 0 | 1): boolean {
  */
 export function guardBattleCommand(state: GameState): BattleCommand | undefined {
   const battle = state.battle?.state;
-  const side = battle === undefined ? undefined : activeStackOf(battle)?.side;
+  const side = battle === undefined ? undefined : commandingSide(battle);
   if (battle === undefined || side === undefined || !sideIsComputer(state, side)) {
     return undefined;
   }

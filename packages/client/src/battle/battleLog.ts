@@ -61,6 +61,12 @@ function describeEvent(
       }
       return `Катапульта: ${PART_NAMES[event.hit]}, ${event.left === 0 ? "разрушено" : "повреждено"}`;
     }
+    case "berserkTurn":
+      return event.targetId === null
+        ? `${nameOf(event.stackId)}: берсерк, бить некого`
+        : `${nameOf(event.stackId)}: берсерк, нападает на ближайшего — ${nameOf(event.targetId)}`;
+    case "spellReflected":
+      return `Волшебное зеркало: «${event.name}» отражено на ${nameOf(event.toId)}`;
     case "stackBlind":
       return `${nameOf(event.stackId)}: слепота, ход пропущен`;
     case "fireShield":

@@ -67,16 +67,20 @@ function choiceAt(
   }
   const tally = { foes: 0, foesKilled: 0, own: 0, ownKilled: 0 };
   for (const event of result.events) {
-    if (event.type !== "spellCast" || event.outcome.kind !== "damage") {
+    if (event.type !== "spellCast") {
       continue;
     }
     const mine = state.stacks.find((stack) => stack.id === event.targetId)?.side === side;
     tally[mine ? "own" : "foes"] += 1;
-    tally[mine ? "ownKilled" : "foesKilled"] += event.outcome.killed;
+    tally[mine ? "ownKilled" : "foesKilled"] +=
+      event.outcome.kind === "damage" ? event.outcome.killed : 0;
   }
+  // У «Берсерка» урона нет: только кого накроет.
+  const killed = (count: number): string =>
+    spell.effect === "damage" ? `, погибнет ${count}` : "";
   const parts = [
-    tally.foes > 0 ? `враг — ${stacksText(tally.foes)}, погибнет ${tally.foesKilled}` : null,
-    tally.own > 0 ? `ваши — ${stacksText(tally.own)}, погибнет ${tally.ownKilled}` : null,
+    tally.foes > 0 ? `враг — ${stacksText(tally.foes)}${killed(tally.foesKilled)}` : null,
+    tally.own > 0 ? `ваши — ${stacksText(tally.own)}${killed(tally.ownKilled)}` : null,
   ].filter((part) => part !== null);
   const preview = parts.length === 0 ? "никого не заденет" : parts.join("; ");
   return {
@@ -100,7 +104,7 @@ export function areaStart(state: BattleState, side: Side, spell: SpellDefinition
       own: 0,
       confirm: false,
       hint: aimsAtCell(spell)
-        ? `${spell.name}: коснитесь клетки. Свои отряды в площади тоже получат урон.`
+        ? `${spell.name}: коснитесь клетки. Свои отряды в площади тоже ${spell.effect === "damage" ? "получат урон" : "попадут под заклинание"}.`
         : `${spell.name}: выберите вражеский отряд в красном кольце.`,
     }
   );

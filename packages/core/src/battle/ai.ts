@@ -2,6 +2,7 @@
  * Простой компьютер в бою: выбирает команду для отряда, чей сейчас ход.
  * Спецификация: docs/mechanics/15-battle-ai.md; осада — 50-siege.md.
  */
+import { commanderOf, isHypnotized } from "./effects.ts";
 import { chooseCast } from "./aiSpells.ts";
 import { bestCell, chooseApproach, chooseAttack, chooseShot, nearestEnemy } from "./aiMoves.ts";
 import type { Allowed } from "./aiMoves.ts";
@@ -107,14 +108,39 @@ export function chooseBattleCommand(
   state: BattleState,
   tactics: SiegeTactics = SIEGE_TACTICS,
 ): BattleCommand | undefined {
-  const me = activeStackOf(state);
-  if (state.result !== null || me === undefined) {
+  const active = activeStackOf(state);
+  if (state.result !== null || active === undefined) {
     return undefined;
   }
   // Сначала герой колдует, если есть что: ход отряда на это не тратится (63-opponent-magic.md).
-  const spell = chooseCast(state, me.side);
+  const spell = chooseCast(state, commanderOf(active));
   if (spell !== undefined) {
     return spell;
+  }
+  return chooseMove(commandView(state), tactics);
+}
+
+/**
+ * Бой глазами командующих: отряд под гипнозом считается отрядом той стороны, что им командует
+ * (69-spells-control.md). Так он ходит как свой и бьёт прежних товарищей.
+ */
+function commandView(state: BattleState): BattleState {
+  if (!state.stacks.some(isHypnotized)) {
+    return state;
+  }
+  // Гипноз в этом виде уже учтён стороной: само действие убрано, чтобы не учесть его дважды.
+  const stacks = state.stacks.map((stack) => ({
+    ...stack,
+    side: commanderOf(stack),
+    effects: stack.effects.filter((effect) => effect.effect !== "hypnosis"),
+  }));
+  return { ...state, stacks };
+}
+
+function chooseMove(state: BattleState, tactics: SiegeTactics): BattleCommand | undefined {
+  const me = activeStackOf(state);
+  if (me === undefined) {
+    return undefined;
   }
   const foes = state.stacks.filter((stack) => stack.side !== me.side && isAlive(stack));
   const enemies = foes.filter((stack) => !isMachine(stack));

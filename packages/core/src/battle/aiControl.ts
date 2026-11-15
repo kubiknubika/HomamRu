@@ -62,6 +62,9 @@ export function controlWorth(
     case "retaliations":
       // Лишний ответ нужен, когда бьют двое и больше.
       return strike * Math.min(effect.value, Math.max(0, near - 1));
+    case "hypnosis":
+      // У врага отрядом меньше, у нас — больше.
+      return 2 * strike * rounds;
     case "fireShield":
       return (strongest(foes.filter(isMelee)) * effect.value * rounds) / PERCENT;
     default:

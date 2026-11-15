@@ -5,6 +5,7 @@
 import type { SpellDefinition } from "../spells.ts";
 import { aimsAtCell, areaVictims } from "./area.ts";
 import type { SpellAim } from "./area.ts";
+import { nearestTo } from "./berserk.ts";
 import { canTarget, spellDamageTo } from "./cast.ts";
 import { BATTLE_HEIGHT, BATTLE_WIDTH } from "./hex.ts";
 import { isMachine } from "./siege.ts";
@@ -31,6 +32,15 @@ function areaBenefit(
   return areaVictims(alive, spell, aim).reduce((total, { stack, divisor }) => {
     if (isMachine(stack)) {
       return total;
+    }
+    if (spell.effect === "berserk") {
+      // Чужой отряд ударит ближайшего: хорошо, если это его товарищ. Свой отряд в берсерке — потеря.
+      const { damageMin, damageMax } = stack.creature;
+      const strike = ((damageMin + damageMax) * stack.count * HEALTH) / 2;
+      if (stack.side === side) {
+        return total - strike;
+      }
+      return nearestTo(alive, stack)?.side === stack.side ? total + strike : total;
     }
     const lost = Math.min(spellDamageTo(spell, hero, stack, divisor), healthOf(stack)) * HEALTH;
     return stack.side === side ? total - lost : total + lost;
