@@ -120,6 +120,10 @@ const resourceCostSchema = z.strictObject({
   gold: z.int().min(1).optional(),
   wood: z.int().min(1).optional(),
   ore: z.int().min(1).optional(),
+  mercury: z.int().min(1).optional(),
+  sulfur: z.int().min(1).optional(),
+  crystal: z.int().min(1).optional(),
+  gems: z.int().min(1).optional(),
 });
 
 /** Здание в файле зданий. Описание полей: docs/mechanics/30-town.md. */

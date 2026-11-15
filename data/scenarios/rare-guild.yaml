@@ -1,0 +1,24 @@
+name: Редкие ресурсы — кучка самоцветов, серный карьер и гильдия магов второго уровня
+map: test-rare
+seed: 1
+steps:
+  # Третий уровень без второго не построить.
+  - build: { town: o1, building: mage-guild-3 }
+    expectError: REQUIREMENT_MISSING
+  # На второй нужно по 4 каждого редкого, а самоцветов 2.
+  - build: { town: o1, building: mage-guild-2 }
+    expectError: NOT_ENOUGH_RESOURCES
+  # Кучка самоцветов (4, 1): стало 5. Дальше — серный карьер (6, 1).
+  - move: { hero: A, path: [E, E, E] }
+  - build: { town: o1, building: mage-guild-2 }
+  - move: { hero: A, path: [E, E, E] }
+  - endTurn: {}
+  - endTurn: {}
+expect:
+  day: 3
+  objects:
+    o3: { owner: 0 }
+    o4: { owner: null }
+  # Золото: 20000 − 1000 за гильдию + 2 × 500 дохода. Сера: 4 − 4 + по 1 за два дня.
+  resources:
+    - { gold: 20000, wood: 15, ore: 15, mercury: 0, sulfur: 2, crystal: 0, gems: 1 }

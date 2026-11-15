@@ -55,6 +55,14 @@ export function missingResources(resources: Resources, cost: ResourceAmounts): R
   return missing;
 }
 
+function subtract(resources: Resources, cost: ResourceAmounts): Resources {
+  const left = { ...resources };
+  for (const resource of RESOURCES) {
+    left[resource] -= cost[resource] ?? 0;
+  }
+  return left;
+}
+
 export function pay(state: GameState, player: number, cost: ResourceAmounts): GameState {
   return {
     ...state,
@@ -62,11 +70,7 @@ export function pay(state: GameState, player: number, cost: ResourceAmounts): Ga
       candidate.id === player
         ? {
             ...candidate,
-            resources: {
-              gold: candidate.resources.gold - (cost.gold ?? 0),
-              wood: candidate.resources.wood - (cost.wood ?? 0),
-              ore: candidate.resources.ore - (cost.ore ?? 0),
-            },
+            resources: subtract(candidate.resources, cost),
           }
         : candidate,
     ),

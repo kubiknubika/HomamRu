@@ -118,12 +118,20 @@ export function parseSpellsFile(file: string, text: string): ContentResult<Spell
   return errors.length > 0 ? { ok: false, errors } : parsed;
 }
 
-/** Заклинания партии: читаемые из записи, а за ними заклинания игры, которых в записи нет. */
+/**
+ * Заклинания партии: читаемые из записи, а за ними заклинания игры, которых в записи нет.
+ * В записях до версии 11 у заклинаний кругов 2–4 вес в гильдии нулевой (гильдии выше первого
+ * уровня не было): тогда вес берётся у заклинания игры (66-rare-resources.md).
+ */
 export function readSpells(raw: unknown, ours: readonly SpellDefinition[]): SpellDefinition[] {
   const items = Array.isArray(raw) ? (raw as unknown[]) : [];
   const saved = items.flatMap((item) => {
     const parsed = spellSchema.strip().safeParse(item);
-    return parsed.success ? [parsed.data] : [];
+    if (!parsed.success) {
+      return [];
+    }
+    const chance = ours.find((spell) => spell.id === parsed.data.id)?.chance ?? 0;
+    return [parsed.data.chance === 0 && chance > 0 ? { ...parsed.data, chance } : parsed.data];
   });
   const known = new Set(saved.map((spell) => spell.id));
   return [...saved, ...ours.filter((spell) => !known.has(spell.id))];
@@ -144,10 +152,21 @@ export function readSpellIds(raw: unknown, spells: readonly SpellDefinition[]): 
 /**
  * Набор гильдии города, у которого в записи его нет: в каждом круге — заклинания
  * с наибольшим весом, сколько даёт гильдия. Жребия нет: чтение записи не бросает случайных чисел.
+ * `saved` — набор из записи: кругов, которых в нём нет (в записях до версии 11 это круги 2–4),
+ * касается то же правило.
  */
-export function defaultGuild(spells: readonly SpellDefinition[]): string[] {
+export function defaultGuild(
+  spells: readonly SpellDefinition[],
+  saved: readonly string[] = [],
+): string[] {
   const chosen: string[] = [];
   for (let level = 1; level <= MAX_LEVEL; level += 1) {
+    const kept = saved.filter((id) => spells.find((spell) => spell.id === id)?.level === level);
+    if (kept.length > 0) {
+      // Круг в записи есть — он остаётся как был.
+      chosen.push(...kept);
+      continue;
+    }
     const pool = spells
       .filter((spell) => spell.level === level && spell.chance > 0)
       .toSorted((a, b) => b.chance - a.chance);

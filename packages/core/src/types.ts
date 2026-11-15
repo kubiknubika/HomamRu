@@ -22,7 +22,7 @@ import type { SpellDefinition } from "./spells.ts";
 import type { RngState } from "./rng.ts";
 
 /** Номер версии формата состояния. Увеличивается при любом изменении формата. */
-export const STATE_VERSION = 10;
+export const STATE_VERSION = 11;
 
 /** Направления шага в порядке из спецификации перемещения. */
 export const DIRECTIONS = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"] as const;
@@ -33,15 +33,26 @@ export interface Position {
   readonly y: number;
 }
 
-/** Виды ресурсов по порядку показа. Спецификация: docs/mechanics/20-map-objects.md. */
-export const RESOURCES = ["gold", "wood", "ore"] as const;
+/**
+ * Виды ресурсов по порядку показа: золото, дерево, руда и четыре редких.
+ * Спецификации: docs/mechanics/20-map-objects.md, 66-rare-resources.md.
+ */
+export const RESOURCES = ["gold", "wood", "ore", "mercury", "sulfur", "crystal", "gems"] as const;
 export type Resource = (typeof RESOURCES)[number];
 export type Resources = Readonly<Record<Resource, number>>;
 /** Часть запаса: чего не названо — ноль. */
 export type ResourceAmounts = { readonly [K in Resource]?: number | undefined };
 
 /** Виды шахт. */
-export const MINE_KINDS = ["sawmill", "ore-pit", "gold-mine"] as const;
+export const MINE_KINDS = [
+  "sawmill",
+  "ore-pit",
+  "gold-mine",
+  "alchemist-lab",
+  "sulfur-dune",
+  "crystal-cavern",
+  "gem-pond",
+] as const;
 export type MineKind = (typeof MINE_KINDS)[number];
 
 /** Объект в файле карты. */

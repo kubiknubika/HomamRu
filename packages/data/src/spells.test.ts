@@ -267,7 +267,8 @@ describe("магия в сохранении", () => {
       spells: ["magic-arrow", "shield", "dispel", "cure", "bless"],
     });
     expect(townWith({ spells: ["slow", "fireball", "slow"] })).toMatchObject({ spells: ["slow"] });
-    expect(townWith({ spells: [] })).toMatchObject({ spells: [] });
+    // Пустого круга в гильдии не бывает: круг, которого в записи нет, набирается заново.
+    expect(townWith({ spells: [] })).toEqual(townWith({ spells: undefined }));
   });
 
   it("заклинания партии: записанные остаются, недостающие берутся из игры", () => {

@@ -37,7 +37,7 @@ export const FULL_STATE: GameState = {
       kind: "human",
       eliminated: false,
       townlessDays: null,
-      resources: { gold: 700, wood: 3, ore: 4 },
+      resources: { gold: 700, wood: 3, ore: 4, mercury: 0, sulfur: 0, crystal: 0, gems: 0 },
       tavern: [],
     },
     {
@@ -45,7 +45,7 @@ export const FULL_STATE: GameState = {
       kind: "human",
       eliminated: false,
       townlessDays: null,
-      resources: { gold: 5, wood: 6, ore: 7 },
+      resources: { gold: 5, wood: 6, ore: 7, mercury: 0, sulfur: 0, crystal: 0, gems: 0 },
       tavern: [
         { kind: "milava", army: [{ creature: "militia", count: 13 }] },
         {

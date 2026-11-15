@@ -119,6 +119,7 @@ export type {
 export { chooseBattleCommand } from "./battle/ai.ts";
 export { SPELL_AREAS, SPELL_EFFECTS, SPELL_SCHOOLS, spellAtMastery } from "./spells.ts";
 export {
+  learnableLevel,
   manaPerDay,
   masteryOf,
   MAX_SKILLS,

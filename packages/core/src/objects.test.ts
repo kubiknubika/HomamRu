@@ -63,17 +63,35 @@ describe("создание партии с объектами — 20-map-objects
       { id: "o1", type: "pile", x: 3, y: 1, resource: "wood", amount: 8 },
       { id: "o2", type: "mine", x: 5, y: 5, kind: "sawmill", owner: null },
     ]);
-    expect(state.players[0]?.resources).toEqual({ gold: 100, wood: 0, ore: 0 });
+    expect(state.players[0]?.resources).toEqual({
+      gold: 100,
+      wood: 0,
+      ore: 0,
+      mercury: 0,
+      sulfur: 0,
+      crystal: 0,
+      gems: 0,
+    });
   });
 
   it("кучка без количества: золото 500–1000 сотнями, дерево и руда 5–10; от сида зависит", () => {
-    const seen = { gold: new Set<number>(), wood: new Set<number>(), ore: new Set<number>() };
+    const seen = {
+      gold: new Set<number>(),
+      wood: new Set<number>(),
+      ore: new Set<number>(),
+      mercury: new Set<number>(),
+      sulfur: new Set<number>(),
+      crystal: new Set<number>(),
+      gems: new Set<number>(),
+    };
     for (let seed = 1; seed <= 300; seed += 1) {
       const state = start(
         [
           { type: "pile", x: 3, y: 1, resource: "gold" },
           { type: "pile", x: 4, y: 1, resource: "wood" },
           { type: "pile", x: 5, y: 1, resource: "ore" },
+          { type: "pile", x: 6, y: 1, resource: "mercury" },
+          { type: "pile", x: 7, y: 1, resource: "gems" },
         ],
         seed,
       );
@@ -84,6 +102,9 @@ describe("создание партии с объектами — 20-map-objects
       }
     }
     expect([...seen.gold].toSorted((a, b) => a - b)).toEqual([500, 600, 700, 800, 900, 1000]);
+    // Редкий ресурс — от 3 до 6 (66-rare-resources.md).
+    expect([...seen.mercury].toSorted((a, b) => a - b)).toEqual([3, 4, 5, 6]);
+    expect([...seen.gems].toSorted((a, b) => a - b)).toEqual([3, 4, 5, 6]);
     expect([...seen.wood].toSorted((a, b) => a - b)).toEqual([5, 6, 7, 8, 9, 10]);
     expect([...seen.ore].toSorted((a, b) => a - b)).toEqual([5, 6, 7, 8, 9, 10]);
     // Один сид — одна и та же партия.
@@ -127,7 +148,15 @@ describe("кучка ресурсов", () => {
     const { state, lines } = play(start(PILE), [move(["E", "E"])]);
     expect(state.heroes[0]).toMatchObject({ x: 2, y: 1, movement: 800 });
     expect(state.objects).toEqual([]);
-    expect(state.players[0]?.resources).toEqual({ gold: 100, wood: 8, ore: 0 });
+    expect(state.players[0]?.resources).toEqual({
+      gold: 100,
+      wood: 8,
+      ore: 0,
+      mercury: 0,
+      sulfur: 0,
+      crystal: 0,
+      gems: 0,
+    });
     expect(lines).toEqual([
       "Герой A: шаг (1, 1) → (2, 1), потрачено 100, осталось 900",
       "Игрок 1 подобрал кучку o1: дерево +8",
@@ -177,7 +206,15 @@ describe("шахта", () => {
     expect(taken.lines.at(-1)).toBe("Игрок 1 занял шахту o1 (была ничья)");
     expect(taken.state.players[0]?.resources.wood).toBe(0);
     const next = play(taken.state, [END]);
-    expect(next.state.players[0]?.resources).toEqual({ gold: 100, wood: 2, ore: 0 });
+    expect(next.state.players[0]?.resources).toEqual({
+      gold: 100,
+      wood: 2,
+      ore: 0,
+      mercury: 0,
+      sulfur: 0,
+      crystal: 0,
+      gems: 0,
+    });
     expect(next.lines.at(-1)).toBe("Игрок 1 получил доход: дерево +2");
     expect(play(next.state, [END, END]).state.players[0]?.resources.wood).toBe(6);
   });
@@ -188,10 +225,34 @@ describe("шахта", () => {
       ...state,
       objects: state.objects.map((object) => ({ ...object, owner: 0 })),
     } as GameState;
-    expect(incomeOf(owned, 0)).toEqual({ gold: 1000, wood: 2, ore: 2 });
-    expect(incomeOf(state, 0)).toEqual({ gold: 0, wood: 0, ore: 0 });
+    expect(incomeOf(owned, 0)).toEqual({
+      gold: 1000,
+      wood: 2,
+      ore: 2,
+      mercury: 0,
+      sulfur: 0,
+      crystal: 0,
+      gems: 0,
+    });
+    expect(incomeOf(state, 0)).toEqual({
+      gold: 0,
+      wood: 0,
+      ore: 0,
+      mercury: 0,
+      sulfur: 0,
+      crystal: 0,
+      gems: 0,
+    });
     const { state: after, lines } = play(owned, [END]);
-    expect(after.players[0]?.resources).toEqual({ gold: 1100, wood: 2, ore: 2 });
+    expect(after.players[0]?.resources).toEqual({
+      gold: 1100,
+      wood: 2,
+      ore: 2,
+      mercury: 0,
+      sulfur: 0,
+      crystal: 0,
+      gems: 0,
+    });
     expect(lines.at(-1)).toBe("Игрок 1 получил доход: золото +1000, дерево +2, руда +2");
   });
 
@@ -237,7 +298,7 @@ describe("текстовый вывод объектов", () => {
       "o2 (4, 0): кучка, дерево 8",
       "o3 (5, 0): кучка, руда 6",
       "o4 (6, 0): золотая шахта, ничья, в день золото +1000",
-      "Игрок 1: золото 100, дерево 0, руда 0.",
+      "Игрок 1: золото 100, дерево 0, руда 0, ртуть 0, сера 0, кристаллы 0, самоцветы 0.",
     ]);
   });
 });

@@ -19,7 +19,15 @@ import type {
   Resources,
 } from "./types.ts";
 
-export const NO_RESOURCES: Resources = { gold: 0, wood: 0, ore: 0 };
+export const NO_RESOURCES: Resources = {
+  gold: 0,
+  wood: 0,
+  ore: 0,
+  mercury: 0,
+  sulfur: 0,
+  crystal: 0,
+  gems: 0,
+};
 
 /** Что и сколько шахта даёт в день. Числа — из Heroes 3. */
 export const MINE_INCOME: Readonly<
@@ -28,19 +36,29 @@ export const MINE_INCOME: Readonly<
   sawmill: { resource: "wood", amount: 2 },
   "ore-pit": { resource: "ore", amount: 2 },
   "gold-mine": { resource: "gold", amount: 1000 },
+  "alchemist-lab": { resource: "mercury", amount: 1 },
+  "sulfur-dune": { resource: "sulfur", amount: 1 },
+  "crystal-cavern": { resource: "crystal", amount: 1 },
+  "gem-pond": { resource: "gems", amount: 1 },
 };
 
-/** Случайная кучка: от 5 до 10 единиц; золото — сотнями. Так в Heroes 3. */
+/**
+ * Случайная кучка: от 5 до 10 единиц; золото — сотнями; редкий ресурс — от 3 до 6.
+ * Так в Heroes 3 (66-rare-resources.md).
+ */
 const PILE_MIN = 5;
 const PILE_MAX = 10;
+const RARE_PILE_MIN = 3;
+const RARE_PILE_MAX = 6;
 const GOLD_PILE_UNIT = 100;
+const COMMON: readonly Resource[] = ["gold", "wood", "ore"];
 
 export function addResources(a: Resources, b: ResourceAmounts): Resources {
-  return {
-    gold: a.gold + (b.gold ?? 0),
-    wood: a.wood + (b.wood ?? 0),
-    ore: a.ore + (b.ore ?? 0),
-  };
+  const sum = { ...a };
+  for (const resource of RESOURCES) {
+    sum[resource] += b[resource] ?? 0;
+  }
+  return sum;
 }
 
 /** Объект в клетке, если он там есть. */
@@ -88,7 +106,9 @@ export function createObjects(
     if (definition.amount !== undefined) {
       return { id, type: "pile", x, y, resource, amount: definition.amount };
     }
-    const roll = nextInt(rng, PILE_MIN, PILE_MAX);
+    const roll = COMMON.includes(resource)
+      ? nextInt(rng, PILE_MIN, PILE_MAX)
+      : nextInt(rng, RARE_PILE_MIN, RARE_PILE_MAX);
     ({ rng } = roll);
     const amount = resource === "gold" ? roll.value * GOLD_PILE_UNIT : roll.value;
     return { id, type: "pile", x, y, resource, amount };

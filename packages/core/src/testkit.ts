@@ -66,6 +66,9 @@ export const OPPONENT: OpponentRules = {
     "castle",
     "tavern",
     "fort",
+    "mage-guild-2",
+    "mage-guild-3",
+    "mage-guild-4",
   ],
 };
 
@@ -104,6 +107,27 @@ export const BUILDINGS: readonly BuildingDefinition[] = [
     cost: { gold: 2000, wood: 5, ore: 5 },
     requires: [],
     mageGuild: 1,
+  },
+  {
+    id: "mage-guild-2",
+    name: "Гильдия магов, уровень 2",
+    cost: { gold: 1000, wood: 5, ore: 5, mercury: 4, sulfur: 4, crystal: 4, gems: 4 },
+    requires: ["mage-guild"],
+    mageGuild: 2,
+  },
+  {
+    id: "mage-guild-3",
+    name: "Гильдия магов, уровень 3",
+    cost: { gold: 1000, wood: 5, ore: 5, mercury: 6, sulfur: 6, crystal: 6, gems: 6 },
+    requires: ["mage-guild-2"],
+    mageGuild: 3,
+  },
+  {
+    id: "mage-guild-4",
+    name: "Гильдия магов, уровень 4",
+    cost: { gold: 1000, wood: 5, ore: 5, mercury: 8, sulfur: 8, crystal: 8, gems: 8 },
+    requires: ["mage-guild-3"],
+    mageGuild: 4,
   },
   {
     id: "militia-yard",

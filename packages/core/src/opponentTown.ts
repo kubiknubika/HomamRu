@@ -4,7 +4,7 @@
  */
 import { BOOK_PRICE, guildLevel } from "./magic.ts";
 import { applyCommand } from "./commands.ts";
-import type { ArmyStack, Command, GameState, TownState } from "./types.ts";
+import type { ArmyStack, BuildingDefinition, Command, GameState, TownState } from "./types.ts";
 
 function priceOf(state: GameState, creature: string): number {
   return state.creatures.find((candidate) => candidate.id === creature)?.price ?? 0;
@@ -31,15 +31,24 @@ export function accepted(state: GameState, command: Command): Command | undefine
  * Следующее здание по списку: первое, которого нет, а всё нужное для него уже построено.
  * Здание, которому чего-то не хватает из построек, список не задерживает.
  */
-function nextBuilding(state: GameState, town: TownState): string | undefined {
+function nextBuilding(state: GameState, town: TownState, upper = false): string | undefined {
   return state.opponent.buildOrder.find((id) => {
     const building = state.buildings.find((candidate) => candidate.id === id);
     return (
       building !== undefined &&
+      isUpperGuild(building) === upper &&
       !town.buildings.includes(id) &&
       building.requires.every((needed) => town.buildings.includes(needed))
     );
   });
+}
+
+/**
+ * Гильдия магов второго и следующих уровней (66-rare-resources.md): её компьютер строит,
+ * когда хватает ресурсов, а золота под неё не откладывает и остальной список ею не задерживает.
+ */
+function isUpperGuild(building: BuildingDefinition): boolean {
+  return (building.mageGuild ?? 0) > 1;
 }
 
 /** Наём: все, на кого хватает золота сверх отложенного на стройку, начиная с самых дорогих. */
@@ -98,6 +107,12 @@ function commandIn(state: GameState, town: TownState): Command | undefined {
     if (build !== undefined) {
       return build;
     }
+  }
+  const guild = nextBuilding(state, town, true);
+  const upgrade =
+    guild === undefined ? undefined : accepted(state, { type: "build", ...base, building: guild });
+  if (upgrade !== undefined) {
+    return upgrade;
   }
   // Герой в городе с гильдией покупает книгу — раньше найма существ (63-opponent-magic.md).
   const book = accepted(state, { type: "buyBook", ...base });

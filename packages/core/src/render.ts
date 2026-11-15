@@ -28,13 +28,33 @@ const PATH_SYMBOL = "*";
 const MINE_SYMBOL = "M";
 const GUARD_SYMBOL = "G";
 const TOWN_SYMBOL = "T";
-const PILE_SYMBOLS = { gold: "$", wood: "w", ore: "o" } as const;
+const PILE_SYMBOLS = {
+  gold: "$",
+  wood: "w",
+  ore: "o",
+  mercury: "m",
+  sulfur: "s",
+  crystal: "c",
+  gems: "g",
+} as const;
 
-const RESOURCE_NAMES = { gold: "золото", wood: "дерево", ore: "руда" } as const;
+const RESOURCE_NAMES = {
+  gold: "золото",
+  wood: "дерево",
+  ore: "руда",
+  mercury: "ртуть",
+  sulfur: "сера",
+  crystal: "кристаллы",
+  gems: "самоцветы",
+} as const;
 const MINE_NAMES = {
   sawmill: "лесопилка",
   "ore-pit": "рудник",
   "gold-mine": "золотая шахта",
+  "alchemist-lab": "лаборатория алхимика",
+  "sulfur-dune": "серный карьер",
+  "crystal-cavern": "кристальная пещера",
+  "gem-pond": "самоцветный пруд",
 } as const;
 
 function formatResources(resources: Resources): string {

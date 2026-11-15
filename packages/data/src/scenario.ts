@@ -92,6 +92,10 @@ const scenarioSchema = z.strictObject({
             gold: z.int().optional(),
             wood: z.int().optional(),
             ore: z.int().optional(),
+            mercury: z.int().optional(),
+            sulfur: z.int().optional(),
+            crystal: z.int().optional(),
+            gems: z.int().optional(),
           }),
         )
         .optional(),

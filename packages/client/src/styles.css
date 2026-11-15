@@ -53,7 +53,9 @@ body {
 
 .hud-resources {
   display: flex;
-  gap: 14px;
+  /* Ресурсов семь: на узком экране редкие уходят на вторую строку. */
+  flex-wrap: wrap;
+  gap: 0 12px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
@@ -69,6 +71,22 @@ body {
 
 .hud-resource-ore {
   color: #c3c9d3;
+}
+
+.hud-resource-mercury {
+  color: #9fd3e6;
+}
+
+.hud-resource-sulfur {
+  color: #d8e04a;
+}
+
+.hud-resource-crystal {
+  color: #e8687f;
+}
+
+.hud-resource-gems {
+  color: #3fbf7a;
 }
 
 /* Кнопки карты справа внизу: «Герой» над «Концом дня». */
@@ -452,6 +470,22 @@ body {
 
 .legend-ore {
   background: #a3a9b3;
+}
+
+.legend-mercury {
+  background: #9fd3e6;
+}
+
+.legend-sulfur {
+  background: #d8e04a;
+}
+
+.legend-crystal {
+  background: #d9455f;
+}
+
+.legend-gems {
+  background: #3fbf7a;
 }
 
 .legend-flag {

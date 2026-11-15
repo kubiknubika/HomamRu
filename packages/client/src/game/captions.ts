@@ -23,11 +23,23 @@ import type {
 import { humanOf } from "./view.ts";
 import type { Fight } from "./view.ts";
 
-export const RESOURCE_NAMES = { gold: "золото", wood: "дерево", ore: "руда" } as const;
+export const RESOURCE_NAMES = {
+  gold: "золото",
+  wood: "дерево",
+  ore: "руда",
+  mercury: "ртуть",
+  sulfur: "сера",
+  crystal: "кристаллы",
+  gems: "самоцветы",
+} as const;
 export const MINE_NAMES = {
   sawmill: "Лесопилка",
   "ore-pit": "Рудник",
   "gold-mine": "Золотая шахта",
+  "alchemist-lab": "Лаборатория алхимика",
+  "sulfur-dune": "Серный карьер",
+  "crystal-cavern": "Кристальная пещера",
+  "gem-pond": "Самоцветный пруд",
 } as const;
 export const STAT_NAMES = {
   attack: "атака",

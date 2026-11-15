@@ -1,4 +1,5 @@
 // Компьютер на карте и магия: гильдия, книга, поход за заклинаниями (63-opponent-magic.md).
+import { NO_RESOURCES } from "./objects.ts";
 import { describe, expect, it } from "vitest";
 import { duel, HOME, put, run, withoutHero } from "./duelKit.ts";
 import { chooseMapCommand } from "./opponent.ts";
@@ -23,7 +24,7 @@ function game(gold: number, extra: MapObjectDefinition[] = [], town = GUILD_TOWN
     ...state,
     players: state.players.map((player) => ({
       ...player,
-      resources: { gold, wood: 0, ore: 0 },
+      resources: { ...NO_RESOURCES, gold, wood: 0, ore: 0 },
     })),
   };
 }
