@@ -26,7 +26,8 @@ function draftSide(side: BattleSideState): DraftSide {
 export interface BattleDraft {
   rng: RngState;
   round: number;
-  readonly obstacles: BattleState["obstacles"];
+  obstacles: BattleState["obstacles"];
+  fields: BattleState["fields"];
   siege: SiegeState | null;
   readonly sides: [DraftSide, DraftSide];
   readonly stacks: Mutable<StackState>[];
@@ -41,6 +42,7 @@ export function toDraft(state: BattleState): BattleDraft {
     rng: state.rng,
     round: state.round,
     obstacles: state.obstacles,
+    fields: state.fields,
     siege: state.siege,
     sides: [draftSide(state.sides[0]), draftSide(state.sides[1])],
     stacks: state.stacks.map((stack) => ({ ...stack })),
@@ -58,6 +60,7 @@ export function toState(draft: BattleDraft): BattleState {
     rng: draft.rng,
     round: draft.round,
     obstacles: draft.obstacles,
+    fields: draft.fields,
     siege: draft.siege,
     sides: draft.sides,
     stacks: draft.stacks,

@@ -252,7 +252,12 @@ export function battleStepSchemas<E extends z.ZodType>(expectError: E) {
     z.strictObject({ shoot: z.string(), expectError }),
     // Заклинание героя стороны, чей отряд ходит (62-battle-spells.md).
     z.strictObject({
-      cast: z.strictObject({ spell: z.string(), target: z.string() }),
+      // Цель — отряд, клетка, обе («Телепорт») или никакой («Землетрясение»).
+      cast: z.strictObject({
+        spell: z.string(),
+        target: z.string().optional(),
+        cell: cellSchema.optional(),
+      }),
       expectError,
     }),
     z.strictObject({ wait: nothing, expectError }),

@@ -129,7 +129,7 @@ describe("подсказки осады", () => {
   it("удержание на клетке осады говорит, что это; на траве — ничего", () => {
     const state = withHealth(siege("castle"), { wall1: 3, wall2: 1, wall3: 0, gate: 2 });
     expect(cellNote(state, { col: 11, row: 1 })).toBe(
-      "Стена, прочность 3. Ломает её только катапульта.",
+      "Стена, прочность 3. Ломают её катапульта и «Землетрясение».",
     );
     expect(cellNote(state, { col: 9, row: 4 })).toContain("прочность 1");
     expect(cellNote(state, { col: 10, row: 7 })).toBe("Пролом: стена разрушена, проход свободен.");

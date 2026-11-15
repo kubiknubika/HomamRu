@@ -141,6 +141,7 @@ export {
 } from "./battle/cast.ts";
 export { aimsAtCell, areaCells, areaVictims } from "./battle/area.ts";
 export type { SpellAim } from "./battle/area.ts";
+export { forceFieldCells, isFieldSpell, removableAt, teleportCells } from "./battle/field.ts";
 export { commanderOf, luckOf, moraleOf, speedOf } from "./battle/effects.ts";
 export { randomBattle, randomSiege, runAutoBattle } from "./battle/autobattle.ts";
 export { TOWNLESS_DAYS } from "./players.ts";

@@ -1,0 +1,26 @@
+# Проверочная карта заклинаний поля боя (docs/mechanics/70-spells-field.md).
+id: test-field
+name: Проверочная карта заклинаний поля
+terrain:
+  - "........"
+  - "........"
+  - "........"
+  - "...##..."
+  - "........"
+  - "........"
+  - "........"
+  - "........"
+players:
+  - hero:
+      x: 0
+      y: 0
+      spellPower: 3
+      knowledge: 6
+      book: true
+      spells: [force-field, teleport, earthquake, remove-obstacle]
+      army:
+        - { creature: falcon, count: 20 }
+    resources: { gold: 20000, wood: 20, ore: 20 }
+objects:
+  - { type: guard, x: 4, y: 0, creature: militia, count: 15 }
+  - { type: town, x: 1, y: 5, owner: 0, buildings: [tavern, fort, militia-yard] }

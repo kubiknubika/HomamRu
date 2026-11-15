@@ -142,11 +142,24 @@ export interface BattleResult {
   readonly losses: readonly { readonly stackId: string; readonly lost: number }[];
 }
 
+/** Постройка на поле, поставленная заклинанием (70-spells-field.md). */
+interface FieldObject {
+  /** `forceField` — силовое поле: на его клетки нельзя встать. */
+  readonly kind: "forceField";
+  readonly cells: readonly Cell[];
+  /** Чей герой её поставил. */
+  readonly side: BattleSide;
+  /** Сколько начал раунда постройка ещё переживёт. */
+  readonly rounds: number;
+}
+
 export interface BattleState {
   readonly version: number;
   readonly rng: RngState;
   readonly round: number;
   readonly obstacles: readonly Cell[];
+  /** Постройки заклинаний. */
+  readonly fields: readonly FieldObject[];
   /** Стена, ворота, ров и башни; `null` — бой не осада. */
   readonly siege: SiegeState | null;
   readonly sides: readonly [BattleSideState, BattleSideState];
@@ -176,7 +189,7 @@ export type BattleCommand =
       readonly side: BattleSide;
       /** Идентификатор заклинания. */
       readonly spell: string;
-      /** Отряд-цель; у заклинания в клетку и у «Армагеддона» его нет. */
+      /** Отряд-цель; у заклинания в клетку и у «Армагеддона» его нет. У «Телепорта» — и отряд, и клетка. */
       readonly target?: string | undefined;
       /** Клетка-цель заклинания по площади (68-spells-area.md). */
       readonly cell?: Cell | undefined;
@@ -205,6 +218,37 @@ export type BattleEvent =
   | { readonly type: "roundStarted"; readonly round: number }
   | { readonly type: "stackTurn"; readonly stackId: string }
   | { readonly type: "stackFroze"; readonly stackId: string }
+  | {
+      /** Заклинание поставило постройку (70-spells-field.md). */
+      readonly type: "fieldPlaced";
+      readonly kind: FieldObject["kind"];
+      readonly cells: readonly Cell[];
+      readonly side: BattleSide;
+    }
+  | {
+      /** Постройка исчезла: вышел срок или её убрали заклинанием. */
+      readonly type: "fieldRemoved";
+      readonly kind: FieldObject["kind"];
+      readonly cells: readonly Cell[];
+      readonly reason: "expired" | "removed";
+    }
+  | {
+      /** Герой наколдовал заклинание поля; что оно сделало — в следующих событиях. */
+      readonly type: "fieldCast";
+      readonly side: BattleSide;
+      readonly spell: string;
+      readonly name: string;
+      readonly manaLeft: number;
+    }
+  | { readonly type: "obstacleRemoved"; readonly cell: Cell }
+  /** «Землетрясение» ударило по части укреплений; `left` — прочность после удара. */
+  | { readonly type: "wallShaken"; readonly part: WallPart; readonly left: number }
+  | {
+      readonly type: "stackTeleported";
+      readonly stackId: string;
+      readonly from: Cell;
+      readonly to: Cell;
+    }
   /** Отряд в берсерке действует сам: дальше идут его шаг, удар или выстрел. */
   | { readonly type: "berserkTurn"; readonly stackId: string; readonly targetId: string | null }
   | {
@@ -313,6 +357,7 @@ export const BATTLE_REJECT_CODES = [
   "ALREADY_CAST",
   "BAD_SPELL_TARGET",
   "BAD_SPELL_CELL",
+  "NOT_A_SIEGE",
 ] as const;
 
 export type BattleRejectCode = (typeof BATTLE_REJECT_CODES)[number];

@@ -3,7 +3,9 @@
  * Спецификации: docs/mechanics/64-magic-screen.md, 68-spells-area.md.
  */
 import type { BattleState, Cell, SpellAim, SpellDefinition } from "@homamru/core";
+import { isFieldSpell } from "@homamru/core";
 import { areaStart, areaTap } from "./battleArea.ts";
+import { fieldStart, fieldTap } from "./battleField.ts";
 import { bookButton, massChoice, targetPreview } from "./battleSpells.ts";
 
 type Side = 0 | 1;
@@ -43,8 +45,11 @@ export function spellStart(
   ) {
     return null;
   }
-  const chosen =
-    spell.area === undefined ? massChoice(state, side, spell) : areaStart(state, side, spell);
+  const chosen = isFieldSpell(spell)
+    ? fieldStart(state, side, spell)
+    : spell.area === undefined
+      ? massChoice(state, side, spell)
+      : areaStart(state, side, spell);
   return { kind: "spell", spell: id, name: spell.name, ...chosen };
 }
 
@@ -59,6 +64,10 @@ export function spellTap(
   cell: Cell,
 ): { readonly cast: SpellAim } | { readonly selection: SpellSelection | null } {
   const spell = spellOf(state, side, selection.spell);
+  if (spell !== undefined && isFieldSpell(spell)) {
+    const tapped = fieldTap(state, side, spell, selection, cell);
+    return "cast" in tapped ? tapped : { selection: { ...selection, ...tapped.choice } };
+  }
   if (spell?.area !== undefined) {
     const tapped = areaTap(state, side, spell, selection.aim ?? null, cell);
     if ("cast" in tapped) {

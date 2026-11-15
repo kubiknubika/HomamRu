@@ -1,0 +1,29 @@
+name: Заклинания поля боя — силовое поле, телепорт, отказы
+map: test-field
+seed: 1
+steps:
+  - move: { hero: A, path: [E, E, E] }
+  # В поле «Землетрясение» не колдуют: ломать нечего.
+  - cast: { spell: earthquake }
+    expectError: NOT_A_SIEGE
+  # Убирать нечего: в клетке нет ни препятствия, ни постройки.
+  - cast: { spell: remove-obstacle, cell: [7, 5] }
+    expectError: BAD_SPELL_CELL
+  # «Силовое поле» — две клетки: названная и выше-правее. Мана 60 − 12.
+  - cast: { spell: force-field, cell: [7, 5] }
+  - cast: { spell: teleport, target: a1, cell: [9, 5] }
+    expectError: ALREADY_CAST
+  - defend: {}
+  - defend: {}
+  # Второй раунд. На клетку силового поля перенестись нельзя, рядом — можно. Мана 48 − 15.
+  - cast: { spell: teleport, target: a1, cell: [7, 5] }
+    expectError: BAD_SPELL_CELL
+  - cast: { spell: teleport, target: b1, cell: [9, 5] }
+    expectError: BAD_SPELL_TARGET
+  - cast: { spell: teleport, target: a1, cell: [9, 5] }
+  - fight: {}
+expect:
+  battle: false
+  outcome: none
+  objects:
+    o1: absent

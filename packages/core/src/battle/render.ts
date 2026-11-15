@@ -156,6 +156,10 @@ function formatOutcome(outcome: SpellOutcome): string {
 }
 
 /** Событие боя одной строкой по-русски. */
+function cellsText(cells: readonly { col: number; row: number }[]): string {
+  return cells.map((cell) => `(${cell.col}, ${cell.row})`).join(", ");
+}
+
 export function formatBattleEvent(event: BattleEvent): string {
   switch (event.type) {
     case "roundStarted":
@@ -189,6 +193,18 @@ export function formatBattleEvent(event: BattleEvent): string {
         event.left === 0 && event.damage > 0 ? "разрушено" : `прочность ${event.left}`;
       return `Катапульта попадает: ${where}, урон ${event.damage}, ${outcome}`;
     }
+    case "fieldCast":
+      return `Герой (${sideName(event.side)}) колдует «${event.name}»; маны осталось ${event.manaLeft}`;
+    case "fieldPlaced":
+      return `Силовое поле (${sideName(event.side)}): ${cellsText(event.cells)}`;
+    case "fieldRemoved":
+      return `Силовое поле ${event.reason === "expired" ? "исчезло" : "убрано"}: ${cellsText(event.cells)}`;
+    case "obstacleRemoved":
+      return `Препятствие убрано: (${event.cell.col}, ${event.cell.row})`;
+    case "wallShaken":
+      return `Землетрясение: ${PART_NAMES[event.part]}, ${event.left === 0 ? "разрушено" : `прочность ${event.left}`}`;
+    case "stackTeleported":
+      return `Отряд ${event.stackId} перенесён: (${event.from.col}, ${event.from.row}) → (${event.to.col}, ${event.to.row})`;
     case "berserkTurn":
       return event.targetId === null
         ? `Отряд ${event.stackId} в берсерке: бить некого`

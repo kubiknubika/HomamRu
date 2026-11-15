@@ -6,6 +6,7 @@ import { aimsAtCell, areaVictims } from "./area.ts";
 import { applyDamage } from "./damage.ts";
 import type { BattleDraft } from "./draft.ts";
 import { reflect, wake } from "./control.ts";
+import { castField, fieldRefusal, isFieldSpell } from "./field.ts";
 import { immuneTo, isHypnotized, spellDamagePercent } from "./effects.ts";
 import { inField } from "./hex.ts";
 import { isMachine } from "./siege.ts";
@@ -83,6 +84,9 @@ export function canTarget(
   if (target.count === 0 || (spell.area !== undefined && spell.area !== "chain")) {
     return false;
   }
+  if (isFieldSpell(spell)) {
+    return false;
+  }
   if (isMachine(target) && (spell.effect !== "damage" || spell.spareMachines === true)) {
     return false;
   }
@@ -135,6 +139,9 @@ export function castRefusal(state: BattleState, command: CastCommand): Refusal |
   }
   if (hero.mana < spell.cost) {
     return { code: "NOT_ENOUGH_MANA", message: `Нужно маны: ${spell.cost}.` };
+  }
+  if (isFieldSpell(spell)) {
+    return fieldRefusal(state, command, spell);
   }
   if (spell.area === "all") {
     return null;
@@ -234,6 +241,20 @@ export function cast(draft: BattleDraft, command: CastCommand): void {
   const { hero } = side;
   const spell = hero?.spells.find((candidate) => candidate.id === command.spell);
   if (hero === null || spell === undefined) {
+    return;
+  }
+  if (isFieldSpell(spell)) {
+    // Заклинание поля: отрядов не задевает, событие одно — о самом колдовстве.
+    hero.mana -= spell.cost;
+    side.cast = true;
+    draft.events.push({
+      type: "fieldCast",
+      side: command.side,
+      spell: spell.id,
+      name: spell.name,
+      manaLeft: hero.mana,
+    });
+    castField(draft, command, spell);
     return;
   }
   const target = draft.stacks.find((stack) => stack.id === command.target);

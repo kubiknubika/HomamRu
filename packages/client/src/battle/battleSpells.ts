@@ -81,6 +81,26 @@ const AREA_TEXT: Record<NonNullable<SpellDefinition["area"]>, (chain: number) =>
   radius: () => "",
 };
 
+const TELEPORT_TEXT = [
+  "в осаде — по свою сторону стены и не в ров",
+  "в осаде — по свою сторону стены, можно в ров",
+  "в осаде — и за стену",
+];
+const REMOVE_TEXT = [
+  "препятствие",
+  "препятствие или стену огня",
+  "препятствие и любую постройку заклинаний",
+];
+
+/** Заклинания поля боя (70-spells-field.md): срок от силы магии не зависит. */
+const FIELD_TEXT: Partial<Record<SpellDefinition["effect"], (value: number) => string>> = {
+  forceField: (value) => `${value} клетки, не пройти, 2 раунда`,
+  removeObstacle: (value) => `убирает ${REMOVE_TEXT[value] ?? REMOVE_TEXT[0]}`,
+  earthquake: (value) => `только в осаде: ${value} удара по укреплениям, каждый −1 прочности`,
+  teleport: (value) =>
+    `переносит ваш отряд в свободную клетку; ${TELEPORT_TEXT[value] ?? TELEPORT_TEXT[0]}`,
+};
+
 /** Площадь «Берсерка» по радиусу: клетка, клетка и соседние, два шага. */
 const RADIUS_TEXT = ["одна клетка", "клетка и соседние", "клетки в двух шагах"];
 
@@ -98,6 +118,10 @@ function spellEffectText(spell: SpellDefinition, hero: Caster): string {
   }
   if (spell.effect === "dispel") {
     return "снимает все заклинания";
+  }
+  const field = FIELD_TEXT[spell.effect]?.(spell.value);
+  if (field !== undefined) {
+    return field;
   }
   if (spell.effect === "berserk") {
     const where = RADIUS_TEXT[spell.value] ?? RADIUS_TEXT[0];

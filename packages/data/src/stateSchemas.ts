@@ -4,18 +4,11 @@
  * обычный `z.object` молча убирает незнакомые поля, `.catch` подставляет начальное значение.
  * Идущий бой читается строго: он либо цел, либо убирается.
  */
-import {
-  DAILY_MOVEMENT,
-  DIRECTIONS,
-  GUARD_MAX_COUNT,
-  MAX_PLAYERS,
-  MINE_KINDS,
-  RESOURCES,
-} from "@homamru/core";
-import type { BattleState, Command } from "@homamru/core";
+import { DAILY_MOVEMENT, GUARD_MAX_COUNT, MAX_PLAYERS, MINE_KINDS, RESOURCES } from "@homamru/core";
+import type { BattleState } from "@homamru/core";
 import { z } from "zod";
 import { savedCreatureSchema } from "./battle.ts";
-import { battleHeroSchema, chooseSkillSchema, spellSchema } from "./spells.ts";
+import { battleHeroSchema, spellSchema } from "./spells.ts";
 
 /**
  * Начальные значения параметров состояния — те, что вписываются, когда в записи их нет.
@@ -202,8 +195,8 @@ export const looseStateSchema = z.object({
 
 export type LooseState = z.infer<typeof looseStateSchema>;
 
-const battleCellSchema = z.strictObject({ col: z.int(), row: z.int() });
-const battleSideSchema = z.union([z.literal(0), z.literal(1)]);
+export const battleCellSchema = z.strictObject({ col: z.int(), row: z.int() });
+export const battleSideSchema = z.union([z.literal(0), z.literal(1)]);
 
 const battleSideStateSchema = z.strictObject({
   // В записях до этапа 7 магии в бою нет.
@@ -231,6 +224,17 @@ const battleStateSchema = z.strictObject({
   rng: z.strictObject({ s: z.int() }),
   round: z.int(),
   obstacles: z.array(battleCellSchema),
+  // В записях до заклинаний поля (70-spells-field.md) построек нет.
+  fields: z
+    .array(
+      z.strictObject({
+        kind: z.literal("forceField"),
+        cells: z.array(battleCellSchema).min(1),
+        side: battleSideSchema,
+        rounds: z.int().min(1),
+      }),
+    )
+    .default([]),
   // В записях до этапа 6 осады нет.
   siege: z
     .strictObject({
@@ -285,60 +289,3 @@ export const mapBattleSchema = z.strictObject({
   townId: z.string().nullable().default(null),
   state: battleStateSchema,
 });
-
-export const commandSchema = z.discriminatedUnion("type", [
-  z.strictObject({
-    type: z.literal("moveHero"),
-    player: z.int(),
-    heroId: z.string(),
-    path: z.array(z.enum(DIRECTIONS)),
-  }),
-  z.strictObject({ type: z.literal("endTurn"), player: z.int() }),
-  z.strictObject({
-    type: z.literal("hireHero"),
-    player: z.int(),
-    townId: z.string(),
-    offer: z.number(),
-  }),
-  z.strictObject({
-    type: z.literal("build"),
-    player: z.int(),
-    townId: z.string(),
-    building: z.string(),
-  }),
-  z.strictObject({
-    type: z.literal("recruit"),
-    player: z.int(),
-    townId: z.string(),
-    creature: z.string(),
-    count: z.number(),
-  }),
-  z.strictObject({
-    type: z.literal("transfer"),
-    player: z.int(),
-    townId: z.string(),
-    from: z.enum(["garrison", "hero"]),
-    creature: z.string(),
-    count: z.number(),
-  }),
-  z.strictObject({ type: z.literal("buyBook"), player: z.int(), townId: z.string() }),
-  chooseSkillSchema,
-  z.strictObject({
-    type: z.literal("battleCast"),
-    side: battleSideSchema,
-    spell: z.string(),
-    target: z.string().optional(),
-    cell: battleCellSchema.optional(),
-  }),
-  z.strictObject({ type: z.literal("battleMove"), side: battleSideSchema, to: battleCellSchema }),
-  z.strictObject({
-    type: z.literal("battleAttack"),
-    side: battleSideSchema,
-    target: z.string(),
-    from: battleCellSchema,
-  }),
-  z.strictObject({ type: z.literal("battleShoot"), side: battleSideSchema, target: z.string() }),
-  z.strictObject({ type: z.literal("battleWait"), side: battleSideSchema }),
-  z.strictObject({ type: z.literal("battleDefend"), side: battleSideSchema }),
-  z.strictObject({ type: z.literal("battleFlee"), side: battleSideSchema }),
-]) satisfies z.ZodType<Command>;

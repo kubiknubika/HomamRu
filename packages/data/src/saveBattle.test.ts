@@ -254,6 +254,27 @@ describe("параметры шага 3.2: чего нет — начально�
     );
   });
 
+  it("постройки заклинаний сохраняются; запись боя без них читается как бой без построек", () => {
+    const guarded = apply(newGame([{ creature: "militia", count: 12 }], 14), TO_ZONE);
+    const battle = guarded.battle;
+    if (battle === null) {
+      throw new Error("Боя нет.");
+    }
+    const field = {
+      kind: "forceField" as const,
+      cells: [{ col: 7, row: 5 }],
+      side: 0 as const,
+      rounds: 2,
+    };
+    const built = {
+      ...guarded,
+      battle: { ...battle, state: { ...battle.state, fields: [field] } },
+    };
+    expect(readState(built)?.battle?.state.fields).toEqual([field]);
+    const { fields: _fields, ...old } = battle.state;
+    expect(readState({ ...guarded, battle: { ...battle, state: old } })?.battle).toEqual(battle);
+  });
+
   it("бой, который не читается или относится к пропавшему охраннику, убирается", () => {
     const entered = apply(newGame([{ creature: "militia", count: 12 }], 14), TO_ZONE);
     expect(readState(entered)?.battle).toEqual(entered.battle);

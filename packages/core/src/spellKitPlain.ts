@@ -202,4 +202,27 @@ export const PLAIN_SPELLS: readonly SpellDefinition[] = [
     "ally",
     [20, 30, 40],
   ),
+  // Четвёртая группа: поле боя (70-spells-field.md).
+  plain(
+    ["remove-obstacle", "Убрать препятствие", 2, "water"],
+    [7, 5, 0, 0],
+    "removeObstacle",
+    "enemy",
+    [0, 1, 2],
+  ),
+  plain(
+    ["force-field", "Силовое поле", 3, "earth"],
+    [12, 9, 0, 2],
+    "forceField",
+    "enemy",
+    [2, 3, 3],
+  ),
+  plain(
+    ["earthquake", "Землетрясение", 3, "earth"],
+    [20, 17, 0, 2],
+    "earthquake",
+    "enemy",
+    [2, 3, 4],
+  ),
+  plain(["teleport", "Телепорт", 3, "water"], [15, 12, 0, 0], "teleport", "ally", [0, 1, 2]),
 ];

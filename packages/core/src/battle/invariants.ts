@@ -15,6 +15,19 @@ export function battleProblems(state: BattleState): string[] {
   if (new Set(alive.map((stack) => cellIndex(stack))).size !== alive.length) {
     problems.push("два отряда в одной клетке");
   }
+  for (const field of state.fields) {
+    if (field.rounds < 1) {
+      problems.push("постройка с истёкшим сроком осталась на поле");
+    }
+    for (const cell of field.cells) {
+      if (alive.some((stack) => stack.col === cell.col && stack.row === cell.row)) {
+        problems.push(`отряд стоит на постройке (${cell.col}, ${cell.row})`);
+      }
+      if (state.obstacles.some((item) => item.col === cell.col && item.row === cell.row)) {
+        problems.push(`постройка на препятствии (${cell.col}, ${cell.row})`);
+      }
+    }
+  }
   for (const stack of alive) {
     if (!inField(stack)) {
       problems.push(`${stack.id} вне поля`);

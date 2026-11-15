@@ -8,7 +8,7 @@ import type { Command, GameState } from "@homamru/core";
 import { z } from "zod";
 import type { SaveDefaults } from "./defaults.ts";
 import { readState } from "./state.ts";
-import { commandSchema } from "./stateSchemas.ts";
+import { commandSchema } from "./commandSchemas.ts";
 
 /**
  * Версия формата сохранения. Увеличивается при любом изменении состава записи.
