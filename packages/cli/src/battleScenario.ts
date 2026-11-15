@@ -51,7 +51,12 @@ export function describeBattleCommand(command: BattleCommand): string {
     case "battleFlee":
       return "бежать";
     case "battleCast":
-      return `колдовать «${command.spell}» на ${command.target}`;
+      if (command.cell !== undefined) {
+        return `колдовать «${command.spell}» в клетку (${command.cell.col}, ${command.cell.row})`;
+      }
+      return command.target === undefined
+        ? `колдовать «${command.spell}»`
+        : `колдовать «${command.spell}» на ${command.target}`;
   }
 }
 

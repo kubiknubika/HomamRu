@@ -128,6 +128,13 @@ export function endBattle(draft: BattleDraft, winner: BattleSide, reason: Battle
 
 /** Если у одной из сторон не осталось отрядов — заканчивает бой. Возвращает, закончен ли он. */
 export function endIfDestroyed(draft: BattleDraft): boolean {
+  const alive = (side: BattleSide): boolean =>
+    draft.stacks.some((stack) => stack.side === side && stack.count > 0 && !isMachine(stack));
+  if (!alive(0) && !alive(1)) {
+    // Обе армии погибли разом («Армагеддон»): победителя нет (68-spells-area.md).
+    endBattle(draft, 1, "bothDestroyed");
+    return true;
+  }
   for (const side of [0, 1] as const) {
     // Катапульта — не отряд: сторона с одной катапультой разбита.
     if (
@@ -138,6 +145,20 @@ export function endIfDestroyed(draft: BattleDraft): boolean {
     }
   }
   return false;
+}
+
+/**
+ * После заклинания: бой мог кончиться; если заклинание по площади убило отряд, чей был ход, —
+ * ход переходит дальше (68-spells-area.md).
+ */
+export function endAfterCast(draft: BattleDraft): void {
+  if (endIfDestroyed(draft)) {
+    return;
+  }
+  const active = draft.stacks.find((stack) => stack.id === draft.activeStack);
+  if (active !== undefined && active.count === 0) {
+    activateNext(draft);
+  }
 }
 
 /**

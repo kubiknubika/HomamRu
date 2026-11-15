@@ -3,6 +3,8 @@
  * Спецификация: docs/mechanics/63-opponent-magic.md.
  */
 import type { SpellDefinition, SpellEffect } from "../spells.ts";
+import { bestAreaCast, HEALTH } from "./aiArea.ts";
+import type { SpellAim } from "./area.ts";
 import { canTarget, castableSpells, spellTargetsOf, spellValue } from "./cast.ts";
 import { GOOD_DICE } from "./damage.ts";
 import { luckOf, moraleOf, spellDamagePercent } from "./effects.ts";
@@ -10,11 +12,6 @@ import { hasAdjacentEnemy, isAlive } from "./queries.ts";
 import { isMachine } from "./siege.ts";
 import type { BattleCommand, BattleHero, BattleSide, BattleState, StackState } from "./types.ts";
 
-/**
- * Польза считается в целых числах: одно очко здоровья — 80 единиц.
- * Так проценты (7,5 %, 15 %, 30 %) и средний урон не дают дробей.
- */
-const HEALTH = 80;
 /** Дальше стольких раундов компьютер не заглядывает. */
 const MAX_ROUNDS = 3;
 const PERCENT = 100;
@@ -208,8 +205,21 @@ export function chooseCast(state: BattleState, side: BattleSide): BattleCommand 
     state,
     foesOf: (stack) => alive.filter((other) => other.side !== stack.side),
   };
-  let best: { spell: SpellDefinition; target: string; worth: number } | undefined;
+  let best: { spell: SpellDefinition; aim: SpellAim; worth: number } | undefined;
+  const everyone = state.stacks.filter(isAlive);
   for (const spell of castableSpells(state, side)) {
+    if (spell.area !== undefined) {
+      const found = bestAreaCast(everyone, side, hero, spell);
+      if (
+        found !== undefined &&
+        (best === undefined ||
+          found.worth > best.worth ||
+          (found.worth === best.worth && spell.cost < best.spell.cost))
+      ) {
+        best = { spell, ...found };
+      }
+      continue;
+    }
     // Заклинание «на всех» считается один раз: его польза — сумма по всем отрядам.
     const targets = alive.filter((stack) => canTarget(spell, side, stack));
     for (const target of spell.mass === true ? targets.slice(0, 1) : targets) {
@@ -223,11 +233,11 @@ export function chooseCast(state: BattleState, side: BattleSide): BattleCommand 
           worth > best.worth ||
           (worth === best.worth && spell.cost < best.spell.cost))
       ) {
-        best = { spell, target: target.id, worth };
+        best = { spell, aim: { target: target.id }, worth };
       }
     }
   }
   return best === undefined
     ? undefined
-    : { type: "battleCast", side, spell: best.spell.id, target: best.target };
+    : { type: "battleCast", side, spell: best.spell.id, ...best.aim };
 }

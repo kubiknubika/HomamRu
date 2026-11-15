@@ -333,3 +333,85 @@
   target: enemy
   values: [100, 200, 300]
   spareMachines: true
+# Урон по площади (docs/mechanics/68-spells-area.md): свои отряды получают тот же урон.
+# area — ball: клетка и соседние; ring: только соседние; inferno: два шага; all: все отряды;
+# chain: цепь ближайших отрядов, chain — её длина без навыка и на трёх уровнях школы.
+- id: frost-ring
+  name: Кольцо холода
+  level: 3
+  schools: [water]
+  cost: 12
+  skilledCost: 9
+  power: 10
+  value: 15
+  chance: 0
+  effect: damage
+  target: enemy
+  values: [15, 30, 60]
+  area: ring
+- id: fireball
+  name: Огненный шар
+  level: 3
+  schools: [fire]
+  cost: 15
+  skilledCost: 12
+  power: 10
+  value: 15
+  chance: 0
+  effect: damage
+  target: enemy
+  values: [15, 30, 60]
+  area: ball
+- id: inferno
+  name: Инферно
+  level: 4
+  schools: [fire]
+  cost: 16
+  skilledCost: 12
+  power: 10
+  value: 20
+  chance: 0
+  effect: damage
+  target: enemy
+  values: [20, 40, 80]
+  area: inferno
+- id: meteor-shower
+  name: Метеоритный дождь
+  level: 4
+  schools: [earth]
+  cost: 16
+  skilledCost: 12
+  power: 25
+  value: 25
+  chance: 0
+  effect: damage
+  target: enemy
+  values: [25, 50, 100]
+  area: ball
+- id: chain-lightning
+  name: Цепная молния
+  level: 4
+  schools: [air]
+  cost: 24
+  skilledCost: 20
+  power: 40
+  value: 25
+  chance: 0
+  effect: damage
+  target: enemy
+  values: [25, 50, 100]
+  area: chain
+  chain: [4, 4, 5, 5]
+- id: armageddon
+  name: Армагеддон
+  level: 4
+  schools: [fire]
+  cost: 24
+  skilledCost: 20
+  power: 50
+  value: 30
+  chance: 0
+  effect: damage
+  target: enemy
+  values: [30, 60, 120]
+  area: all

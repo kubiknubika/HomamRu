@@ -130,7 +130,8 @@ export interface BattleSideState {
   readonly cast: boolean;
 }
 
-export type BattleEndReason = "destroyed" | "fled";
+/** `bothDestroyed` — обе армии погибли разом: победителя нет, `winner` — обороняющийся. */
+export type BattleEndReason = "destroyed" | "fled" | "bothDestroyed";
 
 export interface BattleResult {
   readonly winner: BattleSide;
@@ -173,8 +174,10 @@ export type BattleCommand =
       readonly side: BattleSide;
       /** Идентификатор заклинания. */
       readonly spell: string;
-      /** Отряд-цель. */
-      readonly target: string;
+      /** Отряд-цель; у заклинания в клетку и у «Армагеддона» его нет. */
+      readonly target?: string | undefined;
+      /** Клетка-цель заклинания по площади (68-spells-area.md). */
+      readonly cell?: Cell | undefined;
     };
 
 /** Чем кончилось заклинание. */
@@ -250,6 +253,14 @@ export type BattleEvent =
       readonly outcome: SpellOutcome;
     }
   | {
+      /** Заклинание по площади никого не задело. */
+      readonly type: "spellMissed";
+      readonly side: BattleSide;
+      readonly spell: string;
+      readonly name: string;
+      readonly manaLeft: number;
+    }
+  | {
       readonly type: "effectEnded";
       readonly stackId: string;
       readonly spell: string;
@@ -278,6 +289,7 @@ export const BATTLE_REJECT_CODES = [
   "NOT_ENOUGH_MANA",
   "ALREADY_CAST",
   "BAD_SPELL_TARGET",
+  "BAD_SPELL_CELL",
 ] as const;
 
 export type BattleRejectCode = (typeof BATTLE_REJECT_CODES)[number];

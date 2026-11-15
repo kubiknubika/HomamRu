@@ -32,6 +32,7 @@ export const CELL_MARK_STYLES = {
   moveChoice: { color: 0xffffff, alpha: 0.55 },
   attackCell: { color: 0xe2463c, alpha: 0.55 },
   attackChoice: { color: 0xff9a1f, alpha: 0.9 },
+  spellArea: { color: 0xe2463c, alpha: 0.4 },
 } as const;
 
 /** Цвет и толщина обводки отрядов. */
@@ -42,6 +43,7 @@ export const RING_MARK_STYLES = {
   inspected: { color: 0x3aa0ff, width: 3 },
   spellEnemy: { color: 0xe2463c, width: 3 },
   spellAlly: { color: 0x3fbf5a, width: 3 },
+  spellOwn: { color: 0xffd21f, width: 4 },
 } as const;
 
 /** Цвета заклинаний: полезное и вредное — метки на отрядах и вспышка при колдовстве. */

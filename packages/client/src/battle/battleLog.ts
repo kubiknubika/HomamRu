@@ -78,6 +78,10 @@ function describeEvent(
                 : `действует раундов: ${outcome.rounds}`;
       return `${who} «${event.name}»: ${nameOf(event.targetId)}, ${what}`;
     }
+    case "spellMissed": {
+      const who = event.side === playerSide ? "Вы колдуете" : "Противник колдует";
+      return `${who} «${event.name}»: никого не задело`;
+    }
     case "effectEnded":
       return `${nameOf(event.stackId)}: «${event.name}» больше не действует`;
     case "sideFled":

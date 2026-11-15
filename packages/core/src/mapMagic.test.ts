@@ -3,6 +3,8 @@ import { describe, expect, it } from "vitest";
 import { playBattleOut } from "./battleAuto.ts";
 import { applyCommand, replay } from "./commands.ts";
 import { duel, enemyTown, HOME, put, run, TO_TOWN } from "./duelKit.ts";
+import { spell as kitSpell } from "./spellKit.ts";
+import { spellAtMastery } from "./spells.ts";
 import { gameWith, OPEN_FIELD } from "./testkit.ts";
 import type { Command, GameState, HeroState } from "./types.ts";
 
@@ -107,5 +109,35 @@ describe("чужая гильдия", () => {
     expect(town).toMatchObject({ owner: 0 });
     expect(taken.heroes[0]?.spells).toEqual(town?.type === "town" ? town.spells : null);
     expect(taken.heroes[0]?.spells).toHaveLength(5);
+  });
+});
+
+const ARMAGEDDON: Command = { type: "battleCast", side: 0, spell: "armageddon" };
+
+/** Бой с охранником; у героя в бою — «Армагеддон» такой силы, что гибнут все. */
+function doomed(): GameState {
+  const state = inBattle({ ...MAGE, mana: 30 }, ["militia:5"]);
+  const battle = state.battle;
+  const hero = battle?.state.sides[0].hero;
+  if (battle === null || battle === undefined || hero === null || hero === undefined) {
+    throw new Error("Бой не начался.");
+  }
+  const mage = { ...hero, spellPower: 20, spells: [spellAtMastery(kitSpell("armageddon"), 0)] };
+  const sides = [{ ...battle.state.sides[0], hero: mage }, battle.state.sides[1]] as const;
+  return { ...state, battle: { ...battle, state: { ...battle.state, sides } } };
+}
+
+describe("обе армии погибли разом (68-spells-area.md)", () => {
+  it("героя нет, охранника нет, опыта никому", () => {
+    const result = applyCommand(doomed(), ARMAGEDDON);
+    expect(result).toMatchObject({ ok: true });
+    const after = result.ok ? result.state : doomed();
+    expect(after.battle).toBeNull();
+    expect(after.heroes.some((hero) => hero.id === "A")).toBe(false);
+    expect(after.objects.some((object) => object.type === "guard")).toBe(false);
+    const events = result.ok ? result.events.map((event) => event.type) : [];
+    expect(events).toContain("heroDied");
+    expect(events).not.toContain("guardDefeated");
+    expect(events).not.toContain("experienceGained");
   });
 });

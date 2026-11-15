@@ -2,9 +2,11 @@
  * Заклинания героя в бою. Спецификация: docs/mechanics/62-battle-spells.md.
  */
 import type { SpellDefinition } from "../spells.ts";
+import { aimsAtCell, areaVictims } from "./area.ts";
 import { applyDamage } from "./damage.ts";
 import type { BattleDraft } from "./draft.ts";
 import { spellDamagePercent } from "./effects.ts";
+import { inField } from "./hex.ts";
 import { isMachine } from "./siege.ts";
 import type {
   BattleCommand,
@@ -31,6 +33,20 @@ export function spellValue(spell: SpellDefinition, hero: Caster): number {
   return spell.effect === "damage" ? Math.floor((raw * (100 + hero.sorcery)) / 100) : raw;
 }
 
+/**
+ * Урон заклинания по отряду: у цепной молнии каждому следующему вдвое меньше (`divisor`),
+ * защита от школы — у кого она есть. Дробь отбрасывается.
+ */
+export function spellDamageTo(
+  spell: SpellDefinition,
+  hero: Caster,
+  target: StackState,
+  divisor = 1,
+): number {
+  const raw = Math.floor(spellValue(spell, hero) / divisor);
+  return Math.floor((raw * spellDamagePercent(target, spell.schools)) / 100);
+}
+
 /** Отряды, на которые ляжет заклинание, наколдованное на `target`: у заклинания «на всех» — все подходящие. */
 export function spellTargetsOf<T extends StackState>(
   stacks: readonly T[],
@@ -43,7 +59,7 @@ export function spellTargetsOf<T extends StackState>(
 
 /** Может ли заклинание лечь на этот отряд: свой или чужой, живой, не машина (кроме урона). */
 export function canTarget(spell: SpellDefinition, side: BattleSide, target: StackState): boolean {
-  if (target.count === 0) {
+  if (target.count === 0 || (spell.area !== undefined && spell.area !== "chain")) {
     return false;
   }
   if (isMachine(target) && (spell.effect !== "damage" || spell.spareMachines === true)) {
@@ -85,9 +101,17 @@ export function castRefusal(state: BattleState, command: CastCommand): Refusal |
   if (hero.mana < spell.cost) {
     return { code: "NOT_ENOUGH_MANA", message: `Нужно маны: ${spell.cost}.` };
   }
+  if (spell.area === "all") {
+    return null;
+  }
+  if (aimsAtCell(spell)) {
+    return command.cell !== undefined && inField(command.cell)
+      ? null
+      : { code: "BAD_SPELL_CELL", message: `«${spell.name}» колдуют в клетку поля.` };
+  }
   const target = state.stacks.find((stack) => stack.id === command.target);
   if (target === undefined || target.count === 0) {
-    return { code: "UNKNOWN_TARGET", message: `Отряда «${command.target}» нет на поле.` };
+    return { code: "UNKNOWN_TARGET", message: `Отряда «${command.target ?? ""}» нет на поле.` };
   }
   if (!canTarget(spell, command.side, target)) {
     return { code: "BAD_SPELL_TARGET", message: `«${spell.name}» на этот отряд не накладывается.` };
@@ -106,13 +130,13 @@ function resolve(
   hero: Caster,
   side: BattleSide,
   target: DraftStack,
+  divisor = 1,
 ): SpellOutcome {
   const { health } = target.creature;
   const { spellPower } = hero;
   switch (spell.effect) {
     case "damage": {
-      const raw = spellValue(spell, hero);
-      const damage = Math.floor((raw * spellDamagePercent(target, spell.schools)) / 100);
+      const damage = spellDamageTo(spell, hero, target, divisor);
       const losses = applyDamage(target.count, target.firstHealth, health, damage);
       target.count = losses.count;
       target.firstHealth = losses.firstHealth;
@@ -160,15 +184,35 @@ export function cast(draft: BattleDraft, command: CastCommand): void {
   const side = draft.sides[command.side];
   const { hero } = side;
   const spell = hero?.spells.find((candidate) => candidate.id === command.spell);
-  const target = draft.stacks.find((stack) => stack.id === command.target);
-  if (hero === null || spell === undefined || target === undefined) {
+  if (hero === null || spell === undefined) {
     return;
   }
+  const target = draft.stacks.find((stack) => stack.id === command.target);
+  const alive = draft.stacks.filter((stack) => stack.count > 0);
+  const victims =
+    spell.area !== undefined
+      ? areaVictims(alive, spell, command)
+      : target === undefined
+        ? []
+        : spellTargetsOf(draft.stacks, spell, command.side, target).map((stack) => ({
+            stack,
+            divisor: 1,
+          }));
   hero.mana -= spell.cost;
   side.cast = true;
-  // Заклинание «на всех» — по событию на каждый отряд, в порядке армий.
-  for (const stack of spellTargetsOf(draft.stacks, spell, command.side, target)) {
-    const outcome = resolve(spell, hero, command.side, stack);
+  if (victims.length === 0) {
+    // Заклинание по площади никого не задело: мана потрачена.
+    draft.events.push({
+      type: "spellMissed",
+      side: command.side,
+      spell: spell.id,
+      name: spell.name,
+      manaLeft: hero.mana,
+    });
+  }
+  // По событию на каждый отряд: в порядке армий, у цепной молнии — в порядке цепи.
+  for (const { stack, divisor } of victims) {
+    const outcome = resolve(spell, hero, command.side, stack, divisor);
     draft.events.push({
       type: "spellCast",
       side: command.side,

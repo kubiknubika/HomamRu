@@ -2,7 +2,14 @@
  * Заклинания: файл заклинаний и чтение магии из сохранения.
  * Спецификации: docs/mechanics/60-spells.md, 61-magic.md; чтение — 04-save.md.
  */
-import { MAX_SKILLS, maxMana, SKILL_IDS, SPELL_EFFECTS, SPELL_SCHOOLS } from "@homamru/core";
+import {
+  MAX_SKILLS,
+  maxMana,
+  SKILL_IDS,
+  SPELL_AREAS,
+  SPELL_EFFECTS,
+  SPELL_SCHOOLS,
+} from "@homamru/core";
 import type { HeroSkill, HeroState, SkillId, SpellDefinition } from "@homamru/core";
 import { z } from "zod";
 import { parseContentFile } from "./parse.ts";
@@ -30,6 +37,9 @@ export const spellSchema = z.strictObject({
   protects: z.enum(SPELL_SCHOOLS).optional(),
   cumulative: z.boolean().optional(),
   spareMachines: z.boolean().optional(),
+  area: z.enum(SPELL_AREAS).optional(),
+  chain: z.tuple([z.int().min(1), z.int().min(1), z.int().min(1), z.int().min(1)]).optional(),
+  chainLength: z.int().min(1).optional(),
   counters: z.array(z.string()).default([]),
 }) satisfies z.ZodType<SpellDefinition>;
 

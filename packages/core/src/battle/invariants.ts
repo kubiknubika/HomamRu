@@ -70,7 +70,11 @@ export function battleProblems(state: BattleState): string[] {
     if (state.activeStack !== null) {
       problems.push("бой окончен, а ход кому-то отдан");
     }
-    if (sidesAlive[state.result.winner] !== true) {
+    if (state.result.reason === "bothDestroyed") {
+      if (sidesAlive.includes(true)) {
+        problems.push("обе армии погибли, а отряды остались");
+      }
+    } else if (sidesAlive[state.result.winner] !== true) {
       problems.push("у победителя нет отрядов");
     }
     if (state.result.reason === "destroyed" && sidesAlive[1 - state.result.winner] === true) {

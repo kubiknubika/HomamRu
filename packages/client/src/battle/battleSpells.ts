@@ -55,10 +55,23 @@ const LASTING: Partial<Record<SpellDefinition["effect"], (value: number) => stri
   moraleDown: (value) => `боевой дух −${value}`,
 };
 
+/** Куда бьёт заклинание по площади (68-spells-area.md). */
+const AREA_TEXT: Record<NonNullable<SpellDefinition["area"]>, (chain: number) => string> = {
+  ball: () => "клетка и соседние",
+  ring: () => "соседние клетки",
+  inferno: () => "клетки в двух шагах",
+  all: () => "все отряды на поле",
+  chain: (chain) => `цепь до ${chain} отрядов, каждому следующему вдвое меньше`,
+};
+
 /** Что сделает заклинание на одном отряде: «урон 30», «наибольший урон, 2 раунда». */
 function spellEffectText(spell: SpellDefinition, hero: Caster): string {
   if (spell.effect === "damage") {
-    return `урон ${spellValue(spell, hero)}`;
+    const where =
+      spell.area === undefined
+        ? ""
+        : `, ${AREA_TEXT[spell.area](spell.chainLength ?? spell.chain?.[0] ?? 1)}`;
+    return `урон ${spellValue(spell, hero)}${where}`;
   }
   if (spell.effect === "heal") {
     return `лечит ${spellValue(spell, hero)} здоровья, снимает вредные заклинания`;
