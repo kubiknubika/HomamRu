@@ -1,7 +1,6 @@
 /**
- * Партия на экране: состояние игры, выбранный путь и действия игрока.
- * Здесь нет ни Phaser, ни React: и сцена, и интерфейс только подписываются.
- * Правил игры здесь тоже нет — все они в ядре.
+ * Партия на экране: состояние игры, выбранный путь и действия игрока. Здесь нет ни Phaser,
+ * ни React: и сцена, и интерфейс только подписываются. Правил игры тоже нет — все они в ядре.
  * Спецификации: docs/mechanics/02-hero-movement.md («Как игрок управляет героем»),
  * 24-map-screen.md, 43-opponent-screen.md.
  */
@@ -19,7 +18,6 @@ export type { Notice, Session, SessionSnapshot } from "./sessionTypes.ts";
 const OPPONENT_LINES = 6;
 /** Страховка: больше команд за один пропуск хода компьютер отдать не может. */
 const SKIP_LIMIT = 10_000;
-
 /** Вызывается после каждой принятой команды: по нему партия сохраняется. */
 type OnAccepted = (command: Command, state: GameState) => void;
 
@@ -42,7 +40,6 @@ export function createSession(initial: GameState, onAccepted?: OnAccepted): Sess
   let carried: readonly string[] = [];
   const listeners = new Set<Listener>();
   const closed = { townId: null, townList: false, selection: null, inspected: null } as const;
-
   function publish(
     changes: Partial<SessionSnapshot>,
     events: readonly GameEvent[] = [],
@@ -152,10 +149,8 @@ export function createSession(initial: GameState, onAccepted?: OnAccepted): Sess
     }
   }
 
-  /**
-   * Одно действие компьютера без показа: команда и, если начался бой не с игроком, весь этот бой.
-   * Возвращает события; `null` — действовать нечем (не его ход, конец партии, бой игрока).
-   */
+  // Одно действие компьютера без показа: команда и, если начался бой не с игроком, весь этот бой.
+  // Возвращает события; `null` — действовать нечем (не его ход, конец партии, бой игрока).
   function computerAct(): GameEvent[] | null {
     const events: GameEvent[] = [];
     do {
@@ -174,7 +169,6 @@ export function createSession(initial: GameState, onAccepted?: OnAccepted): Sess
 
   // Сохранение сделано посреди боя игрока — сразу экран боя.
   openBattle();
-
   return {
     getSnapshot: () => snapshot,
     subscribe: (listener) => {
@@ -247,6 +241,12 @@ export function createSession(initial: GameState, onAccepted?: OnAccepted): Sess
     },
     buyBook: () => {
       sendTown((base) => ({ type: "buyBook", ...base }));
+    },
+    castMap: (spell, townId) => {
+      const hero = activeHero(snapshot.state);
+      if (hero !== undefined && mapOpen()) {
+        send({ type: "castMap", player: hero.owner, heroId: hero.id, spell, townId });
+      }
     },
     chooseSkill: (skill) => {
       // Выбирают и в ход противника: уровень мог прийти за победу в обороне.

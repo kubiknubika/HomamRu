@@ -5,6 +5,7 @@
 import { applyChooseSkill, heroChoosingSkill } from "./hero.ts";
 import { applyBuyBook, learnSpells } from "./magic.ts";
 import { applyTrade } from "./market.ts";
+import { applyCastMap } from "./mapSpells.ts";
 import { applyMapBattleCommand } from "./mapBattle.ts";
 import { applyMoveHero } from "./movement.ts";
 import { applyEndTurn } from "./time.ts";
@@ -32,6 +33,7 @@ const MAP_COMMANDS: ReadonlySet<string> = new Set([
   "hireHero",
   "buyBook",
   "trade",
+  "castMap",
   "chooseSkill",
 ]);
 const BATTLE_COMMANDS: ReadonlySet<string> = new Set([
@@ -65,6 +67,7 @@ export function applyCommand(state: GameState, command: Command): CommandResult 
     command.type !== "hireHero" &&
     command.type !== "buyBook" &&
     command.type !== "trade" &&
+    command.type !== "castMap" &&
     command.type !== "chooseSkill"
   ) {
     return learned(applyMapBattleCommand(state, command));
@@ -100,6 +103,8 @@ function applyMapCommand(state: GameState, command: MapCommand): CommandResult {
       return applyBuyBook(state, command);
     case "trade":
       return applyTrade(state, command);
+    case "castMap":
+      return applyCastMap(state, command);
     default:
       return applyTownCommand(state, command);
   }

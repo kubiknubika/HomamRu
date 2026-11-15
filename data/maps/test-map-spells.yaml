@@ -1,0 +1,28 @@
+# Проверочная карта заклинаний карты (docs/mechanics/73-map-spells.md).
+# У героя книга с «Видениями», «Маскировкой» и «Городским порталом»; свой город — в дальнем углу.
+id: test-map-spells
+name: Проверочная карта заклинаний карты
+terrain:
+  - "........"
+  - "........"
+  - "........"
+  - "...##..."
+  - "........"
+  - "........"
+  - "........"
+  - "........"
+players:
+  - hero:
+      x: 0
+      y: 0
+      spellPower: 2
+      knowledge: 5
+      book: true
+      spells: [visions, disguise, town-portal]
+      army:
+        - { creature: militia, count: 30 }
+        - { creature: armsman, count: 5 }
+    resources: { gold: 20000, wood: 20, ore: 20 }
+objects:
+  - { type: guard, x: 3, y: 0, creature: militia, count: 17 }
+  - { type: town, x: 7, y: 7, owner: 0, buildings: [tavern, fort, militia-yard] }

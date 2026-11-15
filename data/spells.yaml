@@ -643,3 +643,38 @@
   effect: sacrifice
   target: ally
   values: [3, 6, 10]
+# Заклинания карты (docs/mechanics/73-map-spells.md): в бою не колдуются.
+# Видения: число — множитель дальности (сила магии × число, не меньше трёх клеток).
+- id: visions
+  name: Видения
+  level: 2
+  schools: [earth, water, fire, air]
+  cost: 4
+  skilledCost: 2
+  value: 1
+  chance: 2
+  effect: visions
+  target: ally
+  values: [1, 2, 3]
+- id: disguise
+  name: Маскировка
+  level: 2
+  schools: [air]
+  cost: 4
+  skilledCost: 2
+  chance: 2
+  effect: disguise
+  target: ally
+  values: [0, 0, 0]
+# Городской портал: число — сколько очков хода нужно и тратится.
+- id: town-portal
+  name: Городской портал
+  level: 4
+  schools: [earth]
+  cost: 16
+  skilledCost: 12
+  value: 300
+  chance: 10
+  effect: townPortal
+  target: ally
+  values: [300, 300, 200]

@@ -22,7 +22,16 @@ function magicOf(
   kind: HeroKind | undefined,
 ): Pick<
   HeroState,
-  "spellPower" | "knowledge" | "mana" | "book" | "spells" | "skills" | "skillOffer" | "skillsOwed"
+  | "spellPower"
+  | "knowledge"
+  | "mana"
+  | "book"
+  | "spells"
+  | "skills"
+  | "skillOffer"
+  | "skillsOwed"
+  | "visions"
+  | "disguise"
 > {
   const knowledge = hero.knowledge ?? kind?.knowledge ?? 0;
   const skills = [...(hero.skills ?? [])];
@@ -34,6 +43,8 @@ function magicOf(
     spells: [...(hero.spells ?? [])],
     skills,
     skillOffer: [],
+    visions: 0,
+    disguise: 0,
     skillsOwed: 0,
   };
 }

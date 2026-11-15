@@ -1,0 +1,11 @@
+name: Заклинания карты — действие кончается с днём, мана за ночь +1
+map: test-map-spells
+seed: 1
+steps:
+  - castMap: { hero: A, spell: visions }
+  - castMap: { hero: A, spell: disguise }
+  - endTurn: {}
+expect:
+  day: 2
+  heroes:
+    A: { x: 0, y: 0, mana: 43, movement: 1000, visions: 0, disguise: 0 }

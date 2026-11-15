@@ -1,6 +1,6 @@
 import { guildSpells, learnableLevel } from "@homamru/core";
 import type { GameState, TownState } from "@homamru/core";
-import { heroSpellLine } from "../battle/battleSpells.ts";
+import { bookLine } from "../game/mapSpellTexts.ts";
 import type { Session } from "../game/session.ts";
 import { bookStatus } from "../game/townTexts.ts";
 
@@ -40,7 +40,7 @@ export function TownGuild({ session, state, town }: TownGuildProps) {
             </div>
             {spells.map((spell) => (
               <div key={spell.id} className="town-dim">
-                {heroSpellLine(spell, hero ?? { spellPower: 1, skills: [] })}
+                {bookLine(spell, hero ?? { spellPower: 1, skills: [] })}
               </div>
             ))}
           </div>

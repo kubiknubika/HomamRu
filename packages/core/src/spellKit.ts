@@ -1,4 +1,5 @@
 /** Заклинания для тестов: те же, что в data/spells.yaml (60-spells.md). */
+import { MAP_SPELLS } from "./spellKitMap.ts";
 import type { SpellDefinition } from "./spells.ts";
 import { PLAIN_SPELLS } from "./spellKitPlain.ts";
 
@@ -211,8 +212,11 @@ export const SPELLS: readonly SpellDefinition[] = [
   },
 ];
 
-/** Все заклинания файла: первый круг и круги 2–5. */
+/** Все боевые заклинания файла: первый круг и круги 2–5. */
 export const ALL_SPELLS: readonly SpellDefinition[] = [...SPELLS, ...PLAIN_SPELLS];
+
+/** Все заклинания файла: боевые и заклинания карты (73-map-spells.md). */
+export const GAME_SPELLS: readonly SpellDefinition[] = [...ALL_SPELLS, ...MAP_SPELLS];
 
 /** Заклинание по идентификатору; нет такого — ошибка теста. */
 export function spell(id: string): SpellDefinition {

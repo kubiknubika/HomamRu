@@ -128,6 +128,8 @@ export function applyHireHero(state: GameState, command: HireHeroCommand): Comma
     spells: [],
     skills: [],
     skillOffer: [],
+    visions: 0,
+    disguise: 0,
     skillsOwed: 0,
     army: offer.army,
     experience: 0,

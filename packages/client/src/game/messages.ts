@@ -78,6 +78,7 @@ function playerOf(event: GameEvent, { before, after }: MessageContext): number |
     case "skillLearned":
     case "bookBought":
     case "spellsLearned":
+    case "mapSpellCast":
       return heroOwner(event.heroId);
     default:
       return null;
@@ -128,6 +129,11 @@ function ownMessage(event: GameEvent, state: GameState): string | null {
       return `Обмен: ${RESOURCE_NAMES[event.give]} −${event.given}, ${RESOURCE_NAMES[event.want]} +${event.got}`;
     case "bookBought":
       return `Куплена книга заклинаний: золото −${event.cost}`;
+    case "mapSpellCast": {
+      const name = state.spells.find((spell) => spell.id === event.spell)?.name ?? event.spell;
+      const range = event.range === null ? "" : `дальность ${event.range}, `;
+      return `${name}: ${range}мана −${event.mana}`;
+    }
     case "spellsLearned": {
       const names = event.spells.map(
         (id) => state.spells.find((spell) => spell.id === id)?.name ?? id,

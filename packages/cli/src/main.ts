@@ -12,6 +12,8 @@
  * pnpm run play --rival <сид> [карта] — одна такая партия целиком.
  */
 import { readFileSync } from "node:fs";
+import { isMapSpell } from "@homamru/core";
+import type { SpellDefinition } from "@homamru/core";
 import { resolve } from "node:path";
 import { runAutoBattles, showAutoBattle } from "./autobattle.ts";
 import { runMageDuels } from "./mages.ts";
@@ -68,29 +70,30 @@ function playAuto(run: ScenarioRun): boolean {
   return run.ok;
 }
 
+/** Заклинания для проверочных боёв: заклинания карты в бою не колдуются. */
+function battleSpells(): SpellDefinition[] {
+  return loadDefaults().spells.filter((spell) => !isMapSpell(spell));
+}
+
 function main(args: readonly string[]): boolean {
   const [mode, value, mapId] = args;
   if (mode === "--autobattles") {
     const count = value === undefined ? DEFAULT_AUTO_BATTLES : Number(value);
-    return playAuto(runAutoBattles(count, loadCreatures(), "field", loadDefaults().spells));
+    return playAuto(runAutoBattles(count, loadCreatures(), "field", battleSpells()));
   }
   if (mode === "--autobattle") {
-    return playAuto(
-      showAutoBattle(Number(value ?? 1), loadCreatures(), "field", loadDefaults().spells),
-    );
+    return playAuto(showAutoBattle(Number(value ?? 1), loadCreatures(), "field", battleSpells()));
   }
   if (mode === "--sieges") {
     const count = value === undefined ? DEFAULT_AUTO_BATTLES : Number(value);
-    return playAuto(runAutoBattles(count, loadCreatures(), "siege", loadDefaults().spells));
+    return playAuto(runAutoBattles(count, loadCreatures(), "siege", battleSpells()));
   }
   if (mode === "--siege") {
-    return playAuto(
-      showAutoBattle(Number(value ?? 1), loadCreatures(), "siege", loadDefaults().spells),
-    );
+    return playAuto(showAutoBattle(Number(value ?? 1), loadCreatures(), "siege", battleSpells()));
   }
   if (mode === "--mages") {
     const count = value === undefined ? DEFAULT_AUTO_BATTLES : Number(value);
-    return playAuto(runMageDuels(count, loadCreatures(), loadDefaults().spells));
+    return playAuto(runMageDuels(count, loadCreatures(), battleSpells()));
   }
   if (mode === "--rivals") {
     const count = value === undefined ? DEFAULT_RIVAL_GAMES : Number(value);

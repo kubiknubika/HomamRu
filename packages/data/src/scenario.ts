@@ -29,6 +29,11 @@ const stepSchema = z.union([
   }),
   // Покупка книги заклинаний (61-magic.md).
   z.strictObject({ buyBook: z.strictObject({ town: z.string() }), expectError }),
+  // Заклинание карты (73-map-spells.md).
+  z.strictObject({
+    castMap: z.strictObject({ hero: z.string(), spell: z.string(), town: z.string().optional() }),
+    expectError,
+  }),
   // Обмен на рынке (72-market.md).
   z.strictObject({
     trade: z.strictObject({
@@ -83,6 +88,9 @@ const scenarioSchema = z.strictObject({
               /** Атака, защита, сила магии и знание в сумме: что выросло с уровнем, решает случай. */
               skills: z.int().optional(),
               mana: z.int().optional(),
+              /** Уровень «Видений» и «Маскировки»: 0 — не действуют. */
+              visions: z.int().optional(),
+              disguise: z.int().optional(),
               book: z.boolean().optional(),
               /** Выученные заклинания по порядку. */
               spells: z.array(z.string()).optional(),

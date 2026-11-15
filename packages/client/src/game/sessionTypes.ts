@@ -68,6 +68,8 @@ export interface Session {
   trade(give: Resource, want: Resource, count: number): void;
   /** Купить книгу заклинаний герою, стоящему в открытом городе. */
   buyBook(): void;
+  /** Герой колдует заклинание карты; `townId` — город для портала с выбором (73-map-spells.md). */
+  castMap(spell: string, townId?: string): void;
   /** Выбрать навык герою игрока, которому навыки предложены (65-hero-skills.md). */
   chooseSkill(skill: SkillId): void;
   /** Нанять героя таверны с номером 0 или 1. */

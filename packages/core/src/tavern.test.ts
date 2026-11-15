@@ -147,6 +147,8 @@ describe("наём героя", () => {
         skills: [],
         skillOffer: [],
         skillsOwed: 0,
+        visions: 0,
+        disguise: 0,
         army: offer?.army,
         experience: 0,
         level: 1,

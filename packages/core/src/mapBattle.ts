@@ -14,6 +14,7 @@ import { mergeArmy } from "./army.ts";
 import type { GameEvent } from "./events.ts";
 import { ARMY_LUCK, ARMY_MORALE } from "./hero.ts";
 import { finishBattle } from "./mapBattleFinish.ts";
+import { isMapSpell } from "./mapSpells.ts";
 import { nextInt, nextUint32 } from "./rng.ts";
 import type { RngState } from "./rng.ts";
 import { reject } from "./types.ts";
@@ -74,7 +75,7 @@ function battleHero(state: GameState, hero: HeroState): BattleHero {
     // Заклинания — уже с навыками школ героя: цена, сила, цели (65-hero-skills.md).
     spells: hero.book
       ? state.spells
-          .filter((spell) => hero.spells.includes(spell.id))
+          .filter((spell) => hero.spells.includes(spell.id) && !isMapSpell(spell))
           .map((spell) => spellAtMastery(spell, masteryOf(hero, spell)))
       : [],
   };

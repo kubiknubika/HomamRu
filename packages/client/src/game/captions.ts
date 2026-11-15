@@ -8,15 +8,17 @@ import {
   quantityRange,
   quantityWord,
   RESOURCES,
+  shownArmy,
   townIncome,
+  visionsAt,
 } from "@homamru/core";
 import type {
-  ArmyStack,
   GameState,
   GuardState,
   HeroState,
   ObjectState,
   Position,
+  ShownStack,
   Resources,
   TownState,
 } from "@homamru/core";
@@ -68,9 +70,18 @@ export const CREATURE_MANY: Readonly<Record<string, string>> = {
  * Отряд словами, как в Heroes 3: «группа ополченцев (10–19)». Точного числа игрок не видит,
  * а по одному слову не понять, что больше, — поэтому рядом границы.
  */
-function describeStack(state: GameState, stack: ArmyStack): string {
+function describeStack(state: GameState, stack: ShownStack, exact = false): string {
   const { count, creature } = stack;
   const many = CREATURE_MANY[creature];
+  if (count === null) {
+    // «Маскировка» с продвинутого уровня: вместо численности — «0» (73-map-spells.md).
+    return `0 ${many ?? lower(creatureName(state, creature))}`;
+  }
+  if (exact) {
+    // «Видения»: точное число, слово — рядом.
+    const who = many ?? `— ${lower(creatureName(state, creature))}`;
+    return `${count} ${who} (${quantityWord(count)})`;
+  }
   const who =
     many === undefined
       ? `${lower(creatureName(state, creature))} — ${quantityWord(count)}`
@@ -78,8 +89,15 @@ function describeStack(state: GameState, stack: ArmyStack): string {
   return `${who} (${quantityRange(count)})`;
 }
 
+/** Уровень «Видений» игрока за экраном в клетке: 1 — охранники, 2 — и герои, 3 — и города. */
+function seen(state: GameState, cell: Position): number {
+  return visionsAt(state, humanOf(state), cell);
+}
+const SEE_HEROES = 2;
+const SEE_TOWNS = 3;
+
 function describeGuard(state: GameState, guard: GuardState): string {
-  return describeStack(state, guard);
+  return describeStack(state, guard, seen(state, guard) > 0);
 }
 
 function ownerText(state: GameState, owner: number | null): string {
@@ -90,18 +108,24 @@ function ownerText(state: GameState, owner: number | null): string {
 }
 
 /** Армия словами, без точных чисел: «много ополченцев (20–49), несколько пращников (5–9)». */
-function armyWords(state: GameState, army: readonly ArmyStack[]): string {
-  return army.map((stack) => describeStack(state, stack)).join(", ");
+function armyWords(state: GameState, army: readonly ShownStack[], exact = false): string {
+  return army.map((stack) => describeStack(state, stack, exact)).join(", ");
 }
 
+/** Герой противника: армия — какой её показывает «Маскировка»; с «Видениями» — числа и характеристики. */
 function describeEnemyHero(state: GameState, hero: HeroState): string {
-  return `Герой противника: ${heroName(state, hero.kind)}. Армия: ${armyWords(state, hero.army)}`;
+  const exact = seen(state, hero) >= SEE_HEROES;
+  const stats = exact
+    ? ` Атака ${hero.attack}, защита ${hero.defense}, сила магии ${hero.spellPower}, знание ${hero.knowledge}.`
+    : "";
+  const army = armyWords(state, shownArmy(state, hero), exact);
+  return `Герой противника: ${heroName(state, hero.kind)}.${stats} Армия: ${army}`;
 }
 
 function describeGarrison(state: GameState, town: TownState): string {
   return town.garrison.length === 0
     ? "Гарнизон пуст"
-    : `Гарнизон: ${armyWords(state, town.garrison)}`;
+    : `Гарнизон: ${armyWords(state, town.garrison, seen(state, town) >= SEE_TOWNS)}`;
 }
 
 /** Подпись объекта по удержанию пальца: что это, чьё, сколько даёт. */
