@@ -415,3 +415,74 @@
   target: enemy
   values: [30, 60, 120]
   area: all
+# Третья группа: управление отрядом (docs/mechanics/69-spells-control.md).
+# blind — доля ответного удара; shotDown — доля урона выстрела, 0 — не стреляет;
+# spellImmunity — до какого круга заклинания не ложатся.
+- id: blind
+  name: Слепота
+  level: 2
+  schools: [fire]
+  cost: 10
+  skilledCost: 8
+  value: 50
+  chance: 0
+  effect: blind
+  target: enemy
+  values: [50, 25, 0]
+- id: forgetfulness
+  name: Забывчивость
+  level: 3
+  schools: [water]
+  cost: 12
+  skilledCost: 9
+  value: 50
+  chance: 0
+  effect: shotDown
+  target: enemy
+  values: [50, 0, 0]
+  expertMass: true
+- id: anti-magic
+  name: Антимагия
+  level: 3
+  schools: [earth]
+  cost: 15
+  skilledCost: 12
+  value: 3
+  chance: 0
+  effect: spellImmunity
+  target: ally
+  values: [3, 4, 5]
+- id: frenzy
+  name: Бешенство
+  level: 4
+  schools: [fire]
+  cost: 16
+  skilledCost: 12
+  value: 100
+  chance: 0
+  effect: frenzy
+  target: ally
+  values: [100, 150, 200]
+- id: counterstrike
+  name: Контрудар
+  level: 4
+  schools: [air]
+  cost: 24
+  skilledCost: 20
+  value: 1
+  chance: 0
+  effect: retaliations
+  target: ally
+  values: [1, 2, 2]
+  expertMass: true
+- id: fire-shield
+  name: Огненный щит
+  level: 4
+  schools: [fire]
+  cost: 16
+  skilledCost: 12
+  value: 20
+  chance: 0
+  effect: fireShield
+  target: ally
+  values: [20, 25, 30]

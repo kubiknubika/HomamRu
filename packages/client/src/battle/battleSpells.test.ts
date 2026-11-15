@@ -35,11 +35,11 @@ const marksOf = (session: BattleSession): string[] =>
   highlightsOf(session.getSnapshot()).rings.map(({ stack, mark }) => `${stack.id}:${mark}`);
 
 describe("проверочный бой с магией", () => {
-  it("у обоих героев книга с 32 заклинаниями, сила магии 2 и 60 маны", () => {
+  it("у обоих героев книга с 38 заклинаниями, сила магии 2 и 60 маны", () => {
     const { state } = startTrialBattle(1);
     for (const side of state.sides) {
       expect(side.hero).toMatchObject({ spellPower: 2, mana: 60 });
-      expect(side.hero?.spells).toHaveLength(32);
+      expect(side.hero?.spells).toHaveLength(38);
     }
   });
 });
@@ -181,9 +181,9 @@ describe("заклинания кругов 2–5 в книге (67-spells-plain
     const circles = bookCircles(hero?.spells ?? []);
     expect(circles.map((circle) => [circle.level, circle.spells.length])).toEqual([
       [1, 12],
-      [2, 7],
-      [3, 6],
-      [4, 6],
+      [2, 8],
+      [3, 8],
+      [4, 9],
       [5, 1],
     ]);
   });

@@ -1,0 +1,93 @@
+/**
+ * Заклинания, меняющие поведение отряда: слепота, бешенство, контрудар, огненный щит.
+ * Спецификация: docs/mechanics/69-spells-control.md.
+ */
+import type { SpellEffect } from "../spells.ts";
+import { applyDamage } from "./damage.ts";
+import type { BattleDraft } from "./draft.ts";
+import { fireShieldOf, spellDamagePercent } from "./effects.ts";
+
+type DraftStack = BattleDraft["stacks"][number];
+
+/** Снимает с отряда действия этого вида и пишет об этом; мёртвым — молча. */
+function drop(draft: BattleDraft, stack: DraftStack, kind: SpellEffect): void {
+  for (const effect of stack.effects) {
+    if (effect.effect === kind && stack.count > 0) {
+      draft.events.push({
+        type: "effectEnded",
+        stackId: stack.id,
+        spell: effect.spell,
+        name: effect.name,
+      });
+    }
+  }
+  stack.effects = stack.effects.filter((effect) => effect.effect !== kind);
+}
+
+/** Отряд получил урон: слепота проходит. */
+export function wake(draft: BattleDraft, stack: DraftStack): void {
+  drop(draft, stack, "blind");
+}
+
+/** Отряд сделал своё действие: «Бешенство» проходит. */
+export function calmDown(draft: BattleDraft, stack: DraftStack): void {
+  drop(draft, stack, "frenzy");
+}
+
+/**
+ * Может ли отряд ответить на удар; если да — ответ засчитан.
+ * Обычно ответ один за раунд; «Контрудар» даёт лишние.
+ */
+export function takeRetaliation(stack: DraftStack): boolean {
+  if (!stack.retaliated) {
+    stack.retaliated = true;
+    return true;
+  }
+  const extra = stack.effects.find(
+    (effect) => effect.effect === "retaliations" && (effect.used ?? 0) < effect.value,
+  );
+  if (extra === undefined) {
+    return false;
+  }
+  stack.effects = stack.effects.map((effect) =>
+    effect === extra ? { ...effect, used: (effect.used ?? 0) + 1 } : effect,
+  );
+  return true;
+}
+
+/**
+ * «Огненный щит» отряда `owner`: ударивший в ближнем бою получает долю нанесённого урона.
+ * Это урон огнём: защита от огня на ударившем его уменьшает.
+ */
+export function burn(
+  draft: BattleDraft,
+  owner: DraftStack,
+  attacker: DraftStack,
+  dealt: number,
+): void {
+  const raw = Math.floor((dealt * fireShieldOf(owner)) / 100);
+  const damage = Math.floor((raw * spellDamagePercent(attacker, ["fire"])) / 100);
+  if (damage <= 0 || attacker.count === 0) {
+    return;
+  }
+  const losses = applyDamage(
+    attacker.count,
+    attacker.firstHealth,
+    attacker.creature.health,
+    damage,
+  );
+  attacker.count = losses.count;
+  attacker.firstHealth = losses.firstHealth;
+  draft.events.push({
+    type: "fireShield",
+    stackId: owner.id,
+    targetId: attacker.id,
+    damage,
+    killed: losses.killed,
+    left: losses.count,
+  });
+  if (losses.count === 0) {
+    attacker.turn = "done";
+    draft.events.push({ type: "stackDied", stackId: attacker.id });
+  }
+}

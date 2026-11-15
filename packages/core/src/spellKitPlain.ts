@@ -155,4 +155,37 @@ export const PLAIN_SPELLS: readonly SpellDefinition[] = [
     [30, 60, 120],
     { area: "all" },
   ),
+  // Третья группа: управление отрядом (69-spells-control.md).
+  plain(["blind", "Слепота", 2, "fire"], [10, 8, 0, 50], "blind", "enemy", [50, 25, 0]),
+  plain(
+    ["forgetfulness", "Забывчивость", 3, "water"],
+    [12, 9, 0, 50],
+    "shotDown",
+    "enemy",
+    [50, 0, 0],
+    { expertMass: true },
+  ),
+  plain(
+    ["anti-magic", "Антимагия", 3, "earth"],
+    [15, 12, 0, 3],
+    "spellImmunity",
+    "ally",
+    [3, 4, 5],
+  ),
+  plain(["frenzy", "Бешенство", 4, "fire"], [16, 12, 0, 100], "frenzy", "ally", [100, 150, 200]),
+  plain(
+    ["counterstrike", "Контрудар", 4, "air"],
+    [24, 20, 0, 1],
+    "retaliations",
+    "ally",
+    [1, 2, 2],
+    { expertMass: true },
+  ),
+  plain(
+    ["fire-shield", "Огненный щит", 4, "fire"],
+    [16, 12, 0, 20],
+    "fireShield",
+    "ally",
+    [20, 25, 30],
+  ),
 ];

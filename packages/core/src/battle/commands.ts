@@ -5,21 +5,14 @@
 import { cast, castRefusal } from "./cast.ts";
 import { rollChance, toDraft, toState } from "./draft.ts";
 import type { BattleDraft } from "./draft.ts";
-import {
-  applyDamage,
-  attackOf,
-  computeDamage,
-  defendBonusOf,
-  defenseOf,
-  GOOD_DICE,
-  halvingsOf,
-  rollBaseDamage,
-} from "./damage.ts";
-import { damagePercent, fixedDamage, luckOf, moraleOf } from "./effects.ts";
+import { calmDown } from "./control.ts";
+import { applyDamage, defendBonusOf, GOOD_DICE } from "./damage.ts";
+import { forgotShooting, moraleOf } from "./effects.ts";
 import { cellIndex, distance, inField, sameCell } from "./hex.ts";
 import type { Cell } from "./hex.ts";
 import { findStack, hasAdjacentEnemy, isAlive, reachableCells } from "./queries.ts";
-import { isMachine, isMoat, MOAT_DAMAGE } from "./siege.ts";
+import { isMoat, MOAT_DAMAGE } from "./siege.ts";
+import { exchange, strike } from "./strike.ts";
 import { activateNext, endAfterCast, endBattle, endIfDestroyed } from "./turns.ts";
 import type {
   BattleCommand,
@@ -28,7 +21,6 @@ import type {
   BattleRejectCode,
   BattleState,
   StackState,
-  StrikeKind,
 } from "./types.ts";
 
 type DraftStack = BattleDraft["stacks"][number];
@@ -76,51 +68,12 @@ function moveTo(draft: BattleDraft, stack: DraftStack, to: Cell): void {
   }
 }
 
-/** Один удар: жребий удачи, броски урона, потери цели. */
-function strike(
-  draft: BattleDraft,
-  attacker: DraftStack,
-  target: DraftStack,
-  kind: StrikeKind,
-): void {
-  const luck = luckOf(draft, attacker);
-  const lucky = luck > 0 && rollChance(draft, luck, GOOD_DICE);
-  const base = rollBaseDamage(draft.rng, attacker.creature, attacker.count, fixedDamage(attacker));
-  draft.rng = base.rng;
-
-  const damage = computeDamage(
-    base.value,
-    attackOf(draft, attacker, kind),
-    defenseOf(draft, target),
-    lucky,
-    halvingsOf(draft, kind, attacker, target),
-    damagePercent(target, kind),
-  );
-
-  const losses = applyDamage(target.count, target.firstHealth, target.creature.health, damage);
-  target.count = losses.count;
-  target.firstHealth = losses.firstHealth;
-  draft.events.push({
-    type: "strike",
-    kind,
-    attackerId: attacker.id,
-    targetId: target.id,
-    damage,
-    killed: losses.killed,
-    left: losses.count,
-    lucky,
-  });
-  if (losses.count === 0) {
-    target.turn = "done";
-    draft.events.push({ type: "stackDied", stackId: target.id });
-  }
-}
-
 /**
  * Заканчивает действие отряда (перемещение, удар, выстрел): проверяет конец боя,
  * бросает жребий второго хода и, если его нет, передаёт ход дальше.
  */
 function finishAction(draft: BattleDraft, stack: DraftStack): void {
+  calmDown(draft, stack);
   if (endIfDestroyed(draft)) {
     return;
   }
@@ -195,12 +148,7 @@ function applyAttack(
     finishAction(draft, stack);
     return accept(draft);
   }
-  strike(draft, stack, victim, "melee");
-  // Отвечают только выжившие и только раз за раунд; катапульта не отвечает.
-  if (victim.count > 0 && !victim.retaliated && !isMachine(victim)) {
-    victim.retaliated = true;
-    strike(draft, victim, stack, "retaliation");
-  }
+  exchange(draft, stack, victim);
   finishAction(draft, stack);
   return accept(draft);
 }
@@ -220,6 +168,9 @@ function applyShoot(
   if (active.shots === 0) {
     return reject("NO_SHOTS", "Выстрелы кончились.");
   }
+  if (forgotShooting(active)) {
+    return reject("NO_SHOTS", "Отряд забыл, как стрелять: на нём «Забывчивость».");
+  }
   if (hasAdjacentEnemy(state, active)) {
     return reject("ENEMY_ADJACENT", "Рядом враг: стрелять нельзя.");
   }
@@ -238,6 +189,7 @@ function applyWait(state: BattleState, active: StackState): BattleCommandResult 
   const draft = toDraft(state);
   const stack = draftStack(draft, active.id);
   // Ожидание во время второго хода от боевого духа — отдельная часть раунда.
+  calmDown(draft, stack);
   stack.turn = stack.moraleUsed ? "waitingAfterMorale" : "waiting";
   draft.events.push({ type: "stackWaits", stackId: stack.id });
   activateNext(draft);
@@ -249,6 +201,7 @@ function applyDefend(state: BattleState, active: StackState): BattleCommandResul
   const stack = draftStack(draft, active.id);
   const heroDefense = draft.sides[stack.side].hero?.defense ?? 0;
   stack.defendBonus = defendBonusOf(stack.creature.defense + heroDefense);
+  calmDown(draft, stack);
   stack.turn = "done";
   draft.events.push({ type: "stackDefends", stackId: stack.id, bonus: stack.defendBonus });
   activateNext(draft);

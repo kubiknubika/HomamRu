@@ -63,6 +63,8 @@ interface StackEffect {
   readonly rounds: number;
   /** Только у действия до конца боя: сколько раз наложено («Разрушающий луч»). */
   readonly stacks?: number | undefined;
+  /** Только у «Контрудара»: сколько лишних ответных ударов уже нанесено в этом раунде. */
+  readonly used?: number | undefined;
 }
 
 export interface ArmyDefinition {
@@ -203,6 +205,17 @@ export type BattleEvent =
   | { readonly type: "roundStarted"; readonly round: number }
   | { readonly type: "stackTurn"; readonly stackId: string }
   | { readonly type: "stackFroze"; readonly stackId: string }
+  /** Ослеплённый отряд пропустил ход (69-spells-control.md). */
+  | { readonly type: "stackBlind"; readonly stackId: string }
+  | {
+      /** «Огненный щит» отряда `stackId` обжёг ударившего. */
+      readonly type: "fireShield";
+      readonly stackId: string;
+      readonly targetId: string;
+      readonly damage: number;
+      readonly killed: number;
+      readonly left: number;
+    }
   | {
       readonly type: "stackMoved";
       readonly stackId: string;

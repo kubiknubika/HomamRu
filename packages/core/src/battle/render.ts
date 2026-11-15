@@ -189,6 +189,10 @@ export function formatBattleEvent(event: BattleEvent): string {
         event.left === 0 && event.damage > 0 ? "разрушено" : `прочность ${event.left}`;
       return `Катапульта попадает: ${where}, урон ${event.damage}, ${outcome}`;
     }
+    case "stackBlind":
+      return `Отряд ${event.stackId} ослеплён и пропускает ход`;
+    case "fireShield":
+      return `Огненный щит отряда ${event.stackId} обжигает ${event.targetId}: урон ${event.damage}, убито ${event.killed}, осталось ${event.left}`;
     case "moatDamage":
       return `Отряд ${event.stackId} во рву: урон ${event.damage}, убито ${event.killed}, осталось ${event.left}`;
     case "spellCast":

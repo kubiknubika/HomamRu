@@ -2,6 +2,7 @@
  * Начало раунда в осаде: стреляют башни, затем катапульта.
  * Спецификация: docs/mechanics/50-siege.md.
  */
+import { wake } from "./control.ts";
 import { applyDamage } from "./damage.ts";
 import { damagePercent } from "./effects.ts";
 import { rollInt } from "./draft.ts";
@@ -153,6 +154,7 @@ function shootTower(draft: BattleDraft, tower: Tower, minDamage: number): void {
     killed: losses.killed,
     left: losses.count,
   });
+  wake(draft, target);
   if (losses.count === 0) {
     target.turn = "done";
     draft.events.push({ type: "stackDied", stackId: target.id });
