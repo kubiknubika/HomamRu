@@ -11,11 +11,7 @@ const FIRST = ["magic-arrow", "shield", "dispel", "cure", "bless"];
 const second = SPELLS.map((spell) => ({ ...spell, id: `${spell.id}-2`, level: 2 }));
 const OURS = [...SPELLS, ...second];
 
-describe("запись версии 10 читается версией 11", () => {
-  it("версия записи — 11", () => {
-    expect(STATE_VERSION).toBe(11);
-  });
-
+describe("запись версии 10 читается новой версией", () => {
   it("редких ресурсов в записи нет — у игрока их ноль, остальные целы", () => {
     const old = {
       ...FULL_STATE,
@@ -56,5 +52,23 @@ describe("запись версии 10 читается версией 11", () =
     // Того же правила — два чтения дают одно и то же.
     expect(defaultGuild(OURS, kept)).toEqual(guild);
     expect(defaultGuild(OURS, guild)).toEqual(guild);
+  });
+});
+
+describe("запись версии 11 читается версией 12 (72-market.md)", () => {
+  it("версия записи — 12", () => {
+    expect(STATE_VERSION).toBe(12);
+  });
+
+  it("рынка в списке зданий записи нет — он дописывается; в городах его нет", () => {
+    const old = {
+      ...FULL_STATE,
+      version: 11,
+      buildings: FULL_STATE.buildings.filter((building) => building.market !== true),
+    };
+    const read = readTestState(old);
+    expect(read?.buildings.filter((building) => building.market === true)).toHaveLength(1);
+    const towns = read?.objects.filter((object) => object.type === "town") ?? [];
+    expect(towns.some((town) => town.buildings.includes("market"))).toBe(false);
   });
 });

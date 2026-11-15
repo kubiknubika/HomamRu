@@ -137,6 +137,7 @@ export const buildingSchema = z.strictObject({
   tavern: z.boolean().optional(),
   dwelling: z.string().optional(),
   mageGuild: z.int().min(1).max(5).optional(),
+  market: z.boolean().optional(),
 }) satisfies z.ZodType<BuildingDefinition>;
 
 /**

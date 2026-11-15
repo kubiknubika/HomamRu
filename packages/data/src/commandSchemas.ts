@@ -1,5 +1,5 @@
 /** Схема команд партии: журнал команд в записи игры. Вынесено из stateSchemas.ts. */
-import { DIRECTIONS } from "@homamru/core";
+import { DIRECTIONS, RESOURCES } from "@homamru/core";
 import type { Command } from "@homamru/core";
 import { z } from "zod";
 import { chooseSkillSchema } from "./spells.ts";
@@ -41,6 +41,14 @@ export const commandSchema = z.discriminatedUnion("type", [
     count: z.number(),
   }),
   z.strictObject({ type: z.literal("buyBook"), player: z.int(), townId: z.string() }),
+  z.strictObject({
+    type: z.literal("trade"),
+    player: z.int(),
+    townId: z.string(),
+    give: z.enum(RESOURCES),
+    want: z.enum(RESOURCES),
+    count: z.number(),
+  }),
   chooseSkillSchema,
   z.strictObject({
     type: z.literal("battleCast"),

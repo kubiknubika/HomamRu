@@ -1,5 +1,5 @@
 /** Партия на экране: что видят сцена и интерфейс и что они могут попросить. */
-import type { GameEvent, GameState, Position, SkillId } from "@homamru/core";
+import type { GameEvent, GameState, Position, Resource, SkillId } from "@homamru/core";
 import type { BattleSession } from "../battle/battleSession.ts";
 import type { BattleSummary } from "./messages.ts";
 import type { Selection } from "./view.ts";
@@ -64,6 +64,8 @@ export interface Session {
   recruit(creature: string, count: number): void;
   /** Передать отряд: `from` — кто отдаёт. */
   transfer(from: "garrison" | "hero", creature: string, count: number): void;
+  /** Обменять ресурсы на рынке открытого города: `count` сделок по курсу (72-market.md). */
+  trade(give: Resource, want: Resource, count: number): void;
   /** Купить книгу заклинаний герою, стоящему в открытом городе. */
   buyBook(): void;
   /** Выбрать навык герою игрока, которому навыки предложены (65-hero-skills.md). */

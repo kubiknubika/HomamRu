@@ -1,4 +1,4 @@
-import { BATTLE_REJECT_CODES, DIRECTIONS, REJECT_CODES, SKILL_IDS } from "@homamru/core";
+import { BATTLE_REJECT_CODES, DIRECTIONS, REJECT_CODES, RESOURCES, SKILL_IDS } from "@homamru/core";
 import { z } from "zod";
 import { battleStepSchemas } from "./battle.ts";
 import { armyStackSchema } from "./map.ts";
@@ -29,6 +29,16 @@ const stepSchema = z.union([
   }),
   // Покупка книги заклинаний (61-magic.md).
   z.strictObject({ buyBook: z.strictObject({ town: z.string() }), expectError }),
+  // Обмен на рынке (72-market.md).
+  z.strictObject({
+    trade: z.strictObject({
+      town: z.string(),
+      give: z.enum(RESOURCES),
+      want: z.enum(RESOURCES),
+      count: z.number(),
+    }),
+    expectError,
+  }),
   /** Выбор навыка героем игрока, которому навыки предложены (65-hero-skills.md). */
   z.strictObject({ chooseSkill: z.enum(SKILL_IDS), expectError }),
   z.strictObject({

@@ -1,0 +1,25 @@
+name: Рынок — докупить самоцветы за золото и построить гильдию магов второго уровня
+map: test-rare
+seed: 1
+steps:
+  - trade: { town: o1, give: gold, want: gems, count: 2 }
+    expectError: NO_MARKET
+  - build: { town: o1, building: market }
+  # Один рынок: 5000 золота за самоцвет, 10 дерева за руду. Меняться можно в день постройки.
+  - trade: { town: o1, give: gold, want: gems, count: 2 }
+  - trade: { town: o1, give: wood, want: ore, count: 1 }
+  - trade: { town: o1, give: gems, want: gems, count: 1 }
+    expectError: SAME_RESOURCE
+  # Дерева осталось 5, а на шесть сделок «1 дерево → 25 золота» нужно 6.
+  - trade: { town: o1, give: wood, want: gold, count: 6 }
+    expectError: NOT_ENOUGH_RESOURCES
+  - trade: { town: o1, give: mercury, want: gold, count: 0 }
+    expectError: BAD_COUNT
+  - endTurn: {}
+  - build: { town: o1, building: mage-guild-2 }
+expect:
+  day: 2
+  # Золото: 20000 − 500 рынок − 10000 обмен + 500 дохода − 1000 гильдия.
+  # Дерево: 20 − 5 рынок − 10 обмен − 5 гильдия. Руда: 20 + 1 − 5.
+  resources:
+    - { gold: 9000, wood: 0, ore: 16, mercury: 0, sulfur: 0, crystal: 0, gems: 0 }

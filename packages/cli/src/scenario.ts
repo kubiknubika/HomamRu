@@ -62,6 +62,10 @@ function toCommand(step: Exclude<ScenarioStep, { fight: object }>, state: GameSt
   if ("buyBook" in step) {
     return { type: "buyBook", player, townId: step.buyBook.town };
   }
+  if ("trade" in step) {
+    const { town, give, want, count } = step.trade;
+    return { type: "trade", player, townId: town, give, want, count };
+  }
   if ("transfer" in step) {
     const { town, from, creature, count } = step.transfer;
     return { type: "transfer", player, townId: town, from, creature, count };
@@ -86,6 +90,8 @@ function describe(command: Command): string {
       return `выбрать герою ${command.heroId} навык ${command.skill}`;
     case "buyBook":
       return `купить книгу заклинаний в городе ${command.townId}`;
+    case "trade":
+      return `обменять в городе ${command.townId}: ${command.give} на ${command.want}, сделок ${command.count}`;
     case "hireHero":
       return `нанять в городе ${command.townId} героя таверны с номером ${command.offer}`;
     case "transfer":

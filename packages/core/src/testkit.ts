@@ -101,6 +101,7 @@ export const BUILDINGS: readonly BuildingDefinition[] = [
     growthPercent: 100,
   },
   { id: "smithy", name: "Кузница", cost: { gold: 1000, wood: 5 }, requires: [] },
+  { id: "market", name: "Рынок", cost: { gold: 500, wood: 5 }, requires: [], market: true },
   {
     id: "mage-guild",
     name: "Гильдия магов",

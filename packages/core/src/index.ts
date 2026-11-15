@@ -134,6 +134,8 @@ export type { HeroSkill, SkillId } from "./skills.ts";
 export { heroChoosingSkill } from "./hero.ts";
 export type { SpellDefinition } from "./spells.ts";
 export { BOOK_PRICE, guildLevel, guildSpells, maxMana } from "./magic.ts";
+export { marketCount, marketRate } from "./market.ts";
+export type { MarketRate } from "./market.ts";
 export {
   canTarget,
   hypnosisLimit,
