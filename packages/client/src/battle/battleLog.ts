@@ -85,6 +85,14 @@ function describeEvent(
       return `${FIELD_NAMES[event.kind]}: ${event.reason === "expired" ? "срок вышел" : "убрано"}`;
     case "trapDamage":
       return `${FIELD_NAMES[event.kind]}: ${nameOf(event.stackId)}, урон ${event.damage}, погибло ${event.killed}`;
+    case "stackRaised":
+      return `${nameOf(event.stackId)}: поднято ${event.raised} (${event.lasting ? "насовсем" : "до конца боя"}), стало ${event.left}`;
+    case "cloneCreated":
+      return `${nameOf(event.stackId)}: появился клон`;
+    case "cloneGone":
+      return `${nameOf(event.stackId)}: клон исчез — ${event.reason === "expired" ? "вышел срок" : "заклинание снято"}`;
+    case "stackSacrificed":
+      return `${nameOf(event.stackId)}: отряд отдан в жертву`;
     case "stackStuck":
       return `${nameOf(event.stackId)} увяз в зыбучих песках`;
     case "obstacleRemoved":
@@ -188,13 +196,16 @@ export function describeStack(state: BattleState, stack: StackState): string {
   const shot = attackOf(state, stack, "shot");
   const melee = attackOf(state, stack, "melee");
   const parts = [
-    `${creature.name}: ${stack.count} из ${stack.initialCount}`,
+    `${creature.name}${stack.cloneOf === undefined ? "" : " (клон, гибнет от любого урона)"}: ${stack.count} из ${stack.initialCount}`,
     melee === shot ? `атака ${shot}` : `атака ${shot} (в ближнем бою ${melee})`,
     `защита ${defenseOf(state, stack)}`,
     `урон ${creature.damageMin}–${creature.damageMax}`,
     `здоровье ${stack.firstHealth} из ${creature.health}`,
     `скорость ${speedOf(stack)}`,
   ];
+  if ((stack.raised ?? 0) > 0) {
+    parts.push(`поднято до конца боя: ${stack.raised ?? 0}`);
+  }
   if (creature.flying) {
     parts.push("летает");
   }

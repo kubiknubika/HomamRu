@@ -28,13 +28,14 @@ export function battleStepCommand(step: BattleScenarioStep, side: 0 | 1): Battle
     return { type: "battleShoot", side, target: step.shoot };
   }
   if ("cast" in step) {
-    const { spell, target, cell } = step.cast;
+    const { spell, target, cell, victim } = step.cast;
     return {
       type: "battleCast",
       side,
       spell,
       ...(target === undefined ? {} : { target }),
       ...(cell === undefined ? {} : { cell }),
+      ...(victim === undefined ? {} : { victim }),
     };
   }
   if ("wait" in step) {

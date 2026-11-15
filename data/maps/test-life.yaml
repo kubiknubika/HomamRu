@@ -1,0 +1,27 @@
+# Проверочная карта заклинаний жизни (docs/mechanics/71-spells-life.md).
+id: test-life
+name: Проверочная карта заклинаний жизни
+terrain:
+  - "........"
+  - "........"
+  - "........"
+  - "...##..."
+  - "........"
+  - "........"
+  - "........"
+  - "........"
+players:
+  - hero:
+      x: 0
+      y: 0
+      spellPower: 3
+      knowledge: 10
+      book: true
+      spells: [resurrection, clone, sacrifice]
+      army:
+        - { creature: militia, count: 20 }
+        - { creature: slinger, count: 10 }
+    resources: { gold: 20000, wood: 20, ore: 20 }
+objects:
+  - { type: guard, x: 4, y: 0, creature: militia, count: 15 }
+  - { type: town, x: 1, y: 5, owner: 0, buildings: [tavern, fort, militia-yard] }

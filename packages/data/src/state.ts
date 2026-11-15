@@ -199,8 +199,8 @@ function readBattle(
     ...hero.army.map((stack) => ({ side: 0, ...stack })),
     ...defender.map((stack) => ({ side: 1, ...stack })),
   ];
-  // Катапульта осады — не из армии героя: в сверку не входит.
-  const fighters = state.stacks.filter((stack) => !isMachine(stack));
+  // Катапульта осады и клоны (71-spells-life.md) — не из армии героя: в сверку не входят.
+  const fighters = state.stacks.filter((stack) => !isMachine(stack) && stack.cloneOf === undefined);
   const fits =
     fighters.length === expected.length &&
     fighters.every((stack, index) => {
@@ -214,11 +214,19 @@ function readBattle(
   if (!fits) {
     return DEFAULTS.battle;
   }
-  // Цена и прирост существ боя — те же, что у существ партии: в старых записях их нет.
+  // Цена, прирост и уровень существ боя — те же, что у существ партии: в старых записях их нет.
   const stacks = state.stacks.map((stack) => {
     const ours = creatures.find((creature) => creature.id === stack.creature.id);
     const { price = stack.creature.price, growth = stack.creature.growth } = ours ?? {};
-    return { ...stack, creature: { ...stack.creature, price, growth } };
+    // Уровня существа в старых записях тоже нет (71-spells-life.md).
+    const level = ours?.level ?? stack.creature.level;
+    const creature = {
+      ...stack.creature,
+      price,
+      growth,
+      ...(level === undefined ? {} : { level }),
+    };
+    return { ...stack, creature };
   });
   return { ...battle.data, state: { ...state, stacks } };
 }

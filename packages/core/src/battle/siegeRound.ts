@@ -3,7 +3,7 @@
  * Спецификация: docs/mechanics/50-siege.md.
  */
 import { wake } from "./control.ts";
-import { applyDamage } from "./damage.ts";
+import { applyDamage, wound } from "./damage.ts";
 import { damagePercent } from "./effects.ts";
 import { rollInt } from "./draft.ts";
 import type { BattleDraft } from "./draft.ts";
@@ -143,9 +143,7 @@ function shootTower(draft: BattleDraft, tower: Tower, minDamage: number): void {
   // «Воздушный щит» ослабляет и выстрел башни.
   const rolled = rollInt(draft, minDamage, 2 * minDamage);
   const damage = Math.max(1, Math.floor((rolled * damagePercent(target, "shot")) / 100));
-  const losses = applyDamage(target.count, target.firstHealth, target.creature.health, damage);
-  target.count = losses.count;
-  target.firstHealth = losses.firstHealth;
+  const losses = wound(target, damage);
   draft.events.push({
     type: "towerShot",
     tower,
@@ -156,7 +154,6 @@ function shootTower(draft: BattleDraft, tower: Tower, minDamage: number): void {
   });
   wake(draft, target);
   if (losses.count === 0) {
-    target.turn = "done";
     draft.events.push({ type: "stackDied", stackId: target.id });
   }
 }

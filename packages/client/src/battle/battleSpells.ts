@@ -2,6 +2,7 @@
  * Заклинания на экране боя: что написано в книге, на кого ложится заклинание, что оно сделает.
  * Только тексты и выбор; правила — в ядре. Спецификация: docs/mechanics/64-magic-screen.md.
  */
+import { lifeText } from "./battleLife.ts";
 import {
   applyBattleCommand,
   canTarget,
@@ -136,7 +137,7 @@ function spellEffectText(spell: SpellDefinition, hero: Caster): string {
   if (spell.effect === "dispel") {
     return "снимает все заклинания";
   }
-  const field = FIELD_TEXT[spell.effect]?.(spell.value);
+  const field = FIELD_TEXT[spell.effect]?.(spell.value) ?? lifeText(spell, hero);
   if (field !== undefined) {
     return field;
   }

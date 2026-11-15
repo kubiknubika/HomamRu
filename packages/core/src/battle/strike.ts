@@ -3,7 +3,7 @@
  */
 import { burn, takeRetaliation, wake } from "./control.ts";
 import {
-  applyDamage,
+  wound,
   attackOf,
   computeDamage,
   defenseOf,
@@ -59,9 +59,7 @@ export function moveTo(draft: BattleDraft, stack: DraftStack, to: Cell): boolean
 /** Отряд встал в клетку: во рву он получает урон. */
 export function enterMoat(draft: BattleDraft, stack: DraftStack): void {
   if (isMoat(draft.siege, stack)) {
-    const losses = applyDamage(stack.count, stack.firstHealth, stack.creature.health, MOAT_DAMAGE);
-    stack.count = losses.count;
-    stack.firstHealth = losses.firstHealth;
+    const losses = wound(stack, MOAT_DAMAGE);
     draft.events.push({
       type: "moatDamage",
       stackId: stack.id,
@@ -70,7 +68,6 @@ export function enterMoat(draft: BattleDraft, stack: DraftStack): void {
       left: losses.count,
     });
     if (losses.count === 0) {
-      stack.turn = "done";
       draft.events.push({ type: "stackDied", stackId: stack.id });
     }
   }
@@ -101,9 +98,7 @@ export function strike(
     (strikePercent(attacker, target, kind) * share) / 100,
   );
 
-  const losses = applyDamage(target.count, target.firstHealth, target.creature.health, damage);
-  target.count = losses.count;
-  target.firstHealth = losses.firstHealth;
+  const losses = wound(target, damage);
   draft.events.push({
     type: "strike",
     kind,
@@ -117,7 +112,6 @@ export function strike(
   // Любой урон снимает слепоту (69-spells-control.md).
   wake(draft, target);
   if (losses.count === 0) {
-    target.turn = "done";
     draft.events.push({ type: "stackDied", stackId: target.id });
   }
   return damage;

@@ -70,6 +70,18 @@ describe("сохранение посреди боя", () => {
     expect(state).toEqual(all.state);
   });
 
+  it("поднятые на время и клон в записи сохраняются (71-spells-life.md)", () => {
+    const battle = entered.battle;
+    const first = battle?.state.stacks[0];
+    if (battle === null || battle === undefined || first === undefined) {
+      throw new Error("боя нет");
+    }
+    const clone = { ...first, id: `${first.id}c`, col: first.col + 1, cloneOf: first.id };
+    const stacks = [{ ...first, raised: 2 }, ...battle.state.stacks.slice(1), clone];
+    const state = { ...entered, battle: { ...battle, state: { ...battle.state, stacks } } };
+    expect(readState(state)).toEqual(state);
+  });
+
   it("запись после поражения загружается: героя нет, партия окончена", () => {
     const lost = playBattleOut(apply(newGame([{ creature: "militia", count: 2 }], 300), TO_ZONE));
     expect(lost.state.outcome).toBe("defeat");

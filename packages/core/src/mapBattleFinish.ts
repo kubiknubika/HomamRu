@@ -3,7 +3,7 @@
  * Спецификации: docs/mechanics/23-map-battle.md, 40-two-players.md.
  */
 import { isMachine } from "./battle/siege.ts";
-import type { BattleState } from "./battle/types.ts";
+import type { BattleState, StackState } from "./battle/types.ts";
 import type { BattleOutcome, GameEvent, StackLoss } from "./events.ts";
 import { POWER_PER_CREATURE } from "./guards.ts";
 import { gainExperience } from "./hero.ts";
@@ -19,29 +19,42 @@ type Side = 0 | 1;
 /** Отряды стороны после боя: по местам в армии, без погибших. */
 function survivors(battle: BattleState, side: Side, army: readonly ArmyStack[]): ArmyStack[] {
   const left = new Map(
-    battle.stacks.filter((stack) => stack.side === side).map((stack) => [stack.slot, stack.count]),
+    battle.stacks
+      .filter((stack) => stack.side === side && stack.cloneOf === undefined)
+      // Поднятые «Воскрешением» на время после боя пропадают (71-spells-life.md).
+      .map((stack) => [stack.slot, stack.count - (stack.raised ?? 0)]),
   );
   return army
     .map((stack, slot) => ({ ...stack, count: left.get(slot) ?? 0 }))
     .filter((stack) => stack.count > 0);
 }
 
+/** Отряд армии: не катапульта и не клон. */
+function isArmy(side: Side): (stack: StackState) => boolean {
+  return (stack) => stack.side === side && !isMachine(stack) && stack.cloneOf === undefined;
+}
+
+/** Сколько существ отряд потерял: поднятые на время — тоже потери. */
+function lostIn(stack: StackState): number {
+  return stack.initialCount - stack.count + (stack.raised ?? 0);
+}
+
 /** Потери стороны по отрядам; бежавший теряет армию целиком. */
 function lossesOf(battle: BattleState, side: Side, fled: boolean): StackLoss[] {
   return battle.stacks
-    .filter((stack) => stack.side === side && !isMachine(stack))
+    .filter(isArmy(side))
     .toSorted((a, b) => a.slot - b.slot)
     .map((stack) => ({
       creature: stack.creature.id,
-      lost: fled ? stack.initialCount : stack.initialCount - stack.count,
+      lost: fled ? stack.initialCount : lostIn(stack),
     }));
 }
 
 /** Опыт за убитых: здоровье существа × число убитых, по всем отрядам стороны (22-hero.md). */
 function killExperience(battle: BattleState, side: Side): number {
   return battle.stacks
-    .filter((stack) => stack.side === side && !isMachine(stack))
-    .reduce((sum, stack) => sum + stack.creature.health * (stack.initialCount - stack.count), 0);
+    .filter(isArmy(side))
+    .reduce((sum, stack) => sum + stack.creature.health * lostIn(stack), 0);
 }
 
 function heroOf(state: GameState, id: string | null): HeroState | undefined {

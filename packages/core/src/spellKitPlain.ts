@@ -234,4 +234,13 @@ export const PLAIN_SPELLS: readonly SpellDefinition[] = [
   plain(["land-mine", "Мины", 3, "fire"], [18, 15, 10, 25], "mine", "enemy", [25, 50, 100], {
     chain: [4, 4, 6, 8],
   }),
+  plain(
+    ["resurrection", "Воскрешение", 4, "earth"],
+    [20, 16, 50, 40],
+    "resurrect",
+    "ally",
+    [40, 80, 160],
+  ),
+  plain(["clone", "Клон", 4, "water"], [24, 20, 0, 5], "clone", "ally", [5, 6, 7]),
+  plain(["sacrifice", "Жертва", 5, "fire"], [25, 20, 1, 3], "sacrifice", "ally", [3, 6, 10]),
 ];

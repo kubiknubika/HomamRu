@@ -10,5 +10,6 @@
   "flying": false,
   "shots": 0,
   "price": 300,
-  "growth": 4
+  "growth": 4,
+  "level": 4
 }

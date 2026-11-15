@@ -20,7 +20,7 @@ export function battle(
   return turnOf(state, "a1");
 }
 
-type Aim = { readonly target?: string; readonly cell?: Cell };
+type Aim = { readonly target?: string; readonly cell?: Cell; readonly victim?: string };
 
 /** Герой стороны `side` колдует; правило «раз в раунд» снято. */
 export function cast(state: BattleState, id: string, aim: Aim = {}, side: 0 | 1 = 0) {

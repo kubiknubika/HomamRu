@@ -3,11 +3,19 @@
  * рисует сцена. Без Phaser, чтобы проверять тестами.
  * Спецификация: docs/mechanics/16-battle-screen.md.
  */
-import { activeStackOf, findStack, isFieldSpell, reachableCells, walkRoute } from "@homamru/core";
+import {
+  activeStackOf,
+  findStack,
+  isFieldSpell,
+  isLifeSpell,
+  reachableCells,
+  walkRoute,
+} from "@homamru/core";
 import type { Cell, StackState } from "@homamru/core";
 import { areaHits, areaMarks } from "./battleArea.ts";
 import { fieldMarks, teleportStacks } from "./battleField.ts";
 import { attackableTargets, playerStack } from "./battleSession.ts";
+import { lifeGhosts, lifeTargets, lifeVictims } from "./battleLife.ts";
 import { spellTargets } from "./battleSpells.ts";
 import type { BattleSnapshot } from "./battleSession.ts";
 
@@ -54,6 +62,17 @@ function keyOf(cell: Cell): string {
   return `${cell.col},${cell.row}`;
 }
 
+/** Погибшие отряды, которые видны бледными значками: их можно поднять выбранным заклинанием. */
+export function ghostIds(snapshot: BattleSnapshot): ReadonlySet<string> {
+  const { selection, state, playerSide } = snapshot;
+  const spell =
+    selection?.kind === "spell"
+      ? state.sides[playerSide].hero?.spells.find((item) => item.id === selection.spell)
+      : undefined;
+  const ghosts = spell === undefined ? [] : lifeGhosts(state, playerSide, spell);
+  return new Set(ghosts.map((stack) => stack.id));
+}
+
 export function highlightsOf(snapshot: BattleSnapshot): Highlights {
   const { state, selection } = snapshot;
   const marks = new Map<string, { cell: Cell; mark: CellMark }>();
@@ -71,6 +90,24 @@ export function highlightsOf(snapshot: BattleSnapshot): Highlights {
     // Выбрано заклинание: видны только отряды, на которые оно ложится.
     const hero = state.sides[snapshot.playerSide].hero;
     const spell = hero?.spells.find((item) => item.id === selection.spell);
+    if (spell !== undefined && isLifeSpell(spell)) {
+      // Заклинание жизни: кого можно поднять или клонировать; у «Жертвы» потом — кого отдать.
+      const victims = lifeVictims(state, snapshot.playerSide, spell, selection.targetId);
+      const first = victims.length > 0 ? [] : lifeTargets(state, snapshot.playerSide, spell);
+      const given = selection.aim?.victim;
+      for (const stack of [...first, ...victims]) {
+        const chosen = stack.id === selection.targetId || stack.id === given;
+        rings.push({
+          stack,
+          mark: chosen ? "target" : first.length > 0 ? "spellAlly" : "spellOwn",
+        });
+      }
+      const raisedOne = state.stacks.find((stack) => stack.id === selection.targetId);
+      if (victims.length > 0 && raisedOne !== undefined) {
+        rings.push({ stack: raisedOne, mark: "target" });
+      }
+      return { cells: [], rings };
+    }
     if (spell !== undefined && isFieldSpell(spell)) {
       // Заклинание поля: клетки, куда оно ляжет; у «Телепорта» — ещё и отряды, которые можно перенести.
       const cells = fieldMarks(state, snapshot.playerSide, spell, selection).map((cell) => ({

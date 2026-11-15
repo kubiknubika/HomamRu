@@ -275,6 +275,8 @@ const battleStateSchema = z.strictObject({
       retaliated: z.boolean(),
       defendBonus: z.int(),
       effects: z.array(stackEffectSchema).default([]),
+      raised: z.int().min(0).optional(),
+      cloneOf: z.string().optional(),
     }),
   ),
   activeStack: z.string().nullable(),

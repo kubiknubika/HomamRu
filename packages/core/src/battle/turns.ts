@@ -9,6 +9,7 @@ import { BAD_DICE } from "./damage.ts";
 import { rollChance } from "./draft.ts";
 import type { BattleDraft } from "./draft.ts";
 import { startFieldRound } from "./field.ts";
+import { dropClones } from "./life.ts";
 import { scorch } from "./traps.ts";
 import { isBerserk, isBlind, moraleOf, speedOf } from "./effects.ts";
 import { isMachine } from "./siege.ts";
@@ -77,6 +78,7 @@ function startRound(draft: BattleDraft): void {
   }
   draft.events.push({ type: "roundStarted", round: draft.round });
   startSpellRound(draft);
+  dropClones(draft, "expired");
   startFieldRound(draft);
 }
 
@@ -146,15 +148,36 @@ export function activateNext(draft: BattleDraft): void {
   }
 }
 
+function isClone(stack: StackState): boolean {
+  return stack.cloneOf !== undefined;
+}
+
+/** В отряде все живые — поднятые на время. */
+function allRaised(stack: StackState): boolean {
+  return (stack.raised ?? 0) >= stack.count;
+}
+
 /** Заканчивает бой: записывает итог и потери. */
 export function endBattle(draft: BattleDraft, winner: BattleSide, reason: BattleEndReason): void {
+  // В армии победителя остались одни поднятые на время: одно существо остаётся насовсем,
+  // иначе победивший герой остался бы без армии (71-spells-life.md).
+  const army = draft.stacks.filter(
+    (stack) => stack.side === winner && stack.count > 0 && !isMachine(stack) && !isClone(stack),
+  );
+  const last = army.at(-1);
+  if (reason !== "bothDestroyed" && last !== undefined && army.every(allRaised)) {
+    last.raised = (last.raised ?? 0) - 1;
+  }
   draft.result = {
     winner,
     reason,
-    losses: draft.stacks.map((stack) => ({
-      stackId: stack.id,
-      lost: stack.initialCount - stack.count,
-    })),
+    // Клонов в итогах нет; поднятые на время идут в потери.
+    losses: draft.stacks
+      .filter((stack) => !isClone(stack))
+      .map((stack) => ({
+        stackId: stack.id,
+        lost: stack.initialCount - stack.count + (stack.raised ?? 0),
+      })),
   };
   draft.activeStack = null;
   draft.events.push({ type: "battleEnded", result: draft.result });
@@ -164,7 +187,12 @@ export function endBattle(draft: BattleDraft, winner: BattleSide, reason: Battle
 export function endIfDestroyed(draft: BattleDraft): boolean {
   const alive = (side: BattleSide): boolean =>
     draft.stacks.some((stack) => stack.side === side && stack.count > 0 && !isMachine(stack));
-  if (!alive(0) && !alive(1)) {
+  // Клон — не армия: уцелели одни клоны — победителя нет (71-spells-life.md).
+  const real = (side: BattleSide): boolean =>
+    draft.stacks.some(
+      (stack) => stack.side === side && stack.count > 0 && !isMachine(stack) && !isClone(stack),
+    );
+  if ((!alive(0) || !alive(1)) && !real(0) && !real(1)) {
     // Обе армии погибли разом («Армагеддон»): победителя нет (68-spells-area.md).
     endBattle(draft, 1, "bothDestroyed");
     return true;

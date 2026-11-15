@@ -12,6 +12,8 @@ import type { StackState } from "./types.ts";
 export interface SpellAim {
   readonly target?: string | undefined;
   readonly cell?: Cell | undefined;
+  /** «Жертва»: отряд, который отдают (71-spells-life.md). */
+  readonly victim?: string | undefined;
 }
 
 /** Целью заклинания служит клетка, а не отряд. */

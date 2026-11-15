@@ -1,0 +1,32 @@
+name: Заклинания жизни — клон, жертва, отказы
+map: test-life
+seed: 1
+steps:
+  - move: { hero: A, path: [E, E, E] }
+  # Потерь ещё нет: поднимать некого.
+  - cast: { spell: resurrection, target: a1 }
+    expectError: BAD_SPELL_TARGET
+  - cast: { spell: resurrection, target: b1 }
+    expectError: BAD_SPELL_TARGET
+  - cast: { spell: sacrifice, target: a1, victim: a2 }
+    expectError: BAD_SPELL_TARGET
+  # «Клон» — копия ополченцев рядом с ними. Мана 100 − 24.
+  - cast: { spell: clone, target: a1 }
+  - cast: { spell: clone, target: a2 }
+    expectError: ALREADY_CAST
+  - defend: {}
+  - defend: {}
+  - defend: {}
+  - defend: {}
+  # Второй раунд: у ополченцев клон уже есть, клон клонировать нельзя; пращников — можно.
+  - cast: { spell: clone, target: a1 }
+    expectError: BAD_SPELL_TARGET
+  - cast: { spell: clone, target: a1c }
+    expectError: BAD_SPELL_TARGET
+  - cast: { spell: clone, target: a2 }
+  - fight: {}
+expect:
+  battle: false
+  outcome: none
+  objects:
+    o1: absent

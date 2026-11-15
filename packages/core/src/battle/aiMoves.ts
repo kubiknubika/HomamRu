@@ -53,6 +53,13 @@ export function bestCell(cells: Iterable<Cell>, scoreOf: (cell: Cell) => number 
   return best;
 }
 
+/** Клон гибнет от любого удара: его бьют первым (71-spells-life.md). */
+function damageTo(state: BattleState, me: StackState, enemy: StackState, kind: "shot" | "melee") {
+  return enemy.cloneOf === undefined
+    ? expectedDamage(state, me, enemy, kind)
+    : Number.MAX_SAFE_INTEGER;
+}
+
 export function chooseShot(
   state: BattleState,
   me: StackState,
@@ -64,7 +71,7 @@ export function chooseShot(
   let best: StackState | undefined;
   let bestDamage = -1;
   for (const enemy of enemies) {
-    const damage = expectedDamage(state, me, enemy, "shot");
+    const damage = damageTo(state, me, enemy, "shot");
     if (damage > bestDamage) {
       best = enemy;
       bestDamage = damage;
@@ -86,7 +93,7 @@ export function chooseAttack(
   let bestDamage = -1;
   for (const enemy of enemies) {
     const cells = attackCells(state, me, enemy).filter(allowed);
-    const damage = expectedDamage(state, me, enemy, "melee");
+    const damage = damageTo(state, me, enemy, "melee");
     if (cells.length > 0 && damage > bestDamage) {
       best = { enemy, cells };
       bestDamage = damage;

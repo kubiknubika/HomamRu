@@ -40,6 +40,7 @@ export const spellSchema = z.strictObject({
   area: z.enum(SPELL_AREAS).optional(),
   chain: z.tuple([z.int().min(1), z.int().min(1), z.int().min(1), z.int().min(1)]).optional(),
   chainLength: z.int().min(1).optional(),
+  lasting: z.boolean().optional(),
   counters: z.array(z.string()).default([]),
 }) satisfies z.ZodType<SpellDefinition>;
 

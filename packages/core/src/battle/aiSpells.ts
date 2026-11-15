@@ -6,6 +6,8 @@ import type { SpellDefinition, SpellEffect } from "../spells.ts";
 import { bestAreaCast, HEALTH } from "./aiArea.ts";
 import { controlWorth, immunityWorth, isMelee, strikeOf, strongest } from "./aiControl.ts";
 import { bestFieldCast } from "./aiField.ts";
+import { bestLifeCast } from "./aiLife.ts";
+import { isLifeSpell } from "./life.ts";
 import type { SpellAim } from "./area.ts";
 import { canTarget, castableSpells, spellTargetsOf, spellValue } from "./cast.ts";
 import { GOOD_DICE } from "./damage.ts";
@@ -207,10 +209,12 @@ export function chooseCast(state: BattleState, side: BattleSide): BattleCommand 
   let best: { spell: SpellDefinition; aim: SpellAim; worth: number } | undefined;
   const everyone = state.stacks.filter(isAlive);
   for (const spell of castableSpells(state, side)) {
-    if (spell.area !== undefined || isFieldSpell(spell)) {
-      const found = isFieldSpell(spell)
-        ? bestFieldCast(state, side, spell)
-        : bestAreaCast(everyone, side, hero, spell);
+    if (spell.area !== undefined || isFieldSpell(spell) || isLifeSpell(spell)) {
+      const found = isLifeSpell(spell)
+        ? bestLifeCast(state, side, spell)
+        : isFieldSpell(spell)
+          ? bestFieldCast(state, side, spell)
+          : bestAreaCast(everyone, side, hero, spell);
       if (
         found !== undefined &&
         (best === undefined ||
