@@ -18,7 +18,7 @@ import { sameCell } from "./hex.ts";
 import type { Cell } from "./hex.ts";
 import { walkRoute } from "./queries.ts";
 import { isMachine, isMoat, MOAT_DAMAGE } from "./siege.ts";
-import { springTrap } from "./traps.ts";
+import { scorch, springTrap } from "./traps.ts";
 import type { StrikeKind } from "./types.ts";
 
 type DraftStack = BattleDraft["stacks"][number];
@@ -56,8 +56,8 @@ export function moveTo(draft: BattleDraft, stack: DraftStack, to: Cell): boolean
   return !stuck && stack.count > 0 && sameCell(stack, to);
 }
 
-/** Отряд встал в клетку: во рву он получает урон. */
-export function enterMoat(draft: BattleDraft, stack: DraftStack): void {
+/** Отряд встал в клетку рва или закончил в ней ход: он получает урон. */
+function enterMoat(draft: BattleDraft, stack: DraftStack): void {
   if (isMoat(draft.siege, stack)) {
     const losses = wound(stack, MOAT_DAMAGE);
     draft.events.push({
@@ -74,8 +74,10 @@ export function enterMoat(draft: BattleDraft, stack: DraftStack): void {
 }
 
 /**
- * Один удар: жребий удачи, броски урона, потери цели. Возвращает нанесённый урон.
+ * Один удар: жребий удачи, броски урона, потери цели.
  * `share` — доля урона в процентах: ответ ослеплённого отряда слабее.
+ * Ответ — урон для «Огненного щита» цели: с прибавками атаки и удачей, но без того, что урон
+ * снижает (защита выше атаки, «Щит», деление пополам), и не больше здоровья, которое было у цели.
  */
 export function strike(
   draft: BattleDraft,
@@ -97,6 +99,15 @@ export function strike(
     halvingsOf(draft, kind, attacker, target),
     (strikePercent(attacker, target, kind) * share) / 100,
   );
+  const attack = attackOf(draft, attacker, kind);
+  const unguarded = computeDamage(
+    base.value,
+    attack,
+    Math.min(attack, defenseOf(draft, target)),
+    lucky,
+    0,
+  );
+  const healthBefore = (target.count - 1) * target.creature.health + target.firstHealth;
 
   const losses = wound(target, damage);
   draft.events.push({
@@ -114,7 +125,20 @@ export function strike(
   if (losses.count === 0) {
     draft.events.push({ type: "stackDied", stackId: target.id });
   }
-  return damage;
+  return Math.min(unguarded, healthBefore);
+}
+
+/**
+ * Отряд закончил ход, не сходя с места (ударил, выстрелил, защищался): ров и стена огня под ним
+ * действуют ещё раз (50-siege.md, 70-spells-field.md).
+ */
+export function linger(draft: BattleDraft, stack: DraftStack): void {
+  if (stack.count > 0) {
+    scorch(draft, stack);
+  }
+  if (stack.count > 0) {
+    enterMoat(draft, stack);
+  }
 }
 
 /**

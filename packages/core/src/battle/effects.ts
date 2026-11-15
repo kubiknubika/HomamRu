@@ -153,3 +153,28 @@ export function spellDamagePercent(target: Affected, schools: readonly SpellScho
   }
   return 100;
 }
+
+type Effect = StackState["effects"][number];
+
+/** Накопленное до конца боя («Разрушающий луч») ничем не снимается (67-spells-plain.md). */
+export function isPermanent(effect: Effect): boolean {
+  return effect.stacks !== undefined;
+}
+
+/** Снимает с отряда действия по условию, кроме несъёмных; ответ — какие заклинания сняты. */
+export function remove(target: { effects: readonly Effect[] }, drop: (effect: Effect) => boolean) {
+  const gone = (effect: Effect): boolean => !isPermanent(effect) && drop(effect);
+  const removed = target.effects.filter(gone).map((effect) => effect.spell);
+  target.effects = target.effects.filter((effect) => !gone(effect));
+  return removed;
+}
+
+/**
+ * Накопленное действие после нового наложения. «Разрушающий луч» сам защиту ниже нуля
+ * не опускает: отнимает не больше, чем у отряда есть (`defense`) (67-spells-plain.md).
+ */
+export function piled(added: Effect, old: Effect | undefined, defense: number): Effect {
+  const room = added.effect === "defenseDown" ? Math.max(0, defense) : added.value;
+  const value = (old?.value ?? 0) + Math.min(added.value, room);
+  return { ...added, value, rounds: 1, stacks: (old?.stacks ?? 0) + 1 };
+}

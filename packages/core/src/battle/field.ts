@@ -12,7 +12,6 @@ import { blockedCells } from "./queries.ts";
 import type { BattleField } from "./queries.ts";
 import { isInside, isMachine, isMoat, WALL_PARTS } from "./siege.ts";
 import type { WallPart } from "./siege.ts";
-import { enterMoat } from "./strike.ts";
 import { build, springTrap, trapCount } from "./traps.ts";
 import { buildable, forceFieldCells, seenFieldAt } from "./fieldCells.ts";
 import type { BattleCommand, BattleRejectCode, BattleSide, StackState } from "./types.ts";
@@ -196,10 +195,8 @@ export function castField(draft: BattleDraft, command: CastCommand, spell: Spell
     stack.row = cell.row;
     draft.events.push({ type: "stackTeleported", stackId: stack.id, from, to: cell });
     // Перенесённый отряд «сел» в клетку, как летающий: мина и стена огня срабатывают, пески — нет.
+    // Ров перенесённого не ранит (50-siege.md): урон будет, если отряд закончит в нём ход.
     springTrap(draft, stack, true);
-    if (stack.count > 0) {
-      enterMoat(draft, stack);
-    }
   }
 }
 

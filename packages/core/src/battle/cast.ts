@@ -3,13 +3,14 @@
  */
 import type { SpellDefinition } from "../spells.ts";
 import { aimsAtCell, areaVictims } from "./area.ts";
-import { wound } from "./damage.ts";
+import { defenseOf, wound } from "./damage.ts";
+import { rollInt } from "./draft.ts";
 import type { BattleDraft } from "./draft.ts";
 import { reflect, wake } from "./control.ts";
 import { castField, fieldRefusal, isFieldSpell } from "./field.ts";
 import { castLife, dropClones, healthOf, isLifeSpell, lifeRefusal } from "./life.ts";
 import { castTrap, isTrapSpell } from "./traps.ts";
-import { immuneTo, isHypnotized, spellDamagePercent } from "./effects.ts";
+import { immuneTo, isHypnotized, piled, remove, spellDamagePercent } from "./effects.ts";
 import { inField } from "./hex.ts";
 import { isMachine } from "./siege.ts";
 import type {
@@ -164,12 +165,6 @@ export function castRefusal(state: BattleState, command: CastCommand): Refusal |
   return null;
 }
 
-function remove(target: DraftStack, drop: (effect: StackState["effects"][number]) => boolean) {
-  const removed = target.effects.filter(drop).map((effect) => effect.spell);
-  target.effects = target.effects.filter((effect) => !drop(effect));
-  return removed;
-}
-
 const FRENZY_ROUNDS = 2;
 
 function resolve(
@@ -178,6 +173,7 @@ function resolve(
   side: BattleSide,
   target: DraftStack,
   divisor = 1,
+  defense = 0,
 ): SpellOutcome {
   const { health } = target.creature;
   const { spellPower } = hero;
@@ -225,9 +221,10 @@ function resolve(
       };
       if (spell.cumulative === true) {
         // До конца боя; новое наложение прибавляется к прежним.
-        const stacks = (old?.stacks ?? 0) + 1;
-        const value = (old?.value ?? 0) + spell.value;
-        target.effects = [...target.effects, { ...added, value, rounds: 1, stacks }];
+        target.effects = [
+          ...target.effects.filter((effect) => effect !== old),
+          piled(added, old, defense),
+        ];
         return { kind: "effect", rounds: 0, removed };
       }
       target.effects = [...target.effects, added];
@@ -268,7 +265,7 @@ export function cast(draft: BattleDraft, command: CastCommand): void {
   const alive = draft.stacks.filter((stack) => stack.count > 0);
   let victims =
     spell.area !== undefined
-      ? areaVictims(alive, spell, command)
+      ? areaVictims(alive, spell, command, (count) => rollInt(draft, 0, count - 1))
       : target === undefined
         ? []
         : spellTargetsOf(draft.stacks, spell, command.side, target).map((stack) => ({
@@ -303,7 +300,7 @@ export function cast(draft: BattleDraft, command: CastCommand): void {
   }
   // По событию на каждый отряд: в порядке армий, у цепной молнии — в порядке цепи.
   for (const { stack, divisor } of victims) {
-    const outcome = resolve(spell, hero, from, stack, divisor);
+    const outcome = resolve(spell, hero, from, stack, divisor, defenseOf(draft, stack));
     draft.events.push({
       type: "spellCast",
       side: command.side,

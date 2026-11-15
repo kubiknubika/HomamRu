@@ -6,11 +6,11 @@ import { cast, castRefusal } from "./cast.ts";
 import { rollChance, toDraft, toState } from "./draft.ts";
 import type { BattleDraft } from "./draft.ts";
 import { calmDown } from "./control.ts";
-import { defendBonusOf, GOOD_DICE } from "./damage.ts";
+import { defendBonusOf, defenseOf, GOOD_DICE } from "./damage.ts";
 import { commanderOf, forgotShooting, moraleOf } from "./effects.ts";
 import { cellIndex, distance, inField, sameCell } from "./hex.ts";
 import { findStack, hasAdjacentEnemy, isAlive, reachableCells } from "./queries.ts";
-import { exchange, moveTo, strike } from "./strike.ts";
+import { exchange, linger, moveTo, strike } from "./strike.ts";
 import { activateNext, endAfterCast, endBattle, endIfDestroyed } from "./turns.ts";
 import type {
   BattleCommand,
@@ -116,6 +116,9 @@ function applyAttack(
     return accept(draft);
   }
   exchange(draft, stack, victim);
+  if (sameCell(from, active)) {
+    linger(draft, stack);
+  }
   finishAction(draft, stack);
   return accept(draft);
 }
@@ -145,6 +148,7 @@ function applyShoot(
   const stack = draftStack(draft, active.id);
   stack.shots -= 1;
   strike(draft, stack, draftStack(draft, target.id), "shot");
+  linger(draft, stack);
   finishAction(draft, stack);
   return accept(draft);
 }
@@ -166,11 +170,15 @@ function applyWait(state: BattleState, active: StackState): BattleCommandResult 
 function applyDefend(state: BattleState, active: StackState): BattleCommandResult {
   const draft = toDraft(state);
   const stack = draftStack(draft, active.id);
-  const heroDefense = draft.sides[stack.side].hero?.defense ?? 0;
-  stack.defendBonus = defendBonusOf(stack.creature.defense + heroDefense);
+  // 20 % защиты, какая у отряда сейчас есть: с героем и заклинаниями (13-battle-damage.md).
+  stack.defendBonus = defendBonusOf(Math.max(0, defenseOf(draft, stack)));
   calmDown(draft, stack);
   stack.turn = "done";
   draft.events.push({ type: "stackDefends", stackId: stack.id, bonus: stack.defendBonus });
+  linger(draft, stack);
+  if (endIfDestroyed(draft)) {
+    return accept(draft);
+  }
   activateNext(draft);
   return accept(draft);
 }

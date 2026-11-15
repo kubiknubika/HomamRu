@@ -57,22 +57,27 @@ export interface Victim<T> {
   readonly divisor: number;
 }
 
-/** Цепь: первая цель, потом каждый раз ближайший ещё не задетый отряд; при равенстве — раньше в списке. */
+/** Выбор из равноудалённых отрядов: ответ — номер в списке. */
+export type TiePick = (count: number) => number;
+
+/**
+ * Цепь: первая цель, потом каждый раз ближайший ещё не задетый отряд.
+ * Из равноудалённых выбирает `pick` — в бою это жребий; без него берётся первый в списке.
+ */
 function chainOf<T extends StackState>(
   stacks: readonly T[],
   first: T,
   length: number,
+  pick: TiePick,
 ): Victim<T>[] {
   const chain: Victim<T>[] = [{ stack: first, divisor: 1 }];
   let last = first;
   while (chain.length < length) {
-    let next: T | undefined;
-    for (const stack of stacks) {
-      const hit = chain.some((victim) => victim.stack.id === stack.id);
-      if (!hit && (next === undefined || distance(last, stack) < distance(last, next))) {
-        next = stack;
-      }
-    }
+    const from = last;
+    const free = stacks.filter((stack) => !chain.some((victim) => victim.stack.id === stack.id));
+    const reach = Math.min(...free.map((stack) => distance(from, stack)));
+    const nearest = free.filter((stack) => distance(from, stack) === reach);
+    const next = nearest.length > 1 ? nearest[pick(nearest.length)] : nearest[0];
     if (next === undefined) {
       break;
     }
@@ -86,11 +91,14 @@ function chainOf<T extends StackState>(
  * Отряды, которые заденет заклинание по площади; свои и чужие — одинаково.
  * `stacks` — живые отряды в порядке армий. Команда уже проверена.
  * Отряд под «Антимагией» не задет, цепь идёт мимо него (69-spells-control.md).
+ * `pick` — жребий цепной молнии между равноудалёнными отрядами; подсказке и компьютеру он не нужен:
+ * они считают, что молния пойдёт в первый по порядку армий.
  */
 export function areaVictims<T extends StackState>(
   everyone: readonly T[],
   spell: SpellDefinition,
   aim: SpellAim,
+  pick: TiePick = () => 0,
 ): Victim<T>[] {
   const stacks = everyone.filter((stack) => !immuneTo(stack, spell.level));
   if (spell.area === "all") {
@@ -100,7 +108,7 @@ export function areaVictims<T extends StackState>(
     const first = stacks.find((stack) => stack.id === aim.target);
     return first === undefined
       ? []
-      : chainOf(stacks, first, spell.chainLength ?? spell.chain?.[0] ?? 1);
+      : chainOf(stacks, first, spell.chainLength ?? spell.chain?.[0] ?? 1, pick);
   }
   const { cell } = aim;
   if (cell === undefined) {

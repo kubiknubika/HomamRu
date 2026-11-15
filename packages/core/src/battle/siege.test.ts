@@ -153,6 +153,18 @@ describe("ров", () => {
     expect(defenseOf(moved.state, stack(moved.state, "a1"))).toBe(before - 3);
   });
 
+  it("кто закончил ход во рву, не сходя с места, получает урон ещё раз; ушедший — нет", () => {
+    const { state } = siege("citadel");
+    const inMoat = turnOf(withStacks(state, { a1: { col: 8, row: 4 } }), "a1");
+    const stayed = act(inMoat, { type: "battleDefend" });
+    expect(stayed.events.find((event) => event.type === "moatDamage")).toMatchObject({
+      stackId: "a1",
+      damage: 70,
+    });
+    const gone = act(inMoat, { type: "battleMove", to: { col: 6, row: 4 } });
+    expect(gone.events.some((event) => event.type === "moatDamage")).toBe(false);
+  });
+
   it("через ров за один ход не пройти даже в пролом", () => {
     const { state } = siege("citadel");
     const near = turnOf(

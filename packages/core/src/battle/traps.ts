@@ -200,7 +200,7 @@ export function springTrap(
   return false;
 }
 
-/** Отряд начинает ход в стене огня: она жжёт его ещё раз. Ответ — погиб ли отряд. */
+/** Отряд закончил ход, стоя в стене огня: она жжёт его ещё раз. Ответ — погиб ли отряд. */
 export function scorch(draft: BattleDraft, stack: DraftStack): boolean {
   const field = draft.fields.find(
     (item) => item.kind === "fireWall" && item.cells.some((at) => sameCell(at, stack)),
