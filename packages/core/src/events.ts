@@ -196,6 +196,16 @@ export type GameEvent =
       readonly stat: "attack" | "defense" | "spellPower" | "knowledge";
     }
   | {
+      /** Обмен на рынке: сколько отдано и сколько получено (72-market.md). */
+      readonly type: "resourcesTraded";
+      readonly player: number;
+      readonly townId: string;
+      readonly give: Resource;
+      readonly given: number;
+      readonly want: Resource;
+      readonly got: number;
+    }
+  | {
       readonly type: "bookBought";
       readonly heroId: string;
       readonly townId: string;

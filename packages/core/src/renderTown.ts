@@ -79,6 +79,7 @@ type TownEvent = Extract<
       | "creaturesRecruited"
       | "creaturesTransferred"
       | "heroHired"
+      | "resourcesTraded"
       | "tavernChanged";
   }
 >;
@@ -95,6 +96,8 @@ export function formatTownEvent(event: TownEvent): string {
       const offers = event.offers.map((offer) => `${offer.kind} (${idArmy(offer.army)})`);
       return `В таверне игрока ${event.player + 1} теперь: ${offers.join("; ")}`;
     }
+    case "resourcesTraded":
+      return `Игрок ${event.player + 1} обменял на рынке города ${event.townId}: ${RESOURCE_NAMES[event.give]} −${event.given}, ${RESOURCE_NAMES[event.want]} +${event.got}`;
     case "buildingBuilt":
       return `В городе ${event.townId} построено ${event.building}: ${costText(event.spent)}`;
     case "creaturesGrew":

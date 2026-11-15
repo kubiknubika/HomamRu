@@ -232,6 +232,7 @@ export function formatEvent(event: GameEvent): string {
     case "creaturesGrew":
     case "creaturesRecruited":
     case "creaturesTransferred":
+    case "resourcesTraded":
     case "heroHired":
     case "tavernChanged":
       return formatTownEvent(event);

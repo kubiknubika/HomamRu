@@ -64,7 +64,11 @@ describe("карта первой версии «Четыре края»", () =>
     () => {
       const { state, commands } = play(1);
       expect(townOf(state, 0)?.buildings.toSorted()).toEqual(
-        state.buildings.map((building) => building.id).toSorted(),
+        // Рынок проходчик не строит: меняться он не умеет (72-market.md).
+        state.buildings
+          .filter((building) => building.market !== true)
+          .map((building) => building.id)
+          .toSorted(),
       );
       const recruited = commands.reduce(
         (sum, command) => sum + (command.type === "recruit" ? command.count : 0),

@@ -242,6 +242,9 @@ export function createSession(initial: GameState, onAccepted?: OnAccepted): Sess
     transfer: (from, creature, count) => {
       sendTown((base) => ({ type: "transfer", ...base, from, creature, count }));
     },
+    trade: (give, want, count) => {
+      sendTown((base) => ({ type: "trade", ...base, give, want, count }));
+    },
     buyBook: () => {
       sendTown((base) => ({ type: "buyBook", ...base }));
     },

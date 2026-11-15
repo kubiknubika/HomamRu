@@ -72,6 +72,8 @@ function playerOf(event: GameEvent, { before, after }: MessageContext): number |
     case "creaturesGrew":
     case "heroHired":
       return townOwner(event.townId);
+    case "resourcesTraded":
+      return event.player;
     case "levelGained":
     case "skillLearned":
     case "bookBought":
@@ -122,6 +124,8 @@ function ownMessage(event: GameEvent, state: GameState): string | null {
       return `Новый уровень: ${STAT_NAMES[event.stat]} +1`;
     case "skillLearned":
       return `Навык: ${formatSkills([{ id: event.skill, level: event.level }])[0] ?? ""}`;
+    case "resourcesTraded":
+      return `Обмен: ${RESOURCE_NAMES[event.give]} −${event.given}, ${RESOURCE_NAMES[event.want]} +${event.got}`;
     case "bookBought":
       return `Куплена книга заклинаний: золото −${event.cost}`;
     case "spellsLearned": {

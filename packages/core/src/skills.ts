@@ -150,3 +150,11 @@ export function formatSkills(skills: readonly HeroSkill[]): string[] {
     (skill) => `${SKILL_NAMES[skill.id]} (${SKILL_LEVEL_NAMES[skill.level] ?? ""})`,
   );
 }
+
+/** Выбор одного из навыков, предложенных герою с новым уровнем (65-hero-skills.md). */
+export interface ChooseSkillCommand {
+  readonly type: "chooseSkill";
+  readonly player: number;
+  readonly heroId: string;
+  readonly skill: SkillId;
+}

@@ -17,12 +17,13 @@ import type {
 } from "./battle/types.ts";
 import type { GameEvent } from "./events.ts";
 import type { BuyBookCommand } from "./magic.ts";
-import type { HeroSkill, SkillId } from "./skills.ts";
+import type { TradeCommand } from "./market.ts";
+import type { ChooseSkillCommand, HeroSkill, SkillId } from "./skills.ts";
 import type { SpellDefinition } from "./spells.ts";
 import type { RngState } from "./rng.ts";
 
 /** Номер версии формата состояния. Увеличивается при любом изменении формата. */
-export const STATE_VERSION = 11;
+export const STATE_VERSION = 12;
 
 /** Направления шага в порядке из спецификации перемещения. */
 export const DIRECTIONS = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"] as const;
@@ -102,6 +103,8 @@ export interface BuildingDefinition {
   readonly dwelling?: string | undefined;
   /** Гильдия магов: её уровень (61-magic.md). */
   readonly mageGuild?: number | undefined;
+  /** Рынок: здесь меняют ресурсы (72-market.md). */
+  readonly market?: boolean | undefined;
 }
 
 /** Отряд армии: вид существ и их число. */
@@ -354,14 +357,6 @@ interface TransferCommand {
   readonly count: number;
 }
 
-/** Выбор одного из навыков, предложенных герою с новым уровнем (65-hero-skills.md). */
-export interface ChooseSkillCommand {
-  readonly type: "chooseSkill";
-  readonly player: number;
-  readonly heroId: string;
-  readonly skill: SkillId;
-}
-
 export type TownCommand = BuildCommand | RecruitCommand | TransferCommand;
 
 /** Команды карты, города и боя: бой — часть партии. */
@@ -371,6 +366,7 @@ export type Command =
   | TownCommand
   | HireHeroCommand
   | BuyBookCommand
+  | TradeCommand
   | ChooseSkillCommand
   | BattleCommand;
 
@@ -407,6 +403,8 @@ export const REJECT_CODES = [
   "CANNOT_FLEE",
   "NO_GUILD",
   "BOOK_EXISTS",
+  "NO_MARKET",
+  "SAME_RESOURCE",
 ] as const;
 /** Отказ команды партии: свой код или код отказа команды боя (12-battle-actions.md). */
 export type RejectCode = (typeof REJECT_CODES)[number] | BattleRejectCode;
@@ -430,3 +428,4 @@ export function reject(code: RejectCode, message: string): CommandRejected {
 }
 
 export type { GameEvent } from "./events.ts";
+export type { ChooseSkillCommand } from "./skills.ts";

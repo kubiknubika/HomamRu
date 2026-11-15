@@ -40,6 +40,9 @@ export function buildingGives(state: GameState, building: BuildingDefinition): s
   if (building.tavern === true) {
     return "наём героя";
   }
+  if (building.market === true) {
+    return "обмен ресурсов";
+  }
   if (building.mageGuild !== undefined) {
     return "пять заклинаний первого круга, книга заклинаний";
   }
