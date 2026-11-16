@@ -4,6 +4,7 @@ import { SPELLS } from "../spellKit.ts";
 import { chooseBattleCommand } from "./ai.ts";
 import { conjure, conjureAll, faceToFace, mage, magicBattle } from "./castKit.ts";
 import { applyBattleCommand } from "./commands.ts";
+import { defendBonusOf } from "./damage.ts";
 import { battleProblems } from "./invariants.ts";
 import { activeStackOf } from "./queries.ts";
 import { speedOf } from "./effects.ts";
@@ -92,6 +93,20 @@ describe("урон отряда", () => {
       [1, "stone-skin", "b1"],
     );
     expect(meleeDamage(both)).toBe(47);
+  });
+
+  // Шаг 7.7: в status.md висел хвост «защищаться считает заклинания» — теста с заклинанием не было.
+  // Ополченец: защита 5 без заклинания (прибавка 1) и 5 + 15 с «Каменной кожей» эксперта (прибавка 4).
+  it("«защищаться» считает заклинания, а не одну защиту существа", () => {
+    // Заклинание в тестовом бою накладывается без навыка школы: 5 + 3.
+    const plain = act(turnOf(magicBattle(), "b1"), { type: "battleDefend" });
+    expect(stack(plain.state, "b1").defendBonus).toBe(1);
+    const skinned = conjure(faceToFace(magicBattle(3)), 1, "stone-skin", "b1").state;
+    const defended = act(turnOf(skinned, "b1"), { type: "battleDefend" });
+    expect(stack(defended.state, "b1").defendBonus).toBe(1);
+    // Прибавка — 20 % защиты с заклинанием, дробь отбрасывается: 8 ÷ 5 = 1, а 20 ÷ 5 = 4.
+    expect(defendBonusOf(8)).toBe(1);
+    expect(defendBonusOf(20)).toBe(4);
   });
 
   it("ответный удар тоже считается с заклинаниями", () => {

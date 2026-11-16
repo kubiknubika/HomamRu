@@ -197,6 +197,37 @@ describe("чего в записи нет — берётся начальное 
     });
   });
 
+  // Шаг 7.7: строки таблицы 04-save.md про навыки, предложение навыков и отметки «на день».
+  it("нечитаемые навыки, предложение навыков и отметки «Видений» и «Маскировки» — начальные", () => {
+    const state = readState({
+      ...FULL,
+      heroes: FULL.heroes.map((hero, index) => ({
+        ...hero,
+        skills:
+          index === 0
+            ? [
+                { id: "wisdom", level: 3 },
+                { id: "wisdom", level: 1 },
+                { id: "leadership", level: 1 },
+                { id: "air-magic", level: 4 },
+                "навык",
+              ]
+            : ["wisdom"],
+        skillOffer: ["air-magic", "air-magic", "unknown", 7],
+        skillsOwed: -1,
+        visions: 9,
+        disguise: "незаметность",
+      })),
+    });
+    expect(state?.heroes[0]?.skills).toEqual([{ id: "wisdom", level: 3 }]);
+    expect(state?.heroes[0]?.skillOffer).toEqual(["air-magic"]);
+    expect(state?.heroes[0]?.skillsOwed).toBe(0);
+    expect(state?.heroes[0]?.visions).toBe(0);
+    expect(state?.heroes[0]?.disguise).toBe(0);
+    // Строка незнакомого навыка без других полей не делает героя нечитаемым.
+    expect(state?.heroes[1]?.skills).toEqual([]);
+  });
+
   it("игроков дописывается столько, сколько нужно героям и шахтам", () => {
     const state = readState({
       map: { terrain: TERRAIN },
