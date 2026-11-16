@@ -76,6 +76,8 @@ export const FULL_STATE: GameState = {
       spells: ["magic-arrow", "slow"],
       skills: [],
       skillOffer: [],
+      visions: 0,
+      disguise: 0,
       skillsOwed: 0,
       army: [
         { creature: "militia", count: 17 },
@@ -101,6 +103,8 @@ export const FULL_STATE: GameState = {
       spells: [],
       skills: [],
       skillOffer: [],
+      visions: 0,
+      disguise: 0,
       skillsOwed: 0,
       army: [{ creature: "slinger", count: 9 }],
       experience: 5,

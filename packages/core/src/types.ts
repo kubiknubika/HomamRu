@@ -17,13 +17,15 @@ import type {
 } from "./battle/types.ts";
 import type { GameEvent } from "./events.ts";
 import type { BuyBookCommand } from "./magic.ts";
+import type { CastMapCommand } from "./mapSpells.ts";
+import type { REJECT_CODES } from "./rejectCodes.ts";
 import type { TradeCommand } from "./market.ts";
 import type { ChooseSkillCommand, HeroSkill, SkillId } from "./skills.ts";
 import type { SpellDefinition } from "./spells.ts";
 import type { RngState } from "./rng.ts";
 
 /** Номер версии формата состояния. Увеличивается при любом изменении формата. */
-export const STATE_VERSION = 12;
+export const STATE_VERSION = 13;
 
 /** Направления шага в порядке из спецификации перемещения. */
 export const DIRECTIONS = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"] as const;
@@ -257,6 +259,13 @@ export interface HeroState {
   readonly book: boolean;
   /** Выученные заклинания. */
   readonly spells: readonly string[];
+  /**
+   * «Видения» до конца дня (73-map-spells.md): 0 — не действуют; 1 — без навыка и базовый,
+   * 2 — продвинутый, 3 — экспертный уровень школы.
+   */
+  readonly visions: number;
+  /** «Маскировка» до конца дня; уровни — как у «Видений». */
+  readonly disguise: number;
   /** Навыки героя, до восьми (65-hero-skills.md). */
   readonly skills: readonly HeroSkill[];
   /** Навыки, из которых игрок сейчас выбирает один; пусто — выбирать нечего. */
@@ -366,46 +375,11 @@ export type Command =
   | TownCommand
   | HireHeroCommand
   | BuyBookCommand
+  | CastMapCommand
   | TradeCommand
   | ChooseSkillCommand
   | BattleCommand;
 
-/** Коды отказа. Общие — в 00-state-and-commands.md, остальные — в документах команд. */
-export const REJECT_CODES = [
-  "NOT_YOUR_TURN",
-  "SKILL_CHOICE_PENDING",
-  "NO_SKILL_OFFER",
-  "SKILL_NOT_OFFERED",
-  "UNKNOWN_PLAYER",
-  "UNKNOWN_COMMAND",
-  "UNKNOWN_HERO",
-  "NOT_OWNER",
-  "EMPTY_PATH",
-  "STEP_BLOCKED",
-  "NOT_ENOUGH_MOVEMENT",
-  "BATTLE_IN_PROGRESS",
-  "NO_BATTLE",
-  "GAME_OVER",
-  "NO_TOWN",
-  "UNKNOWN_BUILDING",
-  "ALREADY_BUILT",
-  "BUILT_TODAY",
-  "REQUIREMENT_MISSING",
-  "NOT_ENOUGH_RESOURCES",
-  "NO_DWELLING",
-  "BAD_COUNT",
-  "NOT_AVAILABLE",
-  "HERO_NOT_IN_TOWN",
-  "LAST_STACK",
-  "NO_TAVERN",
-  "HERO_EXISTS",
-  "BAD_OFFER",
-  "CANNOT_FLEE",
-  "NO_GUILD",
-  "BOOK_EXISTS",
-  "NO_MARKET",
-  "SAME_RESOURCE",
-] as const;
 /** Отказ команды партии: свой код или код отказа команды боя (12-battle-actions.md). */
 export type RejectCode = (typeof REJECT_CODES)[number] | BattleRejectCode;
 
@@ -427,5 +401,6 @@ export function reject(code: RejectCode, message: string): CommandRejected {
   return { ok: false, code, message };
 }
 
+export { REJECT_CODES } from "./rejectCodes.ts";
 export type { GameEvent } from "./events.ts";
 export type { ChooseSkillCommand } from "./skills.ts";

@@ -48,7 +48,13 @@ export function applyEndTurn(initial: GameState, command: EndTurnCommand): Comma
     ...state,
     day,
     currentPlayer: first,
-    heroes: state.heroes.map((hero) => ({ ...hero, movement: DAILY_MOVEMENT })),
+    // Действие «Видений» и «Маскировки» кончается с днём (73-map-spells.md).
+    heroes: state.heroes.map((hero) => ({
+      ...hero,
+      movement: DAILY_MOVEMENT,
+      visions: 0,
+      disguise: 0,
+    })),
   };
   // Мана: +1 за ночь, в своём городе с гильдией — вся (61-magic.md).
   const rested = restoreMana(started);

@@ -4,7 +4,7 @@ import { duel, HOME, withoutHero } from "./duelKit.ts";
 import { guildLevel, guildSpells, withGuildSpells } from "./magic.ts";
 import { MINE_INCOME, NO_RESOURCES } from "./objects.ts";
 import { chooseMapCommand } from "./opponent.ts";
-import { ALL_SPELLS } from "./spellKit.ts";
+import { GAME_SPELLS } from "./spellKit.ts";
 import { OPPONENT } from "./testkit.ts";
 import { codeOf, run, START, town, townGame } from "./townKit.ts";
 import { MINE_KINDS, RESOURCES } from "./types.ts";
@@ -21,7 +21,7 @@ const levelOf = (state: GameState, id: string) =>
 
 /** Партия с городом и всеми заклинаниями игры: набор гильдии брошен по ним. */
 function game(amounts: Resources = WEALTH, seed = 1): GameState {
-  return withGuildSpells({ ...townGame(START, amounts, [], undefined, seed), spells: ALL_SPELLS });
+  return withGuildSpells({ ...townGame(START, amounts, [], undefined, seed), spells: GAME_SPELLS });
 }
 
 /** Строит гильдии подряд, по одной в день. */

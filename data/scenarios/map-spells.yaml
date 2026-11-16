@@ -1,0 +1,19 @@
+name: Заклинания карты — портал в свой город, «Видения» и «Маскировка» на день
+map: test-map-spells
+seed: 1
+steps:
+  - castMap: { hero: A, spell: magic-arrow }
+    expectError: UNKNOWN_SPELL
+  # Портал: мана 50 − 16, запас хода 1000 − 300, герой в своём городе.
+  - castMap: { hero: A, spell: town-portal }
+  # Герой сам стоит в ближайшем городе — второй раз нельзя.
+  - castMap: { hero: A, spell: town-portal }
+    expectError: TOWN_OCCUPIED
+  - castMap: { hero: A, spell: visions }
+  - castMap: { hero: A, spell: visions }
+    expectError: SPELL_ACTIVE
+  - castMap: { hero: A, spell: disguise }
+expect:
+  day: 1
+  heroes:
+    A: { x: 7, y: 7, mana: 26, movement: 700, visions: 1, disguise: 1 }

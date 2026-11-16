@@ -212,6 +212,15 @@ export type GameEvent =
       readonly cost: number;
     }
   | {
+      /** Заклинание карты (73-map-spells.md): `townId` — куда перенёс портал, `range` — дальность «Видений». */
+      readonly type: "mapSpellCast";
+      readonly heroId: string;
+      readonly spell: string;
+      readonly mana: number;
+      readonly townId: string | null;
+      readonly range: number | null;
+    }
+  | {
       readonly type: "spellsLearned";
       readonly heroId: string;
       readonly townId: string;

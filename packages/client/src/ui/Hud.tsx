@@ -2,18 +2,21 @@ import {
   calendarOf,
   DAILY_MOVEMENT,
   heroChoosingSkill,
+  mapSpellsOf,
   RESOURCES,
   townIncome,
   townsOf,
 } from "@homamru/core";
 import { useState, useSyncExternalStore } from "react";
 import { describeCell, fightWarning, RESOURCE_NAMES } from "../game/captions.ts";
+import { dayEffects } from "../game/mapSpellTexts.ts";
 import { activeHero, computerToMove, humanOf, sameCell, townlessLeft } from "../game/view.ts";
 import { Dialog, DialogButton } from "./Dialog.tsx";
 import type { Session } from "../game/session.ts";
 import { HeroWindow } from "./HeroWindow.tsx";
 import { LevelWindow } from "./LevelWindow.tsx";
 import { Legend } from "./Legend.tsx";
+import { MapBook } from "./MapBook.tsx";
 import { Messages } from "./Messages.tsx";
 import { TownScreen } from "./TownScreen.tsx";
 
@@ -29,6 +32,7 @@ export function Hud({ session }: HudProps) {
   );
   const [heroOpen, setHeroOpen] = useState(false);
   const [legendOpen, setLegendOpen] = useState(false);
+  const [bookOpen, setBookOpen] = useState(false);
   const { month, week, weekday } = calendarOf(state.day);
   const hero = activeHero(state);
   const me = humanOf(state);
@@ -63,6 +67,12 @@ export function Hud({ session }: HudProps) {
             Запас хода: {hero.movement} из {DAILY_MOVEMENT}
           </div>
         )}
+        {hero !== undefined &&
+          dayEffects(hero).map((line) => (
+            <div key={line} className="hud-movement">
+              {line}
+            </div>
+          ))}
         {daysLeft !== null && (
           <div className="hud-townless">Без города: осталось {daysLeft} дн.</div>
         )}
@@ -114,6 +124,18 @@ export function Hud({ session }: HudProps) {
             Герой
           </button>
         )}
+        {hero !== undefined && mapSpellsOf(state, hero).length > 0 && (
+          <button
+            type="button"
+            className="hud hud-button"
+            disabled={opponentTurn}
+            onClick={() => {
+              setBookOpen(true);
+            }}
+          >
+            Колдовать
+          </button>
+        )}
         <button
           type="button"
           className="hud hud-button hud-end-day"
@@ -151,6 +173,16 @@ export function Hud({ session }: HudProps) {
         </Dialog>
       )}
       {choosing !== undefined && <LevelWindow session={session} hero={choosing} />}
+      {bookOpen && hero !== undefined && !opponentTurn && (
+        <MapBook
+          session={session}
+          state={state}
+          hero={hero}
+          onClose={() => {
+            setBookOpen(false);
+          }}
+        />
+      )}
       {heroOpen && hero !== undefined && (
         <HeroWindow
           state={state}

@@ -1,6 +1,6 @@
 import { basename } from "node:path";
 import { describe, expect, it } from "vitest";
-import { ALL_SPELLS } from "@homamru/core/testkit";
+import { GAME_SPELLS } from "@homamru/core/testkit";
 import { checkMapFile, listMapFiles, loadDefaults } from "./files.ts";
 
 // Догма 8: все файлы данных проверяются автоматически.
@@ -19,9 +19,9 @@ describe("карты из папки data/maps", () => {
 describe("файл заклинаний data/spells.yaml", () => {
   const { spells } = loadDefaults();
 
-  it("51 заклинаний: первый круг и три группы кругов 2–5; набор тестов ядра — тот же", () => {
-    expect(spells).toHaveLength(51);
-    expect(spells).toEqual(ALL_SPELLS);
+  it("54 заклинания: первый круг, три группы кругов 2–5 и три заклинания карты; набор тестов ядра — тот же", () => {
+    expect(spells).toHaveLength(54);
+    expect(spells).toEqual(GAME_SPELLS);
   });
 
   it("числа — как в Heroes 3 (60-spells.md)", () => {
@@ -84,6 +84,9 @@ describe("файл заклинаний data/spells.yaml", () => {
       ["resurrection", 20, 50, 40, 10],
       ["clone", 24, 0, 5, 5],
       ["sacrifice", 25, 1, 3, 0],
+      ["visions", 4, 0, 1, 2],
+      ["disguise", 4, 0, 0, 2],
+      ["town-portal", 16, 0, 300, 10],
     ]);
   });
 });

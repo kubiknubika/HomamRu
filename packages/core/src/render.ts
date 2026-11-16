@@ -99,7 +99,11 @@ function formatHero(state: GameState, hero: HeroState): string {
     hero.skillOffer.length === 0
       ? ""
       : ` Выбирает навык: ${hero.skillOffer.map((id) => SKILL_NAMES[id]).join(" или ")}.`;
-  return `Герой ${hero.id}${name}: уровень ${hero.level}, опыт ${hero.experience}, атака ${hero.attack}, защита ${hero.defense}, сила магии ${hero.spellPower}, знание ${hero.knowledge}, мана ${hero.mana} из ${maxMana(hero)}, ${book}; ${skills}; армия: ${formatArmy(state, hero.army)}.${offer}`;
+  const day = [hero.visions > 0 ? "видения" : "", hero.disguise > 0 ? "маскировка" : ""]
+    .filter((word) => word !== "")
+    .map((word) => ` На день: ${word}.`)
+    .join("");
+  return `Герой ${hero.id}${name}: уровень ${hero.level}, опыт ${hero.experience}, атака ${hero.attack}, защита ${hero.defense}, сила магии ${hero.spellPower}, знание ${hero.knowledge}, мана ${hero.mana} из ${maxMana(hero)}, ${book}; ${skills}; армия: ${formatArmy(state, hero.army)}.${day}${offer}`;
 }
 
 function formatObject(state: GameState, object: ObjectState): string {

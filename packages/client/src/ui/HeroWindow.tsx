@@ -1,6 +1,6 @@
 import { experienceForLevel, formatSkills, MAX_LEVEL, maxMana } from "@homamru/core";
 import type { GameState, HeroState } from "@homamru/core";
-import { heroSpellLine } from "../battle/battleSpells.ts";
+import { bookLine } from "../game/mapSpellTexts.ts";
 import { creatureName, heroName } from "../game/captions.ts";
 import { Dialog, DialogButton } from "./Dialog.tsx";
 
@@ -45,7 +45,7 @@ export function HeroWindow({ state, hero, onClose }: HeroWindowProps) {
         {hero.book &&
           state.spells
             .filter((spell) => hero.spells.includes(spell.id))
-            .map((spell) => <div key={spell.id}>{heroSpellLine(spell, hero)}</div>)}
+            .map((spell) => <div key={spell.id}>{bookLine(spell, hero)}</div>)}
       </div>
       <div className="dialog-text">
         <b>Армия</b>

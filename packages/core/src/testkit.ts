@@ -17,7 +17,7 @@ import type {
 } from "./types.ts";
 
 export { CREATURES } from "./battle/testkit.ts";
-export { ALL_SPELLS, spell, SPELLS } from "./spellKit.ts";
+export { ALL_SPELLS, GAME_SPELLS, spell, SPELLS } from "./spellKit.ts";
 
 export interface Picture {
   readonly state: GameState;
@@ -208,6 +208,8 @@ export function fromPicture(rows: readonly string[]): Picture {
       spells: [],
       skills: [],
       skillOffer: [],
+      visions: 0,
+      disguise: 0,
       skillsOwed: 0,
       army: TEST_ARMY,
       experience: 0,

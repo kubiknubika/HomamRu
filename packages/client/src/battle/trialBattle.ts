@@ -1,5 +1,5 @@
 /** Проверочные бои для пунктов меню: читает файл боя и файлы существ. */
-import { createBattle } from "@homamru/core";
+import { createBattle, isMapSpell } from "@homamru/core";
 import type { BattleEvent, BattleState } from "@homamru/core";
 import { parseBattleFile } from "@homamru/data";
 import siegeText from "../../../../data/battles/trial-siege.yaml?raw";
@@ -23,7 +23,9 @@ export interface TrialBattle {
 export function startTrialBattle(seed: number, kind: TrialKind = "field"): TrialBattle {
   const { file: BATTLE_FILE, text } = FILES[kind];
   const creatures = loadCreatures();
-  const battle = parseBattleFile(BATTLE_FILE, text, loadDefaults().spells);
+  // Заклинания карты в бою не колдуются (73-map-spells.md).
+  const spells = loadDefaults().spells.filter((spell) => !isMapSpell(spell));
+  const battle = parseBattleFile(BATTLE_FILE, text, spells);
   if (!battle.ok) {
     return failContent(battle.errors);
   }

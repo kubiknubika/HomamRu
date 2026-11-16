@@ -27,6 +27,8 @@ const FRESH = {
   skills: [],
   skillOffer: [],
   skillsOwed: 0,
+  visions: 0,
+  disguise: 0,
   army: TEST_DEFAULTS.heroArmy,
   experience: 0,
   level: 1,

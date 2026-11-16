@@ -24,6 +24,7 @@ type Stage3Event = Extract<
       | "skillLearned"
       | "bookBought"
       | "spellsLearned"
+      | "mapSpellCast"
       | "garrisonJoined"
       | "townCaptured"
       | "townlessCountdown"
@@ -92,6 +93,11 @@ export function formatBattleSideEvent(event: Stage3Event): string {
       return `Герой ${event.heroId} купил книгу заклинаний в городе ${event.townId}: золото −${event.cost}`;
     case "spellsLearned":
       return `Герой ${event.heroId} выучил в городе ${event.townId}: ${event.spells.join(", ")}`;
+    case "mapSpellCast": {
+      const where = event.townId === null ? "" : `, перенёсся в город ${event.townId}`;
+      const range = event.range === null ? "" : `, дальность ${event.range}`;
+      return `Герой ${event.heroId} наколдовал на карте ${event.spell}: мана −${event.mana}${where}${range}`;
+    }
     case "levelGained":
       return `Герой ${event.heroId} получил уровень ${event.level}: ${STAT_NAMES[event.stat]} +1`;
     case "skillsOffered":

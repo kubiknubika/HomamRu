@@ -30,6 +30,8 @@ export type SpellSchool = (typeof SPELL_SCHOOLS)[number];
  * Жизнь (71-spells-life.md): `resurrect` — поднимает погибших, число — прибавка к здоровью;
  * `clone` — копия отряда, число — наибольший уровень существа; `sacrifice` — отдаёт один отряд,
  * чтобы поднять другой, число — прибавка на каждое отданное существо.
+ * Карта (73-map-spells.md), в бою не колдуются: `townPortal` — в свой город, число — цена в очках хода;
+ * `visions` — точные числа вокруг героя, число — множитель дальности; `disguise` — ложная армия для противника.
  */
 export const SPELL_EFFECTS = [
   "damage",
@@ -71,6 +73,9 @@ export const SPELL_EFFECTS = [
   "resurrect",
   "clone",
   "sacrifice",
+  "townPortal",
+  "visions",
+  "disguise",
 ] as const;
 export type SpellEffect = (typeof SPELL_EFFECTS)[number];
 

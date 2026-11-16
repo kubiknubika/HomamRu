@@ -30,6 +30,8 @@ function checkHero(hero: HeroState, want: HeroWant): string[] {
       hero.attack + hero.defense + hero.spellPower + hero.knowledge,
     ],
     ["ожидалась мана", want.mana, hero.mana],
+    ["ожидался уровень «Видений»", want.visions, hero.visions],
+    ["ожидался уровень «Маскировки»", want.disguise, hero.disguise],
   ] as const;
   for (const [name, wanted, got] of numbers) {
     if (wanted !== undefined && wanted !== got) {

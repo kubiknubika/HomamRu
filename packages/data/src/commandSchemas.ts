@@ -42,6 +42,13 @@ export const commandSchema = z.discriminatedUnion("type", [
   }),
   z.strictObject({ type: z.literal("buyBook"), player: z.int(), townId: z.string() }),
   z.strictObject({
+    type: z.literal("castMap"),
+    player: z.int(),
+    heroId: z.string(),
+    spell: z.string(),
+    townId: z.string().optional(),
+  }),
+  z.strictObject({
     type: z.literal("trade"),
     player: z.int(),
     townId: z.string(),

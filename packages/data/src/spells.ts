@@ -177,7 +177,16 @@ export function defaultGuild(
 
 type HeroMagic = Pick<
   HeroState,
-  "spellPower" | "knowledge" | "mana" | "book" | "spells" | "skills" | "skillOffer" | "skillsOwed"
+  | "spellPower"
+  | "knowledge"
+  | "mana"
+  | "book"
+  | "spells"
+  | "skills"
+  | "skillOffer"
+  | "skillsOwed"
+  | "visions"
+  | "disguise"
 >;
 
 const skillSchema = z.object({
@@ -205,6 +214,12 @@ function readSkillOffer(raw: unknown): SkillId[] {
   return [...new Set(known)];
 }
 
+/** Уровень действия «на день» из записи: от 0 до 3; иначе 0. */
+function readDayLevel(raw: unknown): number {
+  const parsed = z.int().min(0).max(3).safeParse(raw);
+  return parsed.success ? parsed.data : 0;
+}
+
 /** Магия героя из записи: маны не больше запаса; без книги заклинаний нет. */
 export function readHeroMagic(
   hero: {
@@ -216,6 +231,8 @@ export function readHeroMagic(
     readonly skills?: unknown;
     readonly skillOffer?: unknown;
     readonly skillsOwed?: unknown;
+    readonly visions?: unknown;
+    readonly disguise?: unknown;
   },
   spells: readonly SpellDefinition[],
 ): HeroMagic {
@@ -226,6 +243,9 @@ export function readHeroMagic(
     skills,
     skillOffer: readSkillOffer(hero.skillOffer),
     skillsOwed: owed.success ? owed.data : 0,
+    // «Видений» и «Маскировки» нет в записях до версии 13 — не действуют.
+    visions: readDayLevel(hero.visions),
+    disguise: readDayLevel(hero.disguise),
     spellPower: hero.spellPower,
     knowledge: hero.knowledge,
     mana: Math.min(hero.mana ?? limit, limit),

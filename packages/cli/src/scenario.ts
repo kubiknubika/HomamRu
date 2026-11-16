@@ -62,6 +62,16 @@ function toCommand(step: Exclude<ScenarioStep, { fight: object }>, state: GameSt
   if ("buyBook" in step) {
     return { type: "buyBook", player, townId: step.buyBook.town };
   }
+  if ("castMap" in step) {
+    const { hero, spell, town } = step.castMap;
+    return {
+      type: "castMap",
+      player,
+      heroId: hero,
+      spell,
+      ...(town === undefined ? {} : { townId: town }),
+    };
+  }
   if ("trade" in step) {
     const { town, give, want, count } = step.trade;
     return { type: "trade", player, townId: town, give, want, count };
@@ -90,6 +100,8 @@ function describe(command: Command): string {
       return `выбрать герою ${command.heroId} навык ${command.skill}`;
     case "buyBook":
       return `купить книгу заклинаний в городе ${command.townId}`;
+    case "castMap":
+      return `герою ${command.heroId} наколдовать на карте ${command.spell}`;
     case "trade":
       return `обменять в городе ${command.townId}: ${command.give} на ${command.want}, сделок ${command.count}`;
     case "hireHero":

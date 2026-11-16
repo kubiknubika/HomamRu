@@ -56,8 +56,8 @@ describe("запись версии 10 читается новой версие�
 });
 
 describe("запись версии 11 читается версией 12 (72-market.md)", () => {
-  it("версия записи — 12", () => {
-    expect(STATE_VERSION).toBe(12);
+  it("версия записи — 13", () => {
+    expect(STATE_VERSION).toBe(13);
   });
 
   it("рынка в списке зданий записи нет — он дописывается; в городах его нет", () => {
@@ -70,5 +70,31 @@ describe("запись версии 11 читается версией 12 (72-ma
     expect(read?.buildings.filter((building) => building.market === true)).toHaveLength(1);
     const towns = read?.objects.filter((object) => object.type === "town") ?? [];
     expect(towns.some((town) => town.buildings.includes("market"))).toBe(false);
+  });
+});
+
+describe("запись версии 12 читается версией 13 (73-map-spells.md)", () => {
+  it("отметок «Видений» и «Маскировки» в записи нет — не действуют", () => {
+    const old = {
+      ...FULL_STATE,
+      version: 12,
+      heroes: FULL_STATE.heroes.map(({ visions: _visions, disguise: _disguise, ...hero }) => hero),
+    };
+    const read = readTestState(old);
+    expect(read?.heroes.map((hero) => [hero.visions, hero.disguise])).toEqual([
+      [0, 0],
+      [0, 0],
+    ]);
+  });
+
+  it("отметки из записи целы; негодные — ноль", () => {
+    const heroes = FULL_STATE.heroes.map((hero, index) =>
+      index === 0 ? { ...hero, visions: 2, disguise: 3 } : { ...hero, visions: 7, disguise: -1 },
+    );
+    const read = readTestState({ ...FULL_STATE, heroes });
+    expect(read?.heroes.map((hero) => [hero.visions, hero.disguise])).toEqual([
+      [2, 3],
+      [0, 0],
+    ]);
   });
 });

@@ -165,6 +165,8 @@ export const heroSchema = z.object({
   skills: z.unknown().optional(),
   skillOffer: z.unknown().optional(),
   skillsOwed: z.unknown().optional(),
+  visions: z.unknown().optional(),
+  disguise: z.unknown().optional(),
   experience: z.int().min(0).catch(DEFAULTS.heroExperience),
   army: z.array(z.unknown()).catch([]),
 });
