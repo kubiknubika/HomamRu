@@ -1,6 +1,7 @@
 # Карта первой версии (docs/mechanics/25-first-map.md): малая карта 36×36.
 # Четыре края разделены двумя хребтами; в каждом проходе стоит охранник.
-# Редакция этапа 4: город, малая начальная армия, охранники под армию из города.
+# Редакция шага 7.7: местность и объекты зеркальны — у краёв одинаковые возможности.
+# Каждая вещь юго-восточной половины — поворот северо-западной на 180°.
 id: four-corners
 name: Четыре края
 terrain:
@@ -24,22 +25,23 @@ terrain:
   - "########.##################.########"
   - "########.##################.########"
   - ".................##................."
-  - ".................##................."
-  - "...##............##...........##...."
-  - "...##.....##.....##...##......##...."
+  - "..............#..##................."
+  - "..............#..##................."
+  - "....###..........##.......##........"
   - "..........##.....##...##............"
-  - ".................##.........#......."
-  - "........#........##.........#......."
-  - "........#...#....##................."
-  - "............#...................#..."
-  - ".....##..........##......##.....#..."
-  - ".....##..........##......##.....#..."
-  - ".............##..##................."
-  - ".............##..##..##......##....."
-  - "..##.............##..##.......######"
-  - ".................##...........#....."
+  - "..........##.....##...##.......##..."
+  - ".................##...##............"
+  - "...##............##..........#......"
+  - "...##.........#..............#......"
+  - "..............#..##................."
+  - ".................##..#.............."
+  - ".................##..#.......##....."
+  - ".......#....##...##..........##....."
+  - ".......#....##...##................."
+  - ".......#.........##.....##.........."
   - ".................##................."
-  - ".................##...........#....."
+  - ".................##................."
+
 players:
   - hero:
       x: 2
@@ -53,7 +55,7 @@ players:
   - kind: computer
     hero:
       x: 33
-      y: 25
+      y: 33
       attack: 1
       defense: 1
       army:
@@ -61,65 +63,55 @@ players:
         - { creature: slinger, count: 8 }
     resources: { gold: 20000, wood: 20, ore: 20 }
 objects:
-  # Город игрока — рядом с началом.
   - { type: town, x: 3, y: 4, owner: 0, buildings: [tavern, fort, militia-yard] }
-  # Город противника — в дальнем, юго-восточном краю.
-  - { type: town, x: 33, y: 24, owner: 1, buildings: [tavern, fort, militia-yard] }
-  # Северо-запад: начало. Всё рядом свободно, лесопилку стережёт горстка.
+  - { type: town, x: 32, y: 31, owner: 1, buildings: [tavern, fort, militia-yard] }
   - { type: pile, x: 4, y: 2, resource: gold, amount: 500 }
+  - { type: pile, x: 31, y: 33, resource: gold, amount: 500 }
   - { type: pile, x: 1, y: 6, resource: wood, amount: 6 }
+  - { type: pile, x: 34, y: 29, resource: wood, amount: 6 }
   - { type: pile, x: 8, y: 5, resource: ore, amount: 5 }
+  - { type: pile, x: 27, y: 30, resource: ore, amount: 5 }
   - { type: pile, x: 15, y: 2, resource: gold, amount: 600 }
+  - { type: pile, x: 20, y: 33, resource: gold, amount: 600 }
   - { type: pile, x: 2, y: 14, resource: wood, amount: 8 }
-  - { type: guard, x: 11, y: 7, creature: militia, count: 12 }
-  - { type: mine, x: 12, y: 8, kind: sawmill }
-  # Проход на северо-восток.
-  - { type: guard, x: 17, y: 8, creature: slinger, count: 30 }
-  # Проход на юго-запад.
-  - { type: guard, x: 8, y: 17, creature: militia, count: 50 }
-  # Северо-восток: рудник под охраной, кучки.
+  - { type: pile, x: 33, y: 21, resource: wood, amount: 8 }
   - { type: pile, x: 20, y: 2, resource: ore, amount: 7 }
+  - { type: pile, x: 15, y: 33, resource: ore, amount: 7 }
   - { type: pile, x: 26, y: 6, resource: gold, amount: 800 }
-  - { type: pile, x: 34, y: 1, resource: wood, amount: 10 }
-  - { type: pile, x: 33, y: 15, resource: gold, amount: 700 }
-  - { type: guard, x: 30, y: 5, creature: armsman, count: 12 }
-  - { type: mine, x: 31, y: 4, kind: ore-pit }
-  # Проход с северо-востока на юго-восток.
-  - { type: guard, x: 27, y: 17, creature: armsman, count: 20 }
-  # Юго-запад: клад под охраной, вторая лесопилка свободна.
-  - { type: pile, x: 1, y: 20, resource: ore, amount: 9 }
-  - { type: pile, x: 14, y: 21, resource: gold, amount: 900 }
-  - { type: pile, x: 7, y: 33, resource: wood, amount: 7 }
-  - { type: mine, x: 2, y: 27, kind: sawmill }
-  - { type: guard, x: 11, y: 32, creature: falcon, count: 25 }
+  - { type: pile, x: 9, y: 29, resource: gold, amount: 800 }
+  - { type: pile, x: 23, y: 2, resource: gold, amount: 1000 }
   - { type: pile, x: 12, y: 33, resource: gold, amount: 1000 }
+  - { type: pile, x: 25, y: 2, resource: gold, amount: 1000 }
   - { type: pile, x: 10, y: 33, resource: gold, amount: 1000 }
-  # Проход с юго-запада на юго-восток.
-  - { type: guard, x: 17, y: 27, creature: falcon, count: 30 }
-  # Юго-восток: золотая шахта в скальном кармане, вход стережёт главный охранник.
-  - { type: pile, x: 20, y: 20, resource: ore, amount: 10 }
-  - { type: pile, x: 34, y: 20, resource: wood, amount: 9 }
-  - { type: pile, x: 24, y: 33, resource: gold, amount: 800 }
-  - { type: guard, x: 29, y: 34, creature: armsman, count: 30 }
+  - { type: mine, x: 12, y: 8, kind: sawmill }
+  - { type: mine, x: 23, y: 27, kind: sawmill }
+  - { type: guard, x: 11, y: 7, creature: militia, count: 12 }
+  - { type: guard, x: 24, y: 28, creature: militia, count: 12 }
+  - { type: mine, x: 31, y: 4, kind: ore-pit }
+  - { type: mine, x: 4, y: 31, kind: ore-pit }
+  - { type: guard, x: 30, y: 5, creature: armsman, count: 12 }
+  - { type: guard, x: 5, y: 30, creature: armsman, count: 12 }
+  - { type: mine, x: 2, y: 1, kind: gold-mine }
   - { type: mine, x: 33, y: 34, kind: gold-mine }
-  # Редкие ресурсы (docs/mechanics/66-rare-resources.md) — предварительно, до шага 7.7:
-  # каждому игроку по шахте каждого редкого ресурса и по две кучки, всё под охраной.
-  # Четыре шахты и кучка стоят вокруг одного охранника у края карты; вторая кучка — со своим.
-  # Северо-запад.
+  - { type: guard, x: 6, y: 1, creature: armsman, count: 30 }
+  - { type: guard, x: 29, y: 34, creature: armsman, count: 30 }
+  - { type: guard, x: 17, y: 8, creature: slinger, count: 30 }
+  - { type: guard, x: 18, y: 27, creature: slinger, count: 30 }
+  - { type: guard, x: 8, y: 17, creature: militia, count: 50 }
+  - { type: guard, x: 27, y: 18, creature: militia, count: 50 }
   - { type: mine, x: 0, y: 7, kind: alchemist-lab }
-  - { type: mine, x: 0, y: 9, kind: sulfur-dune }
-  - { type: mine, x: 2, y: 7, kind: crystal-cavern }
-  - { type: mine, x: 2, y: 9, kind: gem-pond }
-  - { type: pile, x: 0, y: 8, resource: sulfur, amount: 5 }
-  - { type: guard, x: 1, y: 8, creature: militia, count: 5 }
-  - { type: pile, x: 0, y: 12, resource: crystal, amount: 5 }
-  - { type: guard, x: 1, y: 12, creature: militia, count: 6 }
-  # Юго-восток.
   - { type: mine, x: 35, y: 28, kind: alchemist-lab }
-  - { type: mine, x: 35, y: 30, kind: sulfur-dune }
+  - { type: mine, x: 0, y: 9, kind: sulfur-dune }
+  - { type: mine, x: 35, y: 26, kind: sulfur-dune }
+  - { type: mine, x: 2, y: 7, kind: crystal-cavern }
   - { type: mine, x: 33, y: 28, kind: crystal-cavern }
-  - { type: mine, x: 33, y: 30, kind: gem-pond }
-  - { type: pile, x: 35, y: 29, resource: sulfur, amount: 5 }
-  - { type: guard, x: 34, y: 29, creature: militia, count: 5 }
-  - { type: pile, x: 26, y: 35, resource: crystal, amount: 5 }
-  - { type: guard, x: 26, y: 34, creature: militia, count: 6 }
+  - { type: mine, x: 2, y: 9, kind: gem-pond }
+  - { type: mine, x: 33, y: 26, kind: gem-pond }
+  - { type: pile, x: 0, y: 8, resource: sulfur, amount: 5 }
+  - { type: pile, x: 35, y: 27, resource: sulfur, amount: 5 }
+  - { type: guard, x: 1, y: 8, creature: militia, count: 8 }
+  - { type: guard, x: 34, y: 27, creature: militia, count: 8 }
+  - { type: pile, x: 0, y: 12, resource: crystal, amount: 5 }
+  - { type: pile, x: 35, y: 23, resource: crystal, amount: 5 }
+  - { type: guard, x: 1, y: 12, creature: militia, count: 8 }
+  - { type: guard, x: 34, y: 23, creature: militia, count: 8 }
