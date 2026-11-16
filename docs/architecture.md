@@ -32,11 +32,16 @@
 - `pathfinding.ts`, `heap.ts` — поиск пути: обратный поиск от цели, затем выбор шагов по порядку направлений.
 - `render.ts` — текстовый вывод состояния и событий.
 - `hero.ts` — опыт и уровни героя; `guards.ts` — зона охранника, слова о численности, недельный рост; `mapBattle.ts` — начало боя внутри партии и перенос его итога на карту; `mapContent.ts` — проверка армий и охранников в файле карты; `battleAuto.ts` — команда компьютера за охранника и «бой до конца»; `events.ts`, `renderEvents.ts` — события партии и их текст (этап 3, `21`–`23`).
+- `skills.ts`, `skillKit.ts` — восемь магических навыков героя, уровни, предложения при новом уровне; `tavern.ts`, `tavernTypes.ts` — таверна и наём героя.
+- `magic.ts`, `spells.ts`, `spellKit.ts` — мана, книга, гильдия, выучивание и уровни школ; `mapSpells.ts`, `spellKitMap.ts` — заклинания карты; `market.ts` — курс рынка.
+- `opponent.ts`, `opponentTown.ts`, `opponentGame.ts`, `opponentMagic.ts` — компьютерный игрок: команда на карте, стройка, покупки, колдовство.
+- `battle/` — бой: `hex.ts` (поле), `commands.ts`, `turns.ts` (ходы и конец боя), `damage.ts` (урон), `effects.ts` (действия заклинаний и навыков), `create.ts`, `queries.ts`, `strike.ts` (удар, ответ, ловушки, ров), `traps.ts`, `fieldCells.ts` (постройки на поле), `area.ts` (площадь), `cast.ts` (колдовство), `control.ts` (гипноз, берсерк, щит, зеркало), `field.ts`, `life.ts` (воскрешение, клон, жертва), `siege.ts`, `siegeKit.ts`, `siegeRound.ts` (осада), `ai*.ts` (компьютер боя), `autobattle.ts` (бой до конца), `invariants.ts` (свойства, верные всегда).
 - `testkit.ts` — помощники тестов: состояние по рисунку из спецификации.
 
 Остальное:
 
-- `packages/data/src/map.ts`, `scenario.ts` — схемы и разбор файлов карты и сценария.
+- `packages/data/src/map.ts`, `scenario.ts`, `battle.ts` — схемы и разбор файлов карты, сценария и проверочного боя.
+- `packages/data/src/save.ts`, `state.ts`, `stateSchemas.ts`, `statePlayers.ts`, `stateTown.ts`, `stateTavern.ts`, `spells.ts`, `commandSchemas.ts`, `defaults.ts` — чтение записей прошлых версий: правила перечислены в `04-save.md`.
 - `packages/cli/src/` — `scenario.ts` проигрывает сценарий, `files.ts` читает файлы, `main.ts` — запуск из консоли (`pnpm run play`).
 - `data/maps/` — карты, `data/scenarios/` — сценарии; каждый сценарий автоматически проигрывается как тест.
 - `data/defaults.yaml` — начальные значения из контента для сохранений других версий (армия героя); разбор — `packages/data/src/defaults.ts`.
@@ -68,7 +73,9 @@
 - `ui/App.tsx` — держит партию и холст Phaser; при смене карты начинает партию заново.
 - `game/maps.ts` — читает файлы карт через пакет данных и создаёт партию.
 - `game/objectStubs.ts` — заглушки кучек, шахт и охранников.
-- `ui/Hud.tsx`, `ui/HeroWindow.tsx` — полоса ресурсов, подписи, сообщения, окно героя.
+- `ui/Hud.tsx`, `ui/HeroWindow.tsx`, `ui/LevelWindow.tsx` — полоса ресурсов, подписи, сообщения, окно героя, окно нового уровня с выбором навыка.
+- `ui/BattleBook.tsx`, `ui/BattleHud.tsx` — экран боя и книга заклинаний в бою; `ui/TownScreen.tsx`, `ui/TownGuild.tsx`, `ui/TownMarket.tsx`, `ui/TownTavern.tsx`, `ui/TownArmies.tsx` — экран города: здания, гильдия магов, рынок, таверна, армии; `ui/MapBook.tsx` — окно «Колдовать» на карте.
+- `game/messages.ts`, `game/captions.ts`, `game/view.ts` — слова по событиям, подписи, вид партии глазами игрока; `game/magic.test.ts` и соседние — тесты партии на экране без Phaser и React.
 - `ui/GameDialogs.tsx`, `ui/StartScreens.tsx` — окна поверх карты и окна запуска.
 - `game/frameMeter.ts`, `ui/FrameCounter.tsx` — счётчик кадров и номер сборки.
 - `save/saveStorage.ts` — хранилище сохранений: файлы на Android, хранилище браузера в превью.
