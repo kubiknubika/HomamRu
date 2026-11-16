@@ -16,6 +16,8 @@ export type { Notice, Session, SessionSnapshot } from "./sessionTypes.ts";
 
 /** Сколько последних строк о ходе противника остаётся в сообщении. */
 const OPPONENT_LINES = 6;
+/** Сколько сообщение висит на экране. */
+export const MESSAGE_MS = 4000;
 /** Страховка: больше команд за один пропуск хода компьютер отдать не может. */
 const SKIP_LIMIT = 10_000;
 /** Вызывается после каждой принятой команды: по нему партия сохраняется. */
@@ -38,6 +40,11 @@ export function createSession(initial: GameState, onAccepted?: OnAccepted): Sess
   let afterBattle: { events: readonly GameEvent[]; before: GameState } | null = null;
   /** Строки сообщения, которые копятся, пока ходит противник. */
   let carried: readonly string[] = [];
+  /**
+   * Таймер сообщения. Живёт в партии, а не в интерфейсе: экран карты закрывается на время боя
+   * и открывается заново, и отгоревшее сообщение не должно появиться второй раз.
+   */
+  let noticeTimer: ReturnType<typeof setTimeout> | undefined;
   const listeners = new Set<Listener>();
   const closed = { townId: null, townList: false, selection: null, inspected: null } as const;
   function publish(
@@ -49,7 +56,22 @@ export function createSession(initial: GameState, onAccepted?: OnAccepted): Sess
     const lines = messagesOf(events, { before, after: snapshot.state });
     if (lines.length > 0) {
       carried = [...carried, ...lines].slice(-OPPONENT_LINES);
-      snapshot = { ...snapshot, notice: { id: (snapshot.notice?.id ?? 0) + 1, lines: carried } };
+      const id = (snapshot.notice?.id ?? 0) + 1;
+      snapshot = {
+        ...snapshot,
+        // Срок — момент времени, а не счётчик: экран карты переживает закрытие и открытие заново.
+        notice: { id, lines: carried, until: Date.now() + MESSAGE_MS },
+      };
+      clearTimeout(noticeTimer);
+      noticeTimer = setTimeout(() => {
+        // Пока сообщение висело, могло прийти новое: гасим только своё.
+        if (snapshot.notice?.id === id) {
+          snapshot = { ...snapshot, notice: null };
+          for (const listener of listeners) {
+            listener(snapshot, []);
+          }
+        }
+      }, MESSAGE_MS);
     }
     for (const listener of listeners) {
       listener(snapshot, events);
