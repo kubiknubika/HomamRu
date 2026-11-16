@@ -194,9 +194,31 @@ describe("оборона города", () => {
     expect(heroGoes(withResources(duel([defended(0), far]), 0, 0, 0))).toBe("E,E,E,E");
   });
 
-  it("враг сильнее героя с гарнизоном — город не обороняет, занимается своим", () => {
+  it("враг сильнее героя с гарнизоном и герой не в городе — город не обороняет, занимается своим", () => {
     const state = duel([defended(0), far], undefined, army("militia:200"));
     expect(heroGoes(withResources(state, 0, 0, 0))).toBe("S,S,S,S,S,S,S");
+  });
+
+  it("герой в своём городе не идёт на верную смерть: враг сильнее и дойдёт за два дня — стоит", () => {
+    // 100 ополченцев героя против 200 чужих: с гарнизоном всё равно слабее.
+    const state = put(
+      withResources(duel([defended(0), far], undefined, army("militia:200")), 0, 0, 0),
+      "A",
+      2,
+      2,
+    );
+    expect(heroGoes(state)).toBe("стоит");
+  });
+
+  it("врага в двух днях, которого герой с гарнизоном побьёт, герой в городе не боится", () => {
+    // 100 своих и 60 в гарнизоне (9600) против 150 (9000): перевеса нет, но не смерть.
+    const state = put(
+      withResources(duel([defended(60), far], undefined, army("militia:150")), 0, 0, 0),
+      "A",
+      2,
+      2,
+    );
+    expect(turn(state).town).toEqual(["transfer o1 militia 60"]);
   });
 });
 

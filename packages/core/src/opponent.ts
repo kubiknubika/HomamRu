@@ -79,6 +79,26 @@ function defencePath(state: GameState, hero: HeroState): FoundPath | undefined |
   return null;
 }
 
+/**
+ * Смертельная угроза: герой стоит в своём городе, а врага, который дойдёт за два дня,
+ * не побить даже вместе с гарнизоном. Тогда герой остаётся в городе (шаг 7.7).
+ */
+function doomedAtHome(state: GameState, hero: HeroState): boolean {
+  const town = townUnder(state, hero);
+  if (town === undefined) {
+    return false;
+  }
+  const garrison = armyValue(state, town.garrison);
+  const mine = armyValue(state, hero.army) + garrison;
+  return state.heroes.some((enemy) => {
+    if (enemy.owner === hero.owner || armyValue(state, enemy.army) <= mine) {
+      return false;
+    }
+    const path = findPath(state, enemy.id, town);
+    return path.found && path.days <= THREAT_DAYS;
+  });
+}
+
 /** Есть ли герою зачем идти в свой город: купить книгу (золота хватает) или выучить заклинания. */
 function teaches(state: GameState, hero: HeroState, town: TownState): boolean {
   if (
@@ -182,6 +202,9 @@ function refillPath(state: GameState, hero: HeroState): FoundPath | undefined {
 
 /** Куда идти герою; `undefined` — стоять. Порядок — из 42-opponent.md. */
 function goalPath(state: GameState, hero: HeroState): FoundPath | undefined {
+  if (doomedAtHome(state, hero)) {
+    return undefined;
+  }
   const defence = defencePath(state, hero);
   if (defence !== null) {
     return defence;

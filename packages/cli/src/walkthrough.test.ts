@@ -47,9 +47,11 @@ describe("карта первой версии «Четыре края»", () =>
       const { state, complete, journal } = play(1);
       expect(journal.at(-1)).toMatch(/карта пройдена$/);
       expect(complete).toBe(true);
-      // Четыре прежние шахты и восемь шахт редких ресурсов (66-rare-resources.md).
+      // Четыре прежние шахты и восемь шахт редких ресурсов (66-rare-resources.md);
+      // на зеркальной карте (шаг 7.7) шахт стало вдвое больше: золотая, лесопилка,
+      // рудник и четыре редкие у каждого края.
       expect(state.objects.map((object) => object.type).toSorted()).toEqual([
-        ...Array.from({ length: 12 }, () => "mine"),
+        ...Array.from({ length: 14 }, () => "mine"),
         "town",
       ]);
       expect(state.objects.every((object) => object.type !== "mine" || object.owner === 0)).toBe(
