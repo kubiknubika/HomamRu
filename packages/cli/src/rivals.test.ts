@@ -8,6 +8,8 @@ import { RIVALS_DAYS, runComputerGames, showComputerGame } from "./rivals.ts";
 
 const map = loadRivalsMap();
 const content = loadDefaults();
+/** Полная проверка идёт 102 файлами сразу: партии на медленной машине не укладывались в 5 с. */
+const SLOW = 60_000;
 const COMMAND_BUDGET_MS = 50;
 const TURN_BUDGET_MS = 500;
 
@@ -20,18 +22,25 @@ function start(seed: number): GameState {
 }
 
 describe("партии компьютер против компьютера", () => {
-  it("каждая партия кончается победой в отведённый срок, команды принимаются, ход короткий", () => {
-    const run = runComputerGames(40, map, content);
-    expect(run.failures).toEqual([]);
-    expect(run.lines[0]).toBe(
-      "Партий двух компьютеров на карте «Проверочная карта соперников»: 40, без победителя или с ошибкой: 0.",
-    );
-    expect(run.lines[1]).toMatch(/^Побед: игрок 1 — \d+, игрок 2 — \d+\.$/);
-    const longestTurn = Number(/Команд за ход самое большее: (\d+)/.exec(run.lines[2] ?? "")?.[1]);
-    expect(longestTurn).toBeGreaterThan(0);
-    expect(longestTurn).toBeLessThan(30);
-    expect(run.lines[3]).toMatch(/^Осад: \d+, город взят: \d+, нападающий бежал: \d+\.$/);
-  });
+  it(
+    "каждая партия кончается победой в отведённый срок, команды принимаются, ход короткий",
+    () => {
+      const run = runComputerGames(40, map, content);
+      expect(run.failures).toEqual([]);
+      expect(run.lines[0]).toBe(
+        "Партий двух компьютеров на карте «Проверочная карта соперников»: 40, без победителя или с ошибкой: 0.",
+      );
+      expect(run.lines[1]).toMatch(/^Побед: игрок 1 — \d+, игрок 2 — \d+\.$/);
+      const longestTurn = Number(
+        /Команд за ход самое большее: (\d+)/.exec(run.lines[2] ?? "")?.[1],
+      );
+      expect(longestTurn).toBeGreaterThan(0);
+      expect(longestTurn).toBeLessThan(30);
+      expect(run.lines[3]).toMatch(/^Осад: \d+, город взят: \d+, нападающий бежал: \d+\.$/);
+      // 40 партий под нагрузкой полной проверки не укладывались в обычные 5 с (как у автобоёв).
+    },
+    SLOW,
+  );
 
   it("одна партия печатается целиком и кончается победой", () => {
     const run = showComputerGame(3, map, content);
