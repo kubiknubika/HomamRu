@@ -143,7 +143,7 @@
 |---|---|---|
 | До 8 навыков у героя | VCMI, `config/gameConfig.json`: `skillPerHero: 8` | сверено |
 | Предлагаются два навыка: одно повышение и один новый | VCMI, `config/gameConfig.json`: `levelupTotalSkillsAmount: 2`, `levelupUpgradedSkillsAmount: 1`; `lib/callback/GameRandomizer.cpp`: `rollSecondarySkills` | сверено |
-| Мудрость: круги 3, 4, 5 | VCMI, `config/skills.json` | сверено |
+| Мудрость: круги 3, 4, 5 | VCMI, две записи: `config/skills.json` даёт навыку `MAX_LEARNABLE_SPELL_LEVEL` = 1, 2, 3 по уровням, а `config/gameConfig.json` (`settings.bonuses.global.wisdom`) держит базу `val: 2` с комментарием «Hero can always learn level 1 and 2 spells». Складываются: 2 + 1 = 3, 2 + 2 = 4, 2 + 3 = 5, отсюда `learnableLevel = 2 + wisdom` | сверено 2026-11-11 по обеим записям; `maxSpellLevel()` (`CGHeroInstance.cpp:1447`) берёт `min(5, valOfBonuses(...))`, то есть база и навык складываются одной суммой |
 | Мистицизм: 2, 3, 4 маны в день вместо 1 | VCMI, `config/skills.json`, `config/gameConfig.json` (обычное «+1» отключается, когда есть навык) | сверено |
 | Интеллект: +25, +50, +100 % маны | VCMI, `config/skills.json` | сверено |
 | Волшебство: +5, +10, +15 % урона | VCMI, `config/skills.json` | сверено |
