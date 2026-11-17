@@ -34,7 +34,7 @@
 - `hero.ts` — опыт и уровни героя; `guards.ts` — зона охранника, слова о численности, недельный рост; `mapBattle.ts` — начало боя внутри партии и перенос его итога на карту; `mapContent.ts` — проверка армий и охранников в файле карты; `battleAuto.ts` — команда компьютера за охранника и «бой до конца»; `events.ts`, `renderEvents.ts` — события партии и их текст (этап 3, `21`–`23`).
 - `skills.ts`, `skillKit.ts` — восемь магических навыков героя, уровни, предложения при новом уровне; `tavern.ts`, `tavernTypes.ts` — таверна и наём героя.
 - `magic.ts`, `spells.ts`, `spellKit.ts` — мана, книга, гильдия, выучивание и уровни школ; `mapSpells.ts`, `spellKitMap.ts` — заклинания карты; `market.ts` — курс рынка.
-- `opponent.ts`, `opponentTown.ts`, `opponentGame.ts`, `opponentMagic.ts` — компьютерный игрок: команда на карте, стройка, покупки, колдовство.
+- `opponent.ts`, `opponentTown.ts`, `opponentGame.ts` — компьютерный игрок: команда на карте, стройка с гильдией, покупки и книга, ходы за всех игроков для консоли и проверок (`42-opponent.md`, `63-opponent-magic.md`).
 - `battle/` — бой: `hex.ts` (поле), `commands.ts`, `turns.ts` (ходы и конец боя), `damage.ts` (урон), `effects.ts` (действия заклинаний и навыков), `create.ts`, `queries.ts`, `strike.ts` (удар, ответ, ловушки, ров), `traps.ts`, `fieldCells.ts` (постройки на поле), `area.ts` (площадь), `cast.ts` (колдовство), `control.ts` (гипноз, берсерк, щит, зеркало), `field.ts`, `life.ts` (воскрешение, клон, жертва), `siege.ts`, `siegeKit.ts`, `siegeRound.ts` (осада), `ai*.ts` (компьютер боя), `autobattle.ts` (бой до конца), `invariants.ts` (свойства, верные всегда).
 - `testkit.ts` — помощники тестов: состояние по рисунку из спецификации.
 
