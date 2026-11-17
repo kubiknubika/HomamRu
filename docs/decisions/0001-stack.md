@@ -58,11 +58,11 @@
 
 ## Закреплённые версии
 
-Установлены: Phaser 4.2.1, TypeScript 7.0.2, Vite 8.3.7, Vitest 5.1.0, Zod 4.6.7, yaml 2.9.1, React 19.3.1, Oxlint 1.93.0, Oxfmt 0.78.0, Knip 6.44.2, pnpm 12.18.0. Точные версии — в файлах `package.json` и `pnpm-lock.yaml`.
+Установлены: Phaser 4.2.1, TypeScript 7.0.2, Vite 8.3.7, Vitest 5.1.0, Zod 4.6.7, yaml 2.9.1, React 19.3.1, Capacitor 8.6.0, Oxlint 1.93.0, Oxfmt 0.78.0, Knip 6.44.2, pnpm 12.18.0. Точные версии — в файлах `package.json` и `pnpm-lock.yaml`.
 
 Vite и Knip взяты на один выпуск старше последнего: последние вышли 2026-11-11, а pnpm по умолчанию не ставит пакеты моложе суток (защита от заражённых выпусков).
 
-Ещё не установлены: Capacitor 8 и Tauri 2.
+Ещё не установлен Tauri 2: он понадобится для Windows (`docs/stack/drift.md`). Capacitor 8 поставлен на шаге 1.3 — он упаковывает игру под Android (`packages/client/package.json`, проект `packages/client/android/`).
 
 Документация этих версий сохранена в `docs/vendor/`, выжимки отличий — в `docs/stack/`.
 
