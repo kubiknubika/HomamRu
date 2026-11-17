@@ -80,3 +80,5 @@
 |---|---|
 | `examples/movement.py` | `02-hero-movement.md`, `03-time.md`, стоимости путей для теста бюджета скорости |
 | `examples/battle.py` | `10-battle-field.md`, `11-battle-turns.md`, `13-battle-damage.md` |
+| `examples/hero.py` | `21-guards.md`, `22-hero.md` (пороги уровней) |
+| `examples/siege.py` | `50-siege.md` (башни, катапульта) |
