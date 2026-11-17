@@ -77,16 +77,16 @@
 Файлы клиента:
 
 - `main.tsx` — запускает React.
-- `ui/App.tsx` — держит партию и холст Phaser; при смене карты начинает партию заново.
+- `ui/App.tsx` — держит партию и холст Phaser; при смене карты начинает партию заново; `game/createGame.ts` — сам холст и сцены карты и боя.
 - `game/maps.ts` — читает файлы карт через пакет данных и создаёт партию; `game/content.ts` — остальной контент, который нужен партии: существа, здания, герои, заклинания, начальные значения для старых записей (`data/*.yaml`, `data/creatures/`).
 - `game/townTexts.ts`, `game/levelTexts.ts`, `game/marketTexts.ts`, `game/mapSpellTexts.ts` — слова разделов города, окна нового уровня, рынка и книги заклинаний на карте.
 - `game/objectStubs.ts` — заглушки кучек, шахт и охранников.
-- `ui/Hud.tsx`, `ui/HeroWindow.tsx`, `ui/LevelWindow.tsx` — полоса ресурсов, подписи, сообщения, окно героя, окно нового уровня с выбором навыка.
+- `ui/Hud.tsx`, `ui/HeroWindow.tsx`, `ui/LevelWindow.tsx`, `ui/Messages.tsx`, `ui/Legend.tsx` — полоса ресурсов, подписи, окно героя, окно нового уровня с выбором навыка, сообщения по сроку партии, окно «Обозначения».
 - `ui/BattleBook.tsx`, `ui/BattleHud.tsx` — экран боя и книга заклинаний в бою; `ui/TownScreen.tsx`, `ui/TownGuild.tsx`, `ui/TownMarket.tsx`, `ui/TownTavern.tsx`, `ui/TownArmies.tsx` — экран города: здания, гильдия магов, рынок, таверна, армии; `ui/MapBook.tsx` — окно «Колдовать» на карте.
-- `battle/battleCasting.ts`, `battleArea.ts`, `battleField.ts`, `battleLife.ts` — выбор заклинания и цели на экране боя: обычная цель, площадь, клетка постройки, «Телепорт», отдача отряда; подсветка — `battleHighlights.ts`, путь отряда — `battleRoute.ts`, осадные пометки — `battleSiegeEffects.ts`, рисование поля — `battleFieldView.ts` (клетки, стена, ров, ворота, башни; вынесено из сцены `battleScene.ts`). Правил игры здесь нет: решения принимает ядро, экран только показывает, что оно разрешает.
-- `game/messages.ts`, `game/captions.ts`, `game/view.ts` — слова по событиям, подписи, вид партии глазами игрока; `game/magic.test.ts` и соседние — тесты партии на экране без Phaser и React.
+- `battle/battleGeometry.ts`, `battleLog.ts`, `battleStubs.ts`, `battleSpells.ts`, `battleSiege.ts`, `battleEffects.ts`, `battleCasting.ts`, `battleArea.ts`, `battleField.ts`, `battleLife.ts` — экран боя: размеры клетки и пересчёт координат, журнал строкой, заглушки поля и отрядов, книга и выбор заклинания, осадные пометки, рисование и простая анимация, дальше — выбор заклинания и цели: обычная цель, площадь, клетка постройки, «Телепорт», отдача отряда; подсветка — `battleHighlights.ts`, путь отряда — `battleRoute.ts`, осадные пометки — `battleSiegeEffects.ts`, рисование поля — `battleFieldView.ts` (клетки, стена, ров, ворота, башни; вынесено из сцены `battleScene.ts`). Правил игры здесь нет: решения принимает ядро, экран только показывает, что оно разрешает.
+- `game/messages.ts`, `game/captions.ts`, `game/view.ts` — слова по событиям, подписи, вид партии глазами игрока; `game/magic.test.ts` и соседние — тесты партии на экране без Phaser и React; `game/sessionTypes.ts` — типы партии, в том числе `Notice`; `game/screenKit.ts` и `battle/trialBattle.ts` — помощники проверок экрана и проверочные бои из меню.
 - `ui/GameDialogs.tsx`, `ui/StartScreens.tsx` — окна поверх карты и окна запуска.
-- `game/frameMeter.ts`, `ui/FrameCounter.tsx` — счётчик кадров и номер сборки.
+- `game/frameMeter.ts`, `ui/FrameCounter.tsx`, `diagnostics/version.ts` — счётчик кадров и номер сборки (его подставляет CI).
 - `save/saveStorage.ts` — хранилище сохранений: файлы на Android, хранилище браузера в превью.
 - `save/saver.ts` — очередь записи в две копии.
 - `diagnostics/dump.ts` — сбор и выгрузка дампа; `diagnostics/errorScreen.ts` — экран «Что-то пошло не так» (без React, чтобы работал и при падении интерфейса).
