@@ -67,6 +67,17 @@ export const CREATURE_MANY: Readonly<Record<string, string>> = {
 };
 
 /**
+ * Те же существа в именительном падеже множественного числа: «ополченцы».
+ * Нужны там, где отряд назван подлежащим: «Противник победил охранника: ополченцы».
+ */
+export const CREATURE_PLURAL: Readonly<Record<string, string>> = {
+  militia: "ополченцы",
+  slinger: "пращники",
+  falcon: "соколы",
+  armsman: "латники",
+};
+
+/**
  * Отряд словами, как в Heroes 3: «группа ополченцев (10–19)». Точного числа игрок не видит,
  * а по одному слову не понять, что больше, — поэтому рядом границы.
  */
@@ -180,6 +191,14 @@ export function fightWarning(state: GameState, fight: Fight): string {
 }
 
 /** Только то, чего прибыло: «дерево +2, золото +1000». */
+/**
+ * Строка о счёте дней без города — одна и та же в полосе наверху и в сообщении
+ * (43-opponent-screen.md, «Семь дней без города»).
+ */
+export function townlessText(daysLeft: number): string {
+  return `Без города: осталось дней — ${daysLeft}`;
+}
+
 export function incomeText(income: Resources): string {
   return RESOURCES.filter((resource) => income[resource] > 0)
     .map((resource) => `${RESOURCE_NAMES[resource]} +${income[resource]}`)

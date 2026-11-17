@@ -5,6 +5,7 @@
 import { formatSkills } from "@homamru/core";
 import type { GameEvent, GameState } from "@homamru/core";
 import {
+  CREATURE_PLURAL,
   creatureName,
   heroName,
   incomeText,
@@ -12,6 +13,7 @@ import {
   MINE_NAMES,
   RESOURCE_NAMES,
   STAT_NAMES,
+  townlessText,
 } from "./captions.ts";
 import { humanOf } from "./view.ts";
 
@@ -103,7 +105,11 @@ function opponentMessage(event: GameEvent, context: MessageContext): string | nu
   }
   if (event.type === "guardDefeated") {
     const guard = before.objects.find((object) => object.id === event.objectId);
-    const name = guard?.type === "guard" ? lower(creatureName(before, guard.creature)) : "";
+    // «ополченцы», а не «ополченец»: охранник назван подлежащим (43-opponent-screen.md).
+    const name =
+      guard?.type === "guard"
+        ? (CREATURE_PLURAL[guard.creature] ?? lower(creatureName(before, guard.creature)))
+        : "";
     return `Противник победил охранника: ${name}`;
   }
   return null;
@@ -143,7 +149,7 @@ function ownMessage(event: GameEvent, state: GameState): string | null {
     case "townCaptured":
       return "Город захвачен";
     case "townlessCountdown":
-      return `Без города: осталось дней — ${event.daysLeft}`;
+      return townlessText(event.daysLeft);
     default:
       return townMessage(event, state);
   }

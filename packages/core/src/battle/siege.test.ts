@@ -56,6 +56,23 @@ describe("что даёт укрепление", () => {
     expect(state.activeStack).not.toBe("ac");
   });
 
+  it("катапульта не ходит: ни ей ход не отдают, ни шагнуть она не может", () => {
+    const { state } = siege("fort");
+    // Ход не принадлежит катапульте на всём протяжении боя.
+    const active = state.activeStack ?? "";
+    expect(active).not.toBe("ac");
+    // И сама она не может никуда шагнуть: её клетка — единственная достижимая.
+    expect(canReach(state, "ac", { col: 1, row: 7 })).toBe(false);
+  });
+
+  it("у стороны, где живы только катапульта, бой проигран", () => {
+    const { state } = siege("fort", ["militia:1"]);
+    // Ополченец погиб, на поле осталась одна катапульта нападающего.
+    const alone = withStacks(state, { a1: { count: 0 } });
+    const finished = act(alone, { type: "battleDefend" });
+    expect(finished.state.result).toMatchObject({ winner: 1, reason: "destroyed" });
+  });
+
   it("препятствия на поле осады — ошибка описания", () => {
     const created = createBattle(
       {

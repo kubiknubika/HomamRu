@@ -3,7 +3,7 @@ import { CONTENT } from "@homamru/core/testkit";
 import { createGame, townsOf } from "@homamru/core";
 import type { ArmyStack, Command, GameEvent, GameState, MapObjectDefinition } from "@homamru/core";
 import { describe, expect, it } from "vitest";
-import { CREATURE_MANY, describeCell, fightWarning } from "./captions.ts";
+import { CREATURE_MANY, CREATURE_PLURAL, describeCell, fightWarning } from "./captions.ts";
 import { loadDefaults } from "./content.ts";
 import { finishBattle, go } from "./screenKit.ts";
 import { createSession } from "./session.ts";
@@ -112,6 +112,10 @@ describe("подписи противника", () => {
 describe("слова о существах", () => {
   it("у каждого существа игры есть название во множественном числе", () => {
     expect(loadDefaults().creatures.filter((c) => CREATURE_MANY[c.id] === undefined)).toEqual([]);
+  });
+
+  it("у каждого существа есть и именительный падеж множественного числа", () => {
+    expect(loadDefaults().creatures.filter((c) => CREATURE_PLURAL[c.id] === undefined)).toEqual([]);
   });
 });
 
@@ -232,7 +236,7 @@ describe("ход противника", () => {
     const session = createSession(duel([guard], 100, 60));
     session.endTurn();
     watchOpponent(session);
-    expect(linesOf(session)).toContain("Противник победил охранника: ополченец");
+    expect(linesOf(session)).toContain("Противник победил охранника: ополченцы");
     expect(session.getSnapshot().battle).toBeNull();
   });
 

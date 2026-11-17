@@ -8,7 +8,7 @@ import {
   townsOf,
 } from "@homamru/core";
 import { useState, useSyncExternalStore } from "react";
-import { describeCell, fightWarning, RESOURCE_NAMES } from "../game/captions.ts";
+import { describeCell, fightWarning, RESOURCE_NAMES, townlessText } from "../game/captions.ts";
 import { dayEffects } from "../game/mapSpellTexts.ts";
 import { activeHero, computerToMove, humanOf, sameCell, townlessLeft } from "../game/view.ts";
 import { Dialog, DialogButton } from "./Dialog.tsx";
@@ -73,9 +73,7 @@ export function Hud({ session }: HudProps) {
               {line}
             </div>
           ))}
-        {daysLeft !== null && (
-          <div className="hud-townless">Без города: осталось {daysLeft} дн.</div>
-        )}
+        {daysLeft !== null && <div className="hud-townless">{townlessText(daysLeft)}</div>}
       </div>
       {opponentTurn && (
         <div className="hud hud-opponent">

@@ -240,6 +240,16 @@ describe("стена огня", () => {
     expect(typesOf(left.events)).not.toContain("trapDamage");
   });
 
+  it("отряд в берсерке, ударивший с места в стене, горит — как и обычный удар с места", () => {
+    const place = withStacks(battle(), { a1: { col: 2, row: 5 }, b1: { col: 3, row: 5 } });
+    const burning = withFields(place, [wall([{ col: 2, row: 5 }], 1)]);
+    const { state, events } = cast(burning, "berserk", { cell: { col: 2, row: 5 } });
+    expect(typesOf(events)).toContain("berserkTurn");
+    expect(typesOf(events)).toContain("trapDamage");
+    // 20 ополченцев: ответный удар b1 (35 — двое) и огонь (30 — трое).
+    expect(stack(state, "a1").count).toBe(15);
+  });
+
   it("«Убрать препятствие»: стену огня — с продвинутого уровня, свои пески — только на экспертном", () => {
     const at = { col: 7, row: 4 };
     const fields = [wall([at], 1), sand({ col: 9, row: 9 }, 0), mine({ col: 9, row: 2 }, 1)];

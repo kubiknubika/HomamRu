@@ -1,23 +1,11 @@
-import { useEffect, useState } from "react";
 import type { Notice } from "../game/session.ts";
 
-/** Сколько секунд сообщение остаётся на экране. */
-const MESSAGE_MS = 4000;
-
-/** Сообщение о случившемся: строки на несколько секунд. */
+/**
+ * Сообщение о случившемся: строки на несколько секунд. Когда оно гаснет, решает партия:
+ * экран карты закрывается на время боя и открывается заново, а отгоревшее сообщение второй раз
+ * не показывается (`24-map-screen.md`). Поэтому здесь ни таймера, ни проверки срока.
+ */
 export function Messages({ notice }: { readonly notice: Notice }) {
-  const [hiddenId, setHiddenId] = useState(0);
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setHiddenId(notice.id);
-    }, MESSAGE_MS);
-    return () => {
-      clearTimeout(timer);
-    };
-  }, [notice.id]);
-  if (hiddenId === notice.id) {
-    return null;
-  }
   return (
     <div className="hud hud-message">
       {notice.lines.map((line, index) => (

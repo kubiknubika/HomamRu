@@ -2,11 +2,11 @@
 import { CONTENT } from "@homamru/core/testkit";
 import { createGame } from "@homamru/core";
 import type { Command, GameEvent, GameState, MapObjectDefinition } from "@homamru/core";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { describeCell, fightWarning } from "./captions.ts";
 import { messagesOf } from "./messages.ts";
 import { finishBattle, go } from "./screenKit.ts";
-import { createSession } from "./session.ts";
+import { createSession, MESSAGE_MS } from "./session.ts";
 
 const OBJECTS: MapObjectDefinition[] = [
   { type: "guard", x: 4, y: 0, creature: "militia", count: 5 },
@@ -175,10 +175,54 @@ describe("бой внутри партии на экране", () => {
     expect(session.getSnapshot().battle).toBeNull();
     expect(seen).toEqual(["Лесопилка занята"]);
     // Сообщение лежит в снимке: интерфейс карты появится позже и всё равно его покажет.
-    expect(session.getSnapshot().notice).toEqual({ id: 1, lines: ["Лесопилка занята"] });
+    const notice = session.getSnapshot().notice;
+    expect(notice).toMatchObject({ id: 1, lines: ["Лесопилка занята"] });
+    // Срок — момент времени: он ещё в будущем, сообщение видно.
+    expect(notice?.until ?? 0).toBeGreaterThan(Date.now());
     // Карта снова принимает касания.
     session.tapCell({ x: 5, y: 3 });
     expect(session.getSnapshot().selection).toMatchObject({ path: { found: true } });
+  });
+
+  // Мелкий хвост: после боя экран карты открывается заново и показывал old сообщение ещё раз.
+  it("сообщение гаснет по сроку партии и после боя не появляется снова", () => {
+    vi.useFakeTimers();
+    try {
+      const session = createSession(newGame());
+      go(session, 3, 1);
+      session.enterBattle();
+      finishBattle(session);
+      session.leaveBattle();
+      expect(session.getSnapshot().notice).not.toBeNull();
+      // Экран карты размонтирован на время боя: срок идёт в партии, а не в компоненте.
+      vi.advanceTimersByTime(MESSAGE_MS);
+      expect(session.getSnapshot().notice).toBeNull();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("новое сообщение не гасится сроком прежнего", () => {
+    vi.useFakeTimers();
+    try {
+      const session = createSession(newGame());
+      go(session, 3, 1);
+      session.enterBattle();
+      finishBattle(session);
+      session.leaveBattle();
+      const first = session.getSnapshot().notice?.id ?? 0;
+      vi.advanceTimersByTime(MESSAGE_MS / 2);
+      session.endTurn();
+      const second = session.getSnapshot().notice;
+      expect(second?.id).toBeGreaterThan(first);
+      // Срок первого сообщения кончился — второе ещё видно.
+      vi.advanceTimersByTime(MESSAGE_MS / 2);
+      expect(session.getSnapshot().notice?.id).toBe(second?.id);
+      vi.advanceTimersByTime(MESSAGE_MS);
+      expect(session.getSnapshot().notice).toBeNull();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("пока бой идёт, закрыть экран боя нельзя", () => {

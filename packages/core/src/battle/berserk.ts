@@ -4,11 +4,11 @@
  */
 import { sober } from "./control.ts";
 import type { BattleDraft } from "./draft.ts";
-import { cellIndex, distance } from "./hex.ts";
+import { cellIndex, distance, sameCell } from "./hex.ts";
 import type { Cell } from "./hex.ts";
 import { attackCells, canShoot, reachableCells } from "./queries.ts";
 import { isMachine } from "./siege.ts";
-import { exchange, moveTo, strike } from "./strike.ts";
+import { exchange, linger, moveTo, strike } from "./strike.ts";
 import type { StackState } from "./types.ts";
 
 type DraftStack = BattleDraft["stacks"][number];
@@ -58,13 +58,20 @@ export function berserkAct(draft: BattleDraft, stack: DraftStack): void {
   if (canShoot(draft, stack)) {
     stack.shots -= 1;
     strike(draft, stack, target, "shot");
+    // Стрелял с места — ход кончился на этой клетке: стена огня и ров срабатывают.
+    linger(draft, stack);
     sober(draft, stack);
     return;
   }
   const from = closest(attackCells(draft, stack, target), (cell) => distance(stack, cell));
   if (from !== undefined) {
+    // Бил с места — конец хода на своей клетке; подошёл — ловушки и ров сработали по пути.
+    const standing = sameCell(stack, from);
     if (moveTo(draft, stack, from)) {
       exchange(draft, stack, target);
+      if (standing) {
+        linger(draft, stack);
+      }
       sober(draft, stack);
     }
     return;
