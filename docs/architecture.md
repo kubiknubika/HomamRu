@@ -76,7 +76,7 @@
 - `game/objectStubs.ts` — заглушки кучек, шахт и охранников.
 - `ui/Hud.tsx`, `ui/HeroWindow.tsx`, `ui/LevelWindow.tsx` — полоса ресурсов, подписи, сообщения, окно героя, окно нового уровня с выбором навыка.
 - `ui/BattleBook.tsx`, `ui/BattleHud.tsx` — экран боя и книга заклинаний в бою; `ui/TownScreen.tsx`, `ui/TownGuild.tsx`, `ui/TownMarket.tsx`, `ui/TownTavern.tsx`, `ui/TownArmies.tsx` — экран города: здания, гильдия магов, рынок, таверна, армии; `ui/MapBook.tsx` — окно «Колдовать» на карте.
-- `battle/battleCasting.ts`, `battleArea.ts`, `battleField.ts`, `battleLife.ts` — выбор заклинания и цели на экране боя: обычная цель, площадь, клетка постройки, «Телепорт», отдача отряда; подсветка — `battleHighlights.ts`, путь отряда — `battleRoute.ts`, осадные пометки — `battleSiegeEffects.ts`. Правил игры здесь нет: решения принимает ядро, экран только показывает, что оно разрешает.
+- `battle/battleCasting.ts`, `battleArea.ts`, `battleField.ts`, `battleLife.ts` — выбор заклинания и цели на экране боя: обычная цель, площадь, клетка постройки, «Телепорт», отдача отряда; подсветка — `battleHighlights.ts`, путь отряда — `battleRoute.ts`, осадные пометки — `battleSiegeEffects.ts`, рисование поля — `battleFieldView.ts` (клетки, стена, ров, ворота, башни; вынесено из сцены `battleScene.ts`). Правил игры здесь нет: решения принимает ядро, экран только показывает, что оно разрешает.
 - `game/messages.ts`, `game/captions.ts`, `game/view.ts` — слова по событиям, подписи, вид партии глазами игрока; `game/magic.test.ts` и соседние — тесты партии на экране без Phaser и React.
 - `ui/GameDialogs.tsx`, `ui/StartScreens.tsx` — окна поверх карты и окна запуска.
 - `game/frameMeter.ts`, `ui/FrameCounter.tsx` — счётчик кадров и номер сборки.
