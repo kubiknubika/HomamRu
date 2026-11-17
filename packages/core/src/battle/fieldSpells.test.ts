@@ -10,7 +10,7 @@ import { forceFieldCells } from "./fieldCells.ts";
 import { reachableCells } from "./queries.ts";
 import { cellIndex } from "./hex.ts";
 import type { Cell } from "./hex.ts";
-import { WALL_PARTS } from "./siege.ts";
+import { GATE_BRIDGE, GATE_INNER, GATE_OUTER, WALL_PARTS, wallCells } from "./siege.ts";
 import { act, army, CREATURES, stack, startBattle, turnOf, withStacks } from "./testkit.ts";
 import type { BattleDefinition, BattleEvent, BattleState } from "./types.ts";
 
@@ -226,6 +226,17 @@ describe("«Телепорт»", () => {
     expect(codes(0)).toEqual(["принята", "BAD_SPELL_CELL", "BAD_SPELL_CELL"]);
     expect(codes(2)).toEqual(["принята", "принята", "BAD_SPELL_CELL"]);
     expect(codes(3)).toEqual(["принята", "принята", "принята"]);
+  });
+
+  it("на клетках стены и ворот постройки заклинаний не встают", () => {
+    const start = battle(3, siegeOf("castle"));
+    const wall = wallCells(start.siege as NonNullable<BattleState["siege"]>)[0];
+    const cells = [wall, GATE_OUTER, GATE_INNER, GATE_BRIDGE].filter(
+      (cell): cell is Cell => cell !== undefined,
+    );
+    const codes = cells.map((cell: Cell) => codeOf(start, "fire-wall", { cell }));
+    // «Стена огня» ставится только на свободную клетку; стена, створ и мост заняты.
+    expect(codes).toEqual(["BAD_SPELL_CELL", "BAD_SPELL_CELL", "BAD_SPELL_CELL", "BAD_SPELL_CELL"]);
   });
 
   it("перенесённого в ров ров не ранит", () => {
