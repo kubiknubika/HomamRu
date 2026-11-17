@@ -49,7 +49,9 @@
 
 - `packages/data/src/map.ts`, `scenario.ts`, `battle.ts` — схемы и разбор файлов карты, сценария и проверочного боя.
 - `packages/data/src/save.ts`, `state.ts`, `stateSchemas.ts`, `statePlayers.ts`, `stateTown.ts`, `stateTavern.ts`, `spells.ts`, `commandSchemas.ts`, `defaults.ts` — чтение записей прошлых версий: правила перечислены в `04-save.md`.
-- `packages/cli/src/` — `scenario.ts` проигрывает сценарий, `files.ts` читает файлы, `main.ts` — запуск из консоли (`pnpm run play`).
+- `packages/cli/src/` — консоль (`pnpm run play`): `main.ts` разбирает флаги, `files.ts` читает файлы, `scenario.ts` и `scenarioExpect.ts` проигрывают сценарий и сверяют ожидания, `battleScenario.ts` — сценарий боя, `autobattle.ts`, `mages.ts`, `rivals.ts` — сводки боёв, магов и партий компьютеров, `walkthrough.ts`, `walkthroughTown.ts` — проходчик «Четырёх краёв».
+- `battle/berserk.ts`, `battle/draft.ts`, `battle/lifeEvents.ts` — ход отряда в берсерке, изменяемая копия состояния боя, события воскрешения и клона.
+- `spellKitPlain.ts` — заклинания кругов 2–5 для тестов, те же, что в `data/spells.yaml`.
 - `data/maps/` — карты, `data/scenarios/` — сценарии; каждый сценарий автоматически проигрывается как тест.
 - `data/defaults.yaml` — начальные значения из контента для сохранений других версий (армия героя); разбор — `packages/data/src/defaults.ts`.
 - `packages/core/src/rng.ts` — детерминированный генератор случайных чисел (алгоритм mulberry32). Состояние генератора — обычный объект, который будет храниться в игровом состоянии. Функции возвращают значение и новое состояние, ничего не меняя на месте.
