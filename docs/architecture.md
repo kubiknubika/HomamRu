@@ -35,8 +35,15 @@
 - `skills.ts`, `skillKit.ts` — восемь магических навыков героя, уровни, предложения при новом уровне; `tavern.ts`, `tavernTypes.ts` — таверна и наём героя.
 - `magic.ts`, `spells.ts`, `spellKit.ts` — мана, книга, гильдия, выучивание и уровни школ; `mapSpells.ts`, `spellKitMap.ts` — заклинания карты; `market.ts` — курс рынка.
 - `opponent.ts`, `opponentTown.ts`, `opponentGame.ts` — компьютерный игрок: команда на карте, стройка с гильдией, покупки и книга, ходы за всех игроков для консоли и проверок (`42-opponent.md`, `63-opponent-magic.md`).
-- `battle/` — бой: `hex.ts` (поле), `commands.ts`, `turns.ts` (ходы и конец боя), `damage.ts` (урон), `effects.ts` (действия заклинаний и навыков), `create.ts`, `queries.ts`, `strike.ts` (удар, ответ, ловушки, ров), `traps.ts`, `fieldCells.ts` (постройки на поле), `area.ts` (площадь), `cast.ts` (колдовство), `control.ts` (гипноз, берсерк, щит, зеркало), `field.ts`, `life.ts` (воскрешение, клон, жертва), `siege.ts`, `siegeKit.ts`, `siegeRound.ts` (осада), `ai*.ts` (компьютер боя), `autobattle.ts` (бой до конца), `invariants.ts` (свойства, верные всегда).
-- `testkit.ts` — помощники тестов: состояние по рисунку из спецификации.
+- `battle/` — бой: `hex.ts` (поле), `commands.ts`, `turns.ts` (ходы и конец боя), `damage.ts` (урон), `effects.ts` (действия заклинаний и навыков), `create.ts`, `queries.ts`, `strike.ts` (удар, ответ, ловушки, ров), `traps.ts`, `fieldCells.ts` (постройки на поле), `area.ts` (площадь), `cast.ts` (колдовство), `control.ts` (гипноз, берсерк, щит, зеркало), `field.ts`, `life.ts` (воскрешение, клон, жертва), `siege.ts`, `siegeKit.ts`, `siegeRound.ts` (осада), `ai.ts` (выбор команды), `aiSpells.ts`, `aiArea.ts`, `aiControl.ts`, `aiField.ts`, `aiLife.ts`, `aiMoves.ts` (оценка пользы заклинаний и шагов), `autobattle.ts` (бой до конца), `invariants.ts` (свойства, верные всегда), `trapKit.ts`, `castKit.ts`, `duelKit.ts` и `testkit.ts` (помощники тестов).
+- `army.ts` — армия героя и гарнизона: по одному отряду на вид существ, сложение, вычитание, подсчёт.
+- `objects.ts` — объекты карты и ресурсы игроков: кучки, шахты, доход.
+- `players.ts` — игроки: захват города, выбывание, семь дней без города, конец партии.
+- `town.ts`, `townContent.ts`, `renderTown.ts` — город: стройка, доход, прирост, наём, гарнизон; проверка городов карты; его текст и события.
+- `mapBattleFinish.ts` — конец боя внутри партии: потери, опыт, мана, захват города, гибель обоих героев.
+- `heroIds.ts` — идентификаторы героев и дневной запас хода.
+- `rejectCodes.ts` — все коды отказа одной таблицей.
+- `testkit.ts`, `townKit.ts` и `*Kit.ts` в `battle/` — помощники тестов: состояние по рисунку из спецификации, короткая запись команд, готовые заклинания.
 
 Остальное:
 
