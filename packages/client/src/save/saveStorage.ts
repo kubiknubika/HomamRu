@@ -4,8 +4,10 @@
  * Спецификация: docs/mechanics/04-save.md, раздел «Где хранится».
  */
 import { Capacitor } from "@capacitor/core";
-import { Directory, Encoding, Filesystem } from "@capacitor/filesystem";
 import type { SaveSlot } from "@homamru/data";
+import { Filesystem } from "@capacitor/filesystem";
+import { SAVE_NAMES, createFileStorage, isMissingFile } from "./fileSaveStorage.ts";
+import type { FileLayer } from "./fileSaveStorage.ts";
 
 export interface SaveStorage {
   /** Текст копии; `null`, если копии нет. */
@@ -13,36 +15,40 @@ export interface SaveStorage {
   write(slot: SaveSlot, text: string): Promise<void>;
 }
 
-const NAMES = ["save-0.txt", "save-1.txt"] as const;
-
-const fileStorage: SaveStorage = {
-  read: async (slot) => {
-    const path = NAMES[slot];
-    const { files } = await Filesystem.readdir({ path: "", directory: Directory.Data });
-    if (!files.some((file) => file.name === path)) {
+const fileLayer: FileLayer = {
+  list: async (directory) => {
+    try {
+      const { files } = await Filesystem.readdir({ path: "", directory });
+      return files.map((file) => file.name);
+    } catch {
+      // Папка не читается — тогда решает сам `readFile`.
       return null;
     }
-    const file = await Filesystem.readFile({
-      path,
-      directory: Directory.Data,
-      encoding: Encoding.UTF8,
-    });
-    return typeof file.data === "string" ? file.data : null;
   },
-  write: async (slot, text) => {
-    await Filesystem.writeFile({
-      path: NAMES[slot],
-      data: text,
-      directory: Directory.Data,
-      encoding: Encoding.UTF8,
-    });
+  readFile: async (path, directory, encoding) => {
+    try {
+      const file = await Filesystem.readFile({ path, directory, encoding });
+      return typeof file.data === "string" ? file.data : null;
+    } catch (error) {
+      // Файла нет — это не ошибка, а «сохранения нет». Отказ прав и прочее
+      // пробрасываем: иначе игра молча начала бы новую партию поверх старой.
+      if (isMissingFile(error)) {
+        return null;
+      }
+      throw error;
+    }
+  },
+  writeFile: async (path, data, directory, encoding) => {
+    await Filesystem.writeFile({ path, data, directory, encoding });
   },
 };
 
+const fileStorage: SaveStorage = createFileStorage(fileLayer);
+
 const browserStorage: SaveStorage = {
-  read: (slot) => Promise.resolve(localStorage.getItem(`homamru-${NAMES[slot]}`)),
+  read: (slot) => Promise.resolve(localStorage.getItem(`homamru-${SAVE_NAMES[slot]}`)),
   write: (slot, text) => {
-    localStorage.setItem(`homamru-${NAMES[slot]}`, text);
+    localStorage.setItem(`homamru-${SAVE_NAMES[slot]}`, text);
     return Promise.resolve();
   },
 };
