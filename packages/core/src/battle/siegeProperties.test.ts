@@ -9,7 +9,7 @@ import { applyBattleCommand } from "./commands.ts";
 import { findStack } from "./queries.ts";
 import { createRng, nextInt } from "../rng.ts";
 import type { RngState as Rng } from "../rng.ts";
-import { GATE, gateOpen, isInside, isMachine, isMoat, WALL_PARTS, wallCells } from "./siege.ts";
+import { gateOpen, isInside, isMachine, isMoat, WALL_PARTS, wallCells } from "./siege.ts";
 import { army, startBattle } from "./testkit.ts";
 import { GAME_SPELLS } from "../spellKit.ts";
 import type { BattleCommand, BattleState } from "./types.ts";
@@ -129,11 +129,12 @@ function violations(before: BattleState, after: BattleState): string[] {
     const segmentsWhole = (["wall1", "wall2", "wall3", "wall4"] as const).every(
       (part) => after.siege !== null && after.siege.health[part] > 0,
     );
+    const gateHealth: number = after.siege.health.gate;
     const closed =
-      after.siege.health[GATE] > 0 &&
+      gateHealth > 0 &&
       !gateOpen(
         after.siege,
-        after.stacks.map((stack) => ({ col: stack.col, row: stack.row })),
+        after.stacks.map((stack) => ({ count: stack.count, col: stack.col, row: stack.row })),
       );
     if (segmentsWhole && closed) {
       for (const stack of after.stacks) {

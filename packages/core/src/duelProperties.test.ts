@@ -15,7 +15,7 @@ import type { Command, GameState } from "./types.ts";
 const GAMES = 40;
 const COMMANDS = 120;
 const SIZE = 8;
-const DIRS: readonly Direction[] = ["up", "down", "left", "right"];
+const DIRS: readonly Direction[] = ["N", "S", "W", "E"];
 
 /**
  * Случайная партия на двоих: у каждого свой город, между ними преграды и чужой город.
@@ -66,7 +66,7 @@ function randomCommand(state: GameState, rng: Rng): { command: Command; rng: Rng
     };
   }
   // Путь не найден — шагаем наугад в соседнюю клетку, чтобы проверить и отказы.
-  const dir = DIRS[nextInt(y.rng, 0, DIRS.length - 1).value] ?? "up";
+  const dir = DIRS[nextInt(y.rng, 0, DIRS.length - 1).value] ?? "N";
   const move2 = nextInt(y.rng, 0, 0);
   return { command: move(player, dir), rng: move2.rng };
 }
@@ -123,8 +123,8 @@ function violations(state: GameState): string[] {
   }
 
   // 41: победитель не выбывал.
-  if (state.outcome !== null && state.outcome.winner !== null) {
-    const winner = state.players[state.outcome.winner];
+  if (state.winner !== null) {
+    const winner = state.players[state.winner];
     check(winner?.eliminated !== true, "победитель выбывал");
   }
 
