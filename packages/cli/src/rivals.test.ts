@@ -37,6 +37,12 @@ describe("партии компьютер против компьютера", ()
       expect(longestTurn).toBeGreaterThan(0);
       expect(longestTurn).toBeLessThan(30);
       expect(run.lines[3]).toMatch(/^Осад: \d+, город взят: \d+, нападающий бежал: \d+\.$/);
+      // «Осад: 0» означает, что проверка осады на двух компьютерах пуста:
+      // сначала осады и впрямь не случались, теперь случаются (порция 42).
+      const sieges = Number(/Осад: (\d+)/.exec(run.lines[3] ?? "")?.[1]);
+      expect(sieges, "ни одной осады за 40 партий — проверка осады пуста").toBeGreaterThan(0);
+      const taken = Number(/город взят: (\d+)/.exec(run.lines[3] ?? "")?.[1]);
+      expect(taken, "ни один город не взят в осаде").toBeGreaterThan(0);
       // 40 партий под нагрузкой полной проверки не укладывались в обычные 5 с (как у автобоёв).
     },
     SLOW,

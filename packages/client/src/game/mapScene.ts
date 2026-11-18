@@ -10,6 +10,7 @@ import { creatureName } from "./captions.ts";
 import type { FrameMeter } from "./frameMeter.ts";
 import { cellAt, cellCenter, TILE } from "./geometry.ts";
 import { createObjectStub, objectStubKey, ZONE_ALPHA, ZONE_COLOR } from "./objectStubs.ts";
+import { stubActions } from "./stubSync.ts";
 import type { Session } from "./session.ts";
 import { activeHero, battleSideOf, computerToMove, humanOf } from "./view.ts";
 import type { Selection } from "./view.ts";
@@ -168,11 +169,11 @@ export class MapScene extends Phaser.Scene {
 
   /** Приводит заглушки объектов к состоянию: подобранное и побеждённое исчезает, флажки меняются. */
   private syncObjects(state: GameState): void {
-    const present = new Set(state.objects.map((object) => object.id));
-    for (const [id, stub] of this.objects) {
-      if (!present.has(id)) {
-        stub.node.destroy();
-        this.objects.delete(id);
+    const keys = new Map([...this.objects].map(([id, stub]) => [id, stub.key]));
+    for (const action of stubActions(state.objects, keys)) {
+      if (action.kind === "remove") {
+        this.objects.get(action.id)?.node.destroy();
+        this.objects.delete(action.id);
       }
     }
     for (const object of state.objects) {
