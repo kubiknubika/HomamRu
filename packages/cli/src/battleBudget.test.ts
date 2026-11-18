@@ -17,6 +17,7 @@ describe("бюджет скорости боя", () => {
     let decisions = 0;
     let decisionMs = 0;
     let commandMs = 0;
+    let worstMs = 0;
     for (let seed = 1; seed <= 100; seed += 1) {
       const created = createBattle(randomBattle(seed, CREATURES), CREATURES, seed);
       let state = created.ok ? created.state : null;
@@ -27,6 +28,7 @@ describe("бюджет скорости боя", () => {
         const result = command === undefined ? undefined : applyBattleCommand(state, command);
         commandMs += performance.now() - middle;
         decisionMs += middle - before;
+        worstMs = Math.max(worstMs, middle - before);
         decisions += 1;
         state = result?.ok === true ? result.state : null;
       }
@@ -34,6 +36,9 @@ describe("бюджет скорости боя", () => {
     expect(decisions).toBeGreaterThan(1000);
     expect(commandMs / decisions).toBeLessThan(5);
     expect(decisionMs / decisions).toBeLessThan(50);
+    // Среднее скрывает выброс: спецификация 63-opponent-magic.md говорит про КАЖДУЮ команду.
+    // Меряем худшую отдельно — с запасом на шум общей машины.
+    expect(worstMs, "худшая команда компьютера дольше 50 мс").toBeLessThan(50);
   });
 
   it("автобой целиком — в среднем не дольше 50 мс", () => {
