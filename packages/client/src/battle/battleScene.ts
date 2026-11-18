@@ -8,6 +8,7 @@ import type { FrameMeter } from "../game/frameMeter.ts";
 import { showLabel, showSpell, showStrike, tracePath } from "./battleEffects.ts";
 import { drawBattleField } from "./battleFieldView.ts";
 import { ghostIds, highlightsOf } from "./battleHighlights.ts";
+import { shownRoute } from "./battleRoute.ts";
 import { cellAt, cellCenter, cellCorners, layoutOf } from "./battleGeometry.ts";
 import type { BattleLayout } from "./battleGeometry.ts";
 import type { BattleSession, BattleSnapshot } from "./battleSession.ts";
@@ -238,10 +239,7 @@ export class BattleScene extends Phaser.Scene {
       if (stub !== undefined) {
         // Путь известен — идём по нему; иначе сразу в конечную клетку.
         // Отряд мог не дойти: увяз в песках или погиб на ловушке — путь обрывается там, где он встал.
-        const end = this.route.findIndex(
-          (cell) => cell.col === event.to.col && cell.row === event.to.row,
-        );
-        this.walk(stub, end === -1 ? [event.to] : this.route.slice(0, end + 1), next);
+        this.walk(stub, shownRoute(this.route, event.to), next);
         return;
       }
     }

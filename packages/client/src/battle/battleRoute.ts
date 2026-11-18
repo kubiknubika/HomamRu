@@ -26,3 +26,14 @@ export function routeOf(state: BattleState, command: BattleCommand): Cell[] {
   }
   return walkRoute(state, mover, to);
 }
+
+/**
+ * Клетки, по которым отряд дойдёт до `to`: путь обрывается там, где отряд встал.
+ * Отряд мог не дойти — увяз в песках, погиб на ловушке, — и тогда конец пути в `to`
+ * не совпадает с концом записанного маршрута. Клетки `to` нет в маршруте вовсе —
+ * ведём по прямой, одной клеткой. Спецификация: docs/mechanics/16-battle-screen.md.
+ */
+export function shownRoute(route: readonly Cell[], to: Cell): readonly Cell[] {
+  const end = route.findIndex((cell) => cell.col === to.col && cell.row === to.row);
+  return end === -1 ? [to] : route.slice(0, end + 1);
+}
