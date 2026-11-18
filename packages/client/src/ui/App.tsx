@@ -21,7 +21,7 @@ import { FrameCounter } from "./FrameCounter.tsx";
 import { GameDialogs, NO_OVERLAY } from "./GameDialogs.tsx";
 import type { Overlay } from "./GameDialogs.tsx";
 import { Hud } from "./Hud.tsx";
-import { ProblemScreen, StartScreen } from "./StartScreens.tsx";
+import { ProblemScreen, StartScreen, UnreadableScreen } from "./StartScreens.tsx";
 import { TEXT } from "./texts.ts";
 
 interface AppProps {
@@ -37,6 +37,11 @@ type Phase =
   | { readonly kind: "start"; readonly save: SaveBody; readonly adapted: boolean }
   /** Сохранение не читается. */
   | { readonly kind: "problem" }
+  /**
+   * Хранилище отказало, и что в нём лежит — неизвестно. Не «повреждено»:
+   * молча начинать новую партию нельзя, и нельзя говорить, что сохранения нет.
+   */
+  | { readonly kind: "unreadable"; readonly raw: readonly [string | null, string | null] }
   | { readonly kind: "playing"; readonly session: Session; readonly mapIndex: number };
 
 const MAP_INDEXES = Array.from({ length: MAP_COUNT }, (_, index) => index);
@@ -58,6 +63,11 @@ export function App({ gameParent, storage }: AppProps) {
   const [phase, setPhase] = useState<Phase>({ kind: "loading" });
   const [overlay, setOverlay] = useState<Overlay>(NO_OVERLAY);
   const [saver, setSaver] = useState<Saver | null>(null);
+  /**
+   * Номер попытки прочитать сохранение. Читается внутри эффекта, поэтому линтер
+   * видит, что зависимость настоящая: «Прочитать ещё раз» его увеличивает.
+   */
+  const [attempt, setAttempt] = useState(0);
   /** Проверочный бой поверх карты; партия на карте при этом не меняется. */
   const [trial, setTrial] = useState<BattleSession | null>(null);
   const frameMeter = useMemo(() => createFrameMeter(), []);
@@ -69,12 +79,15 @@ export function App({ gameParent, storage }: AppProps) {
   // Запуск: читаем обе копии сохранения.
   useEffect(() => {
     let cancelled = false;
-    async function load(): Promise<void> {
+    async function load(round: number): Promise<void> {
+      // Номер попытки нужен только чтобы эффект сработал заново: «Прочитать ещё раз».
+      void round;
       let copies: [string | null, string | null] = [null, null];
       let readable = true;
       try {
         copies = [await storage.read(0), await storage.read(1)];
       } catch {
+        // Отказ хранилища — не «сохранения нет»: что там лежит, неизвестно.
         readable = false;
       }
       if (cancelled) {
@@ -93,20 +106,22 @@ export function App({ gameParent, storage }: AppProps) {
         const { adapted, ...save } = loaded.record;
         setPhase({ kind: "start", save, adapted });
       } else if (loaded.kind === "none") {
-        setPhase(beginNew(nextSaver, 0));
         if (!readable) {
-          notice(TEXT.storage, false);
+          // Читать не смогли — начинать новую партию молча нельзя: старая цела.
+          setPhase({ kind: "unreadable", raw: copies });
+        } else {
+          setPhase(beginNew(nextSaver, 0));
         }
       } else {
         dumpSource.rawSaves = copies;
         setPhase({ kind: "problem" });
       }
     }
-    void load();
+    void load(attempt);
     return () => {
       cancelled = true;
     };
-  }, [storage, notice]);
+  }, [storage, notice, attempt]);
 
   const session = phase.kind === "playing" ? phase.session : null;
   const played = useSyncExternalStore(
@@ -187,6 +202,22 @@ export function App({ gameParent, storage }: AppProps) {
           newGame(0);
         }}
         onDump={exportDump}
+      />
+    );
+  }
+
+  if (phase.kind === "unreadable") {
+    return (
+      <UnreadableScreen
+        onNew={() => {
+          newGame(0);
+        }}
+        onDump={exportDump}
+        onRetry={() => {
+          // Ещё одна попытка прочитать то же хранилище: отказ мог быть случайным.
+          setPhase({ kind: "loading" });
+          setAttempt((value) => value + 1);
+        }}
       />
     );
   }

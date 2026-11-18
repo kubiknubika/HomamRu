@@ -36,6 +36,30 @@ interface ProblemScreenProps {
   readonly onDump: () => void;
 }
 
+/**
+ * Окно запуска, когда сохранение есть, а прочитать его не удалось.
+ * Отличается от «повреждено»: партия, скорее всего, цела, а сломалось хранилище.
+ * Поэтому не «Продолжить» (читать нечего), а честный выбор: новая партия или дамп.
+ */
+export function UnreadableScreen({
+  onNew,
+  onDump,
+  onRetry,
+}: {
+  readonly onNew: () => void;
+  readonly onDump: () => void;
+  readonly onRetry: () => void;
+}) {
+  return (
+    <Dialog title="Герои Ру">
+      <div className="dialog-text">{TEXT.unreadable}</div>
+      <DialogButton label="Прочитать ещё раз" onClick={onRetry} />
+      <DialogButton label="Новая игра" onClick={onNew} />
+      <DialogButton label="Сохранить дамп" onClick={onDump} />
+    </Dialog>
+  );
+}
+
 /** Окно запуска, когда сохранение повреждено. */
 export function ProblemScreen({ note, onNew, onDump }: ProblemScreenProps) {
   return (
