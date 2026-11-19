@@ -2,18 +2,10 @@
  * Компьютерный игрок: что он делает в своих городах.
  * Спецификация: docs/mechanics/42-opponent.md, «Город».
  */
-import { BOOK_PRICE, guildLevel } from "./magic.ts";
+import { priceOf } from "./army.ts";
 import { applyCommand } from "./commands.ts";
-import type { ArmyStack, BuildingDefinition, Command, GameState, TownState } from "./types.ts";
-
-function priceOf(state: GameState, creature: string): number {
-  return state.creatures.find((candidate) => candidate.id === creature)?.price ?? 0;
-}
-
-/** Сила армии — сумма цен найма её существ. */
-export function armyValue(state: GameState, army: readonly ArmyStack[]): number {
-  return army.reduce((sum, stack) => sum + stack.count * priceOf(state, stack.creature), 0);
-}
+import { BOOK_PRICE, guildLevel } from "./magic.ts";
+import type { BuildingDefinition, Command, GameState, TownState } from "./types.ts";
 
 /** Города игрока по порядку списка объектов. */
 export function townsOf(state: GameState, player: number): TownState[] {

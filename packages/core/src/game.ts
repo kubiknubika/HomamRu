@@ -84,6 +84,8 @@ export function createGame(
       height: map.terrain.length,
       terrain: [...map.terrain],
       starts: map.players.map((player) => ({ x: player.hero.x, y: player.hero.y })),
+      // Поля нет — карта без предела: пустое значение в сохранение не попадает.
+      ...(map.daysLimit === undefined ? {} : { daysLimit: map.daysLimit }),
     },
     players: map.players.map((player, id) => ({
       id,

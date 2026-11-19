@@ -182,6 +182,8 @@ export const looseStateSchema = z.object({
     // Начального значения нет: без местности партию не продолжить.
     terrain: z.array(z.string().min(1)).min(1),
     starts: z.array(z.unknown()).catch([]),
+    // Предел времени партии переживает сохранение (41-victory.md).
+    daysLimit: z.int().min(1).optional(),
   }),
   players: z
     .array(

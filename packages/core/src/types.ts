@@ -152,6 +152,11 @@ export interface MapDefinition {
   }[];
   /** Объекты карты по порядку; порядок задаёт их идентификаторы. */
   readonly objects?: readonly MapObjectDefinition[] | undefined;
+  /**
+   * Предел времени партии в днях (41-victory.md). Пусто — предела нет.
+   * Как в Heroes 3: когда день перевалил за предел, побеждает тот, у кого больше.
+   */
+  readonly daysLimit?: number | undefined;
 }
 
 export interface MapState {
@@ -165,6 +170,8 @@ export interface MapState {
    * Нужны при чтении сохранения: герой без клетки ставится сюда (04-save.md).
    */
   readonly starts: readonly Position[];
+  /** Предел времени партии в днях; пусто — предела нет (41-victory.md). */
+  readonly daysLimit?: number | undefined;
 }
 
 type PlayerKind = "human" | "computer";

@@ -74,8 +74,12 @@ export function formatBattleSideEvent(event: Stage3Event): string {
     case "heroDied":
       return `Герой ${event.heroId} ${event.reason === "fled" ? "бежал и покинул карту" : "погиб"}`;
     case "gameOver":
-      return event.winner === null
-        ? "Партия окончена: поражение"
+      if (event.winner === null) {
+        return "Партия окончена: поражение";
+      }
+      // Предел времени карты (41-victory.md): победителя назвал срок, а не бой.
+      return event.byTime === true
+        ? `Партия окончена: срок карты вышел, победил игрок ${event.winner + 1}`
         : `Партия окончена: победил игрок ${event.winner + 1}`;
     case "garrisonJoined": {
       const army = event.army.map((stack) => `${stack.creature} ${stack.count}`).join(", ");
