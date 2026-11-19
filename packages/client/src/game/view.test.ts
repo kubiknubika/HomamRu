@@ -7,8 +7,10 @@ import {
   activeHero,
   battleSideOf,
   computerToMove,
+  daysUntilLimit,
   endingOf,
   humanOf,
+  limitText,
   select,
   townlessLeft,
 } from "./view.ts";
@@ -200,5 +202,37 @@ describe("отсчёт дней без города", () => {
     expect(townlessLeft(withDays(3))).toBe(TOWNLESS_DAYS - 3);
     expect(townlessLeft(withDays(TOWNLESS_DAYS))).toBe(0);
     expect(townlessLeft(withDays(1, true))).toBeNull();
+  });
+});
+
+/** Партия с пределом времени карты на заданном дне. */
+function withLimit(daysLimit: number | undefined, day: number): GameState {
+  return { ...duel(), day, map: { ...duel().map, daysLimit } };
+}
+
+describe("срок карты на экране", () => {
+  it("без предела карты срока нет", () => {
+    expect(daysUntilLimit(withLimit(undefined, 50))).toBeNull();
+  });
+
+  it("срок считается от сегодняшнего дня включительно", () => {
+    expect(daysUntilLimit(withLimit(120, 1))).toBe(120);
+    expect(daysUntilLimit(withLimit(120, 120))).toBe(1);
+    expect(daysUntilLimit(withLimit(120, 130))).toBe(0);
+  });
+
+  it("после конца партии срок не показывается", () => {
+    const ended = { ...withLimit(120, 121), outcome: "victory" as const, winner: 0 };
+    expect(daysUntilLimit(ended)).toBeNull();
+  });
+
+  it("слова о сроке склоняются по-русски", () => {
+    expect(limitText(0)).toBe("срок карты вышел");
+    expect(limitText(1)).toBe("последний день срока");
+    expect(limitText(2)).toBe("до срока 2 дня");
+    expect(limitText(5)).toBe("до срока 5 дней");
+    expect(limitText(11)).toBe("до срока 11 дней");
+    expect(limitText(21)).toBe("до срока 21 день");
+    expect(limitText(22)).toBe("до срока 22 дня");
   });
 });

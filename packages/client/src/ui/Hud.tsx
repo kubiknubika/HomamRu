@@ -10,7 +10,15 @@ import {
 import { useState, useSyncExternalStore } from "react";
 import { describeCell, fightWarning, RESOURCE_NAMES, townlessText } from "../game/captions.ts";
 import { dayEffects } from "../game/mapSpellTexts.ts";
-import { activeHero, computerToMove, humanOf, sameCell, townlessLeft } from "../game/view.ts";
+import {
+  activeHero,
+  computerToMove,
+  daysUntilLimit,
+  humanOf,
+  limitText,
+  sameCell,
+  townlessLeft,
+} from "../game/view.ts";
 import { Dialog, DialogButton } from "./Dialog.tsx";
 import type { Session } from "../game/session.ts";
 import { HeroWindow } from "./HeroWindow.tsx";
@@ -42,6 +50,7 @@ export function Hud({ session }: HudProps) {
   const resources = state.players[me]?.resources;
   const opponentTurn = computerToMove(state);
   const daysLeft = townlessLeft(state);
+  const untilLimit = daysUntilLimit(state);
   // Подпись объекта по удержанию важнее предупреждения о бое: игрок только что её попросил.
   const caption =
     (inspected === null ? null : describeCell(state, inspected)) ??
@@ -74,6 +83,7 @@ export function Hud({ session }: HudProps) {
             </div>
           ))}
         {daysLeft !== null && <div className="hud-townless">{townlessText(daysLeft)}</div>}
+        {untilLimit !== null && <div className="hud-movement">{limitText(untilLimit)}</div>}
       </div>
       {opponentTurn && (
         <div className="hud hud-opponent">
