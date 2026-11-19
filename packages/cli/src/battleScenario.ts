@@ -70,6 +70,18 @@ export function describeBattleCommand(command: BattleCommand): string {
 
 const WINNER_NAMES = ["attacker", "defender"] as const;
 
+/**
+ * Кто победил — так, как это записывается в ожиданиях сценария.
+ * При ничьей в итоге боя стоит обороняющийся (город остаётся за ним, 68-spells-area.md),
+ * поэтому одного поля `winner` мало: ничью видно только по причине конца.
+ */
+function winnerNameOf(state: BattleState): string {
+  if (state.result === null) {
+    return "нет";
+  }
+  return state.result.reason === "bothDestroyed" ? "nobody" : WINNER_NAMES[state.result.winner];
+}
+
 function checkStacks(scenario: BattleScenario, state: BattleState): string[] {
   const failures: string[] = [];
   for (const [id, want] of Object.entries(scenario.expect?.stacks ?? {})) {
@@ -97,7 +109,7 @@ function checkExpectations(scenario: BattleScenario, state: BattleState): string
   const failures: string[] = [];
   const expected = scenario.expect;
   if (expected?.winner !== undefined) {
-    const winner = state.result === null ? "нет" : WINNER_NAMES[state.result.winner];
+    const winner = winnerNameOf(state);
     if (winner !== expected.winner) {
       failures.push(`Ожидался победитель ${expected.winner}, получено: ${winner}.`);
     }

@@ -105,6 +105,30 @@ describe("проигрывание сценария боя", () => {
     ]);
   });
 
+  /**
+   * Ничья: обе армии погибли разом. В итоге боя стоит обороняющийся (город остаётся
+   * за ним), поэтому по одному `winner` ничью не отличить — это и была ошибка:
+   * проверка писала «получено: defender» вместо «nobody».
+   */
+  it("ничья проверяется значением nobody, а не победителем из итога", () => {
+    const draw = loadBattle(files.find((file) => file.endsWith("test-draw.yaml")) ?? "");
+    const viaSpell = scenarioOf({
+      battle: "test-draw",
+      steps: [{ cast: { spell: "armageddon" } }],
+      expect: { winner: "nobody" },
+    });
+    expect(runBattleScenario(viaSpell, draw, creatures).failures).toEqual([]);
+    // Ожидание «победил обороняющийся» на ничьей — провал, а не молчаливое согласие.
+    const wrong = scenarioOf({
+      battle: "test-draw",
+      steps: [{ cast: { spell: "armageddon" } }],
+      expect: { winner: "defender" },
+    });
+    expect(runBattleScenario(wrong, draw, creatures).failures).toEqual([
+      "Ожидался победитель defender, получено: nobody.",
+    ]);
+  });
+
   it("неверный бой — провал без исключения", () => {
     const broken = { ...duel, obstacles: [{ col: 0, row: 0 }] };
     const run = runBattleScenario(scenarioOf({}), broken, creatures);

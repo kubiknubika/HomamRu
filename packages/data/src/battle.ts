@@ -284,7 +284,11 @@ const battleScenarioSchema = z.strictObject({
   steps: z.array(stepSchema),
   expect: z
     .strictObject({
-      winner: z.enum(["attacker", "defender"]).optional(),
+      /**
+       * Кто победил. «nobody» — обе армии погибли разом: тогда в итоге боя стоит
+       * обороняющийся (город остаётся за ним), и по одному полю `winner` ничью не отличить.
+       */
+      winner: z.enum(["attacker", "defender", "nobody"]).optional(),
       /** Ход какого отряда ожидается в конце. */
       active: z.string().optional(),
       stacks: z
