@@ -10,9 +10,12 @@ import {
 import type { ContentError, SaveDefaults } from "@homamru/data";
 import buildingsText from "../../../../data/buildings.yaml?raw";
 import armsmanText from "../../../../data/creatures/armsman.json?raw";
+import cavalierText from "../../../../data/creatures/cavalier.json?raw";
+import championText from "../../../../data/creatures/champion.json?raw";
 import eagleText from "../../../../data/creatures/eagle.json?raw";
 import entText from "../../../../data/creatures/ent.json?raw";
 import falconText from "../../../../data/creatures/falcon.json?raw";
+import griffinText from "../../../../data/creatures/griffin.json?raw";
 import huntressText from "../../../../data/creatures/huntress.json?raw";
 import kentaurText from "../../../../data/creatures/kentaur.json?raw";
 import militiaText from "../../../../data/creatures/militia.json?raw";
@@ -31,9 +34,12 @@ const HEROES_FILE = "data/heroes.yaml";
 
 const CREATURE_FILES = [
   { file: "data/creatures/armsman.json", text: armsmanText },
+  { file: "data/creatures/cavalier.json", text: cavalierText },
+  { file: "data/creatures/champion.json", text: championText },
   { file: "data/creatures/eagle.json", text: eagleText },
   { file: "data/creatures/ent.json", text: entText },
   { file: "data/creatures/falcon.json", text: falconText },
+  { file: "data/creatures/griffin.json", text: griffinText },
   { file: "data/creatures/huntress.json", text: huntressText },
   { file: "data/creatures/kentaur.json", text: kentaurText },
   { file: "data/creatures/militia.json", text: militiaText },

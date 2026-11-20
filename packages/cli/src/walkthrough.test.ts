@@ -9,6 +9,8 @@ import { walkThrough } from "./walkthrough.ts";
 const FILE = "data/maps/four-corners.yaml";
 /** Срок прохождения: десять недель. */
 const MAX_DAYS = 70;
+/** Жилища людей 5–7 уровней: проходчик до них не доходит (см. ниже). */
+const TOP_BUILDINGS = ["stables", "champion-hall", "griffin-tower"];
 /** Тесты проходят карту по многу раз: в CI это дольше обычного предела. */
 const SLOW = 120_000;
 
@@ -68,9 +70,12 @@ describe("карта первой версии «Четыре края»", () =>
       expect(townOf(state, 0)?.buildings.toSorted()).toEqual(
         // Рынок проходчик не строит: меняться он не умеет (72-market.md).
         // Только свой замок: жилища Чащи в городе людей не строят (74-second-castle.md).
+        // Верхних жилищ людей 5–7 уровней нет ни у проходчика, ни у компьютера: с ними замер
+        // даёт 38 : 2 вместо 19 : 21 (74-second-castle.md). Здания в правилах есть — их строит игрок.
         state.buildings
           .filter((building) => building.market !== true)
           .filter((building) => (building.faction ?? "castle") === "castle")
+          .filter((building) => !TOP_BUILDINGS.includes(building.id))
           .map((building) => building.id)
           .toSorted(),
       );

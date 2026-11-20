@@ -23,7 +23,7 @@ function scenarioOf(changes: Partial<BattleScenario>): BattleScenario {
 describe("файлы из папок data/creatures и data/battles", () => {
   // Существ стало десять с порции 60: четыре замка людей и шесть второго замка «Чаща»
   // (74-second-castle.md). Числа первых четырёх — из 14-creatures.md и 31-recruitment.md.
-  it("существа — десять, с числами из документов существ", () => {
+  it("существа — тринадцать, с числами из документов существ", () => {
     const rows = creatures.map((c) => [
       c.id,
       c.attack,
@@ -39,9 +39,12 @@ describe("файлы из папок data/creatures и data/battles", () => {
     ]);
     expect(rows).toEqual([
       ["armsman", 9, 11, 5, 8, 32, 5, false, 0, 300, 4],
+      ["cavalier", 12, 9, 7, 12, 45, 9, false, 0, 450, 3],
+      ["champion", 14, 13, 10, 16, 65, 7, false, 0, 700, 2],
       ["eagle", 9, 5, 3, 5, 25, 9, true, 0, 220, 7],
       ["ent", 10, 14, 6, 10, 55, 3, false, 0, 350, 4],
       ["falcon", 7, 5, 3, 5, 18, 8, true, 0, 200, 7],
+      ["griffin", 16, 14, 15, 25, 95, 11, true, 0, 1200, 1],
       ["huntress", 6, 5, 2, 5, 15, 5, false, 12, 110, 9],
       ["kentaur", 5, 3, 2, 3, 10, 6, false, 0, 70, 14],
       ["militia", 5, 5, 2, 3, 12, 4, false, 0, 60, 14],
@@ -57,7 +60,13 @@ describe("файлы из папок data/creatures и data/battles", () => {
     const loaded = loadBuildings();
     const mine = loaded.filter((building) => (building.faction ?? "castle") === "castle");
     const core = BUILDINGS.filter((building) => (building.faction ?? "castle") === "castle");
-    expect(mine.map((building) => building.id)).toEqual(core.map((building) => building.id));
+    expect(mine.map((building) => building.id).toSorted()).toEqual(
+      core.map((building) => building.id).toSorted(),
+    );
+    // Верхние жилища людей: конюшня, палата витязей, гнездо гривы (74-second-castle.md).
+    expect(mine.map((building) => building.id)).toEqual(
+      expect.arrayContaining(["stables", "champion-hall", "griffin-tower"]),
+    );
     // Жилища Чащи в данных есть и принадлежат второму замку.
     expect(loaded.filter((building) => building.faction === "glade").map((b) => b.id)).toEqual([
       "kentaur-glade",

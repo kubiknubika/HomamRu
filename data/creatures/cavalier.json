@@ -1,0 +1,15 @@
+{
+  "id": "cavalier",
+  "name": "Всадник",
+  "attack": 12,
+  "defense": 9,
+  "damageMin": 7,
+  "damageMax": 12,
+  "health": 45,
+  "speed": 9,
+  "flying": false,
+  "shots": 0,
+  "price": 450,
+  "growth": 3,
+  "level": 5
+}

@@ -1,6 +1,6 @@
 import { basename } from "node:path";
 import { describe, expect, it } from "vitest";
-import { GAME_SPELLS } from "@homamru/core/testkit";
+import { GAME_SPELLS, OPPONENT } from "@homamru/core/testkit";
 import { checkMapFile, listMapFiles, loadDefaults } from "./files.ts";
 
 // Догма 8: все файлы данных проверяются автоматически.
@@ -88,5 +88,21 @@ describe("файл заклинаний data/spells.yaml", () => {
       ["disguise", 4, 0, 0, 2],
       ["town-portal", 16, 0, 300, 10],
     ]);
+  });
+});
+
+// Долг из порции 61, закрытый в порции 62: списка стройки два, и они независимы —
+// `data/defaults.yaml` для игры и `OPPONENT.buildOrder` для тестов. Правка одного не видна
+// другому, и один раз они уже разошлись. Этот тест держит их одинаковыми.
+describe("список стройки компьютера", () => {
+  it("в defaults.yaml и в наборе тестов ядра — один и тот же порядок", () => {
+    const { opponent } = loadDefaults();
+    expect(opponent.buildOrder).toEqual([...OPPONENT.buildOrder]);
+  });
+
+  it("верхних жилищ людей в нём нет: с ними 38 : 2 вместо 19 : 21 (74-second-castle.md)", () => {
+    const { opponent } = loadDefaults();
+    expect(opponent.buildOrder).not.toContain("stables");
+    expect(opponent.buildOrder).not.toContain("griffin-tower");
   });
 });

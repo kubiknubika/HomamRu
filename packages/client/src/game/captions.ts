@@ -70,6 +70,9 @@ export const CREATURE_MANY: Readonly<Record<string, string>> = {
   ent: "древней",
   warden: "хранителей",
   wyvern: "вьюнов",
+  cavalier: "всадников",
+  champion: "витязей",
+  griffin: "грив",
 };
 
 /**
@@ -87,6 +90,9 @@ export const CREATURE_PLURAL: Readonly<Record<string, string>> = {
   ent: "древни",
   warden: "хранители",
   wyvern: "вьюны",
+  cavalier: "всадники",
+  champion: "витязи",
+  griffin: "гривы",
 };
 
 /**

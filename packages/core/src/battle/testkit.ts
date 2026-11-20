@@ -4,6 +4,7 @@
 import { applyBattleCommand } from "./commands.ts";
 import { createBattle } from "./create.ts";
 import type { Cell } from "./hex.ts";
+import { CASTLE_TOP_CREATURES } from "./castleTopKit.ts";
 import { GLADE_CREATURES } from "./gladeKit.ts";
 import { commandingSide, findStack } from "./queries.ts";
 import type {
@@ -77,7 +78,14 @@ const ARMSMAN: CreatureDefinition = {
   growth: 4,
 };
 
-export const CREATURES = [MILITIA, SLINGER, FALCON, ARMSMAN, ...GLADE_CREATURES];
+export const CREATURES = [
+  ...CASTLE_TOP_CREATURES,
+  MILITIA,
+  SLINGER,
+  FALCON,
+  ARMSMAN,
+  ...GLADE_CREATURES,
+];
 
 /** Армия без героя, с нулевыми боевым духом и удачей. Запись отряда: `"militia:20"`. */
 export function army(

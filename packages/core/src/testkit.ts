@@ -1,6 +1,7 @@
 /**
  * Помощники для тестов ядра. В игре не используются.
  */
+import { CASTLE_TOP_BUILDINGS } from "./castleTopBuildings.ts";
 import { GLADE_BUILDINGS } from "./gladeBuildings.ts";
 import type { GameContent, HeroKind, OpponentRules, TavernRules } from "./tavernTypes.ts";
 import { CREATURES } from "./battle/testkit.ts";
@@ -63,6 +64,7 @@ export const OPPONENT: OpponentRules = {
     "smithy",
     "barracks",
     "falcon-tower",
+    // Верхних жилищ людей здесь нет: компьютер их не строит (74-second-castle.md).
     "citadel",
     "castle",
     "tavern",
@@ -164,6 +166,8 @@ export const BUILDINGS: readonly BuildingDefinition[] = [
     dwelling: "falcon",
     faction: "castle",
   },
+  // Жилища людей 5–7 уровней: в конце списка, чтобы порядок прежних зданий не менялся.
+  ...CASTLE_TOP_BUILDINGS,
 ];
 
 /**
