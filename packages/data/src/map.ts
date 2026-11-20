@@ -31,6 +31,11 @@ const objectSchema = z.discriminatedUnion("type", [
     owner: z.int(),
     buildings: z.array(z.string()).optional(),
     garrison: z.array(armyStackSchema).optional(),
+    /** Замок города (30-town.md); нет поля — замок людей. */
+    faction: z
+      .string()
+      .regex(/^[a-z0-9-]+$/)
+      .optional(),
   }),
 ]);
 
@@ -81,6 +86,8 @@ const mapSchema = z.strictObject({
     }),
   ),
   objects: z.array(objectSchema).optional(),
+  /** Предел времени партии в днях (41-victory.md); пусто — предела нет. */
+  daysLimit: z.int().min(1).max(9999).optional(),
 }) satisfies z.ZodType<MapDefinition>;
 
 /**

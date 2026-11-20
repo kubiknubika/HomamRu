@@ -25,6 +25,9 @@ opponent:
     - smithy
     - barracks
     - falcon-tower
+    # Верхних жилищ людей (stables, champion-hall, griffin-tower) здесь нет намеренно:
+    # с ними 40 партий дают 38 : 2 вместо 19 : 21 — дорогие существа сразу решают исход
+    # (74-second-castle.md, «Компьютер верхние жилища не строит»). Игрок их строит сам.
     - citadel
     - castle
     - tavern
@@ -32,3 +35,5 @@ opponent:
     - mage-guild-2
     - mage-guild-3
     - mage-guild-4
+    # Пятый круг (docs/content/towns.md): открывает три заклинания, которые иначе недоступны.
+    - mage-guild-5

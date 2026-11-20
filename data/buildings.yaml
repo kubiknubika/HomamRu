@@ -50,23 +50,97 @@
   cost: { gold: 1000, wood: 5, ore: 5, mercury: 8, sulfur: 8, crystal: 8, gems: 8 }
   requires: [mage-guild-3]
   mageGuild: 4
+# Пятый круг (docs/content/towns.md): без него три заклинания пятого круга недоступны ни в одном городе.
+- id: mage-guild-5
+  name: Гильдия магов, уровень 5
+  cost: { gold: 2000, wood: 5, ore: 5, mercury: 10, sulfur: 10, crystal: 10, gems: 10 }
+  requires: [mage-guild-4]
+  mageGuild: 5
 - id: militia-yard
   name: Двор ополченцев
   cost: { gold: 500, ore: 10 }
   requires: [fort]
   dwelling: militia
+  faction: castle
 - id: slinger-range
   name: Стрельбище пращников
   cost: { gold: 1000, wood: 5, ore: 5 }
   requires: [militia-yard]
   dwelling: slinger
+  faction: castle
 - id: barracks
   name: Казарма
   cost: { gold: 2000, ore: 5 }
   requires: [smithy, militia-yard]
   dwelling: armsman
+  faction: castle
 - id: falcon-tower
   name: Соколиная башня
   cost: { gold: 1000, ore: 5 }
   requires: [barracks]
   dwelling: falcon
+  faction: castle
+# Второй замок — «Чаща» (30-town.md). Свои жилища; постройки вроде форта и ратуши
+# общие, но жилища Чащи строит только город Чащи, а жилища людей — город людей.
+- id: kentaur-glade
+  name: Кентаврийская поляна
+  cost: { gold: 500, ore: 10 }
+  requires: [fort]
+  dwelling: kentaur
+  faction: glade
+- id: huntress-lodge
+  name: Охотничий домик
+  cost: { gold: 1000, wood: 5, ore: 5 }
+  requires: [kentaur-glade]
+  dwelling: huntress
+  faction: glade
+- id: eagle-aerie
+  name: Орлиное гнездо
+  cost: { gold: 1000, ore: 5 }
+  requires: [huntress-lodge]
+  dwelling: eagle
+  faction: glade
+- id: ent-grove
+  name: Роща древней
+  cost: { gold: 2000, ore: 5 }
+  requires: [eagle-aerie]
+  dwelling: ent
+  faction: glade
+- id: warden-hall
+  name: Зал хранителей
+  cost: { gold: 3000, wood: 10, ore: 10 }
+  requires: [ent-grove]
+  dwelling: warden
+  faction: glade
+- id: wyvern-cliff
+  name: Вьюнов утёс
+  cost: { gold: 4000, wood: 10, ore: 15, gems: 5 }
+  requires: [warden-hall]
+  dwelling: wyvern
+  faction: glade
+- id: aurochs-pen
+  name: Зубровый загон
+  cost: { gold: 6500, wood: 20, ore: 20, crystal: 8, gems: 8 }
+  requires: [wyvern-cliff]
+  dwelling: aurochs
+  faction: glade
+# Жилища людей 5–7 уровней (74-second-castle.md, 31-recruitment.md): замок людей
+# дорос до семи существ, как и «Чаща». Цены — по кривой Heroes 3.
+- id: stables
+  name: Конюшня
+  cost: { gold: 3000, wood: 5, ore: 10 }
+  requires: [barracks]
+  dwelling: cavalier
+  faction: castle
+- id: champion-hall
+  name: Палата витязей
+  cost: { gold: 4000, wood: 10, ore: 10, gems: 5 }
+  requires: [stables]
+  dwelling: champion
+  faction: castle
+- id: griffin-tower
+  name: Гнездо гривы
+  cost: { gold: 6000, wood: 15, ore: 15, crystal: 8, gems: 8 }
+  requires: [champion-hall]
+  dwelling: griffin
+  faction: castle

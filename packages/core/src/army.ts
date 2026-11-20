@@ -1,7 +1,7 @@
 /**
  * Армия героя и гарнизона: один отряд на каждый вид существ (31-recruitment.md).
  */
-import type { ArmyStack } from "./types.ts";
+import type { ArmyStack, GameState } from "./types.ts";
 
 /** Сколько существ этого вида в армии. */
 export function countIn(army: readonly ArmyStack[], creature: string): number {
@@ -42,4 +42,14 @@ export function mergeArmy(army: readonly ArmyStack[]): ArmyStack[] {
     merged = addToArmy(merged, stack.creature, stack.count);
   }
   return merged;
+}
+
+/** Цена найма одного существа; незнакомое существо стоит ноль. */
+export function priceOf(state: GameState, creature: string): number {
+  return state.creatures.find((candidate) => candidate.id === creature)?.price ?? 0;
+}
+
+/** Сила армии — сумма цен найма её существ (42-opponent.md). */
+export function armyValue(state: GameState, army: readonly ArmyStack[]): number {
+  return army.reduce((sum, stack) => sum + stack.count * priceOf(state, stack.creature), 0);
 }

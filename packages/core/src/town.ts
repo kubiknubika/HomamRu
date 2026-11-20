@@ -100,6 +100,10 @@ export function buildObstacle(
   if (town.builtToday) {
     return reject("BUILT_TODAY", "Сегодня в этом городе уже строили.");
   }
+  // Чужой замок в своём городе не строят: жилища Чащи — только в городе Чащи (30-town.md).
+  if (building.faction !== undefined && building.faction !== town.faction) {
+    return reject("WRONG_FACTION", `«${building.name}» строят только в городе другого замка.`);
+  }
   const absent = building.requires.filter((id) => !town.buildings.includes(id));
   if (absent.length > 0) {
     const names = absent.map((id) => state.buildings.find((b) => b.id === id)?.name ?? id);

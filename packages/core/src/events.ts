@@ -99,6 +99,8 @@ export type GameEvent =
       readonly outcome: "defeat" | "victory";
       /** Победитель; при поражении единственного игрока — `null`. */
       readonly winner: number | null;
+      /** Партия кончилась по пределу времени карты, а не боем (41-victory.md). */
+      readonly byTime?: boolean;
     }
   | {
       /** Гарнизон перед боем за город перешёл к герою, который в нём стоит. */

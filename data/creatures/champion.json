@@ -1,0 +1,15 @@
+{
+  "id": "champion",
+  "name": "Витязь",
+  "attack": 14,
+  "defense": 13,
+  "damageMin": 10,
+  "damageMax": 16,
+  "health": 65,
+  "speed": 7,
+  "flying": false,
+  "shots": 0,
+  "price": 700,
+  "growth": 2,
+  "level": 6
+}

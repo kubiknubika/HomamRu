@@ -4,6 +4,7 @@
  */
 import { masteryOf } from "./skills.ts";
 import { spellAtMastery } from "./spells.ts";
+import { townOf } from "./town.ts";
 import { reject } from "./types.ts";
 import type { SpellDefinition } from "./spells.ts";
 import type {
@@ -148,7 +149,10 @@ export function shownArmy(state: GameState, hero: HeroState): ShownStack[] {
   }
   const own = hero.army.map((stack) => stack.creature);
   const EXPERT = 3;
-  const pool = hero.disguise >= EXPERT ? townCreatures(state) : own;
+  // Экспертная «Маскировка» надевает лицо сильнейшего существа города героя —
+  // и только своего замка: жилища чужого замка в его городе не строят (74-second-castle.md).
+  const town = townOf(state, hero.owner);
+  const pool = hero.disguise >= EXPERT ? townCreatures(state, town?.faction ?? "castle") : own;
   const face = strongest(state, pool) ?? strongest(state, own);
   return hero.army.map((stack: ArmyStack) => ({
     creature: face ?? stack.creature,
@@ -156,10 +160,12 @@ export function shownArmy(state: GameState, hero: HeroState): ShownStack[] {
   }));
 }
 
-/** Существа, которых нанимают в городе: по жилищам из списка зданий. */
-function townCreatures(state: GameState): string[] {
+/** Существа, которых нанимают в городе этого замка: по жилищам своего замка. */
+function townCreatures(state: GameState, faction: string): string[] {
   return state.buildings.flatMap((building) =>
-    building.dwelling === undefined ? [] : [building.dwelling],
+    building.dwelling !== undefined && (building.faction ?? "castle") === faction
+      ? [building.dwelling]
+      : [],
   );
 }
 

@@ -328,7 +328,7 @@
   skilledCost: 25
   power: 75
   value: 100
-  chance: 0
+  chance: 1
   effect: damage
   target: enemy
   values: [100, 200, 300]
@@ -520,7 +520,7 @@
   cost: 25
   skilledCost: 20
   value: 20
-  chance: 0
+  chance: 1
   effect: mirror
   target: ally
   values: [20, 30, 40]
@@ -639,10 +639,12 @@
   skilledCost: 20
   power: 1
   value: 3
-  chance: 0
+  chance: 1
   effect: sacrifice
   target: ally
   values: [3, 6, 10]
+# Веса (chance) — столбец замка людей: обычные заклинания кругов 1–5 выпадают,
+# «Волна смерти», «Поднять мертвецов» и «Армагеддон» — нет (66-rare-resources.md).
 # Заклинания карты (docs/mechanics/73-map-spells.md): в бою не колдуются.
 # Видения: число — множитель дальности (сила магии × число, не меньше трёх клеток).
 - id: visions

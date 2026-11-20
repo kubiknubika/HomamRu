@@ -1,7 +1,10 @@
-import { basename } from "node:path";
+import { readFileSync } from "node:fs";
+import { basename, join, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
-import { GAME_SPELLS } from "@homamru/core/testkit";
+import { GAME_SPELLS, OPPONENT } from "@homamru/core/testkit";
 import { checkMapFile, listMapFiles, loadDefaults } from "./files.ts";
+
+const ROOT = resolve(import.meta.dirname, "../../..");
 
 // Догма 8: все файлы данных проверяются автоматически.
 describe("карты из папки data/maps", () => {
@@ -58,7 +61,7 @@ describe("файл заклинаний data/spells.yaml", () => {
       ["misfortune", 12, 0, 1, 4],
       ["prayer", 16, 0, 2, 10],
       ["sorrow", 16, 0, 1, 5],
-      ["implosion", 30, 75, 100, 0],
+      ["implosion", 30, 75, 100, 1],
       ["frost-ring", 12, 10, 15, 16],
       ["fireball", 15, 10, 15, 8],
       ["inferno", 16, 10, 20, 5],
@@ -73,7 +76,7 @@ describe("файл заклинаний data/spells.yaml", () => {
       ["fire-shield", 16, 0, 20, 5],
       ["hypnotize", 18, 25, 10, 4],
       ["berserk", 20, 0, 0, 5],
-      ["magic-mirror", 25, 0, 20, 0],
+      ["magic-mirror", 25, 0, 20, 1],
       ["remove-obstacle", 7, 0, 0, 4],
       ["force-field", 12, 0, 2, 4],
       ["earthquake", 20, 0, 2, 4],
@@ -83,10 +86,65 @@ describe("файл заклинаний data/spells.yaml", () => {
       ["land-mine", 18, 10, 25, 8],
       ["resurrection", 20, 50, 40, 10],
       ["clone", 24, 0, 5, 5],
-      ["sacrifice", 25, 1, 3, 0],
+      ["sacrifice", 25, 1, 3, 1],
       ["visions", 4, 0, 1, 2],
       ["disguise", 4, 0, 0, 2],
       ["town-portal", 16, 0, 300, 10],
     ]);
+  });
+});
+
+// Долг из порции 61, закрытый в порции 62: списка стройки два, и они независимы —
+// `data/defaults.yaml` для игры и `OPPONENT.buildOrder` для тестов. Правка одного не видна
+// другому, и один раз они уже разошлись. Этот тест держит их одинаковыми.
+describe("список стройки компьютера", () => {
+  it("в defaults.yaml и в наборе тестов ядра — один и тот же порядок", () => {
+    const { opponent } = loadDefaults();
+    expect(opponent.buildOrder).toEqual([...OPPONENT.buildOrder]);
+  });
+
+  it("верхних жилищ людей в нём нет: с ними 38 : 2 вместо 19 : 21 (74-second-castle.md)", () => {
+    const { opponent } = loadDefaults();
+    expect(opponent.buildOrder).not.toContain("stables");
+    expect(opponent.buildOrder).not.toContain("griffin-tower");
+  });
+});
+
+// Каталог того, чего не хватает (docs/content/), называет числа: 14 существ, 26 зданий,
+// 54 заклинания, 6 героев. Документ — память проекта, и если он разойдётся с данными,
+// то читатель получит ложь. Этот сторож читает сам каталог и сверяет его числа с данными.
+// Проверено порчей: подмена числа в creatures.md роняет первый тест.
+describe("каталог docs/content и данные игры", () => {
+  it("числа в каталоге — те же, что в данных", () => {
+    const { creatures, buildings, spells, heroes } = loadDefaults();
+    const catalog = readFileSync(join(ROOT, "docs/content/creatures.md"), "utf8");
+    expect([creatures.length, buildings.length, spells.length, heroes.length]).toEqual([
+      14, 26, 54, 6,
+    ]);
+    // «У нас» в каталоге существ — то же число, что в папке существ.
+    expect(catalog).toContain(`| **${String(creatures.length)}** |`);
+    expect(catalog).toContain(`**${creatures.length}**`);
+  });
+
+  it("у обоих замков по семь уровней — как записано в каталоге", () => {
+    const { creatures } = loadDefaults();
+    const levels = (faction: string[]) =>
+      creatures
+        .filter((creature) => faction.includes(creature.id))
+        .map((creature) => creature.level ?? 0)
+        .toSorted((a, b) => a - b);
+    expect(
+      levels(["militia", "slinger", "falcon", "armsman", "cavalier", "champion", "griffin"]),
+    ).toEqual([1, 2, 3, 4, 5, 6, 7]);
+    expect(levels(["kentaur", "huntress", "eagle", "ent", "warden", "wyvern", "aurochs"])).toEqual([
+      1, 2, 3, 4, 5, 6, 7,
+    ]);
+  });
+
+  it("ни одного артефакта: каталог говорит «0 из 134»", () => {
+    const { creatures, buildings, spells } = loadDefaults();
+    expect(
+      [creatures, buildings, spells].map((list) => JSON.stringify(list).includes("artifact")),
+    ).toEqual([false, false, false]);
   });
 });

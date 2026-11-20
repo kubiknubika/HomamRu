@@ -1,6 +1,9 @@
 /**
  * Помощники для тестов ядра. В игре не используются.
  */
+import { CASTLE_TOP_BUILDINGS } from "./castleTopBuildings.ts";
+import { GUILD_TOP } from "./guildTop.ts";
+import { GLADE_BUILDINGS } from "./gladeBuildings.ts";
 import type { GameContent, HeroKind, OpponentRules, TavernRules } from "./tavernTypes.ts";
 import { CREATURES } from "./battle/testkit.ts";
 import { createGame, DAILY_MOVEMENT, heroIdOf } from "./game.ts";
@@ -62,6 +65,7 @@ export const OPPONENT: OpponentRules = {
     "smithy",
     "barracks",
     "falcon-tower",
+    // Верхних жилищ людей здесь нет: компьютер их не строит (74-second-castle.md).
     "citadel",
     "castle",
     "tavern",
@@ -69,6 +73,7 @@ export const OPPONENT: OpponentRules = {
     "mage-guild-2",
     "mage-guild-3",
     "mage-guild-4",
+    "mage-guild-5",
   ],
 };
 
@@ -83,6 +88,7 @@ export const TAVERN: TavernRules = {
 
 /** Здания для тестов: те же, что в data/buildings.yaml (30-town.md). */
 export const BUILDINGS: readonly BuildingDefinition[] = [
+  ...GLADE_BUILDINGS,
   { id: "tavern", name: "Таверна", cost: { gold: 500, wood: 5 }, requires: [], tavern: true },
   { id: "town-hall", name: "Ратуша", cost: { gold: 2500 }, requires: ["tavern"], income: 1000 },
   { id: "fort", name: "Форт", cost: { gold: 5000, wood: 20, ore: 20 }, requires: [] },
@@ -130,12 +136,15 @@ export const BUILDINGS: readonly BuildingDefinition[] = [
     requires: ["mage-guild-3"],
     mageGuild: 4,
   },
+  // Пятый круг (docs/content/towns.md): один он открывает три заклинания пятого круга.
+  ...GUILD_TOP,
   {
     id: "militia-yard",
     name: "Двор ополченцев",
     cost: { gold: 500, ore: 10 },
     requires: ["fort"],
     dwelling: "militia",
+    faction: "castle",
   },
   {
     id: "slinger-range",
@@ -143,6 +152,7 @@ export const BUILDINGS: readonly BuildingDefinition[] = [
     cost: { gold: 1000, wood: 5, ore: 5 },
     requires: ["militia-yard"],
     dwelling: "slinger",
+    faction: "castle",
   },
   {
     id: "barracks",
@@ -150,6 +160,7 @@ export const BUILDINGS: readonly BuildingDefinition[] = [
     cost: { gold: 2000, ore: 5 },
     requires: ["smithy", "militia-yard"],
     dwelling: "armsman",
+    faction: "castle",
   },
   {
     id: "falcon-tower",
@@ -157,7 +168,10 @@ export const BUILDINGS: readonly BuildingDefinition[] = [
     cost: { gold: 1000, ore: 5 },
     requires: ["barracks"],
     dwelling: "falcon",
+    faction: "castle",
   },
+  // Жилища людей 5–7 уровней: в конце списка, чтобы порядок прежних зданий не менялся.
+  ...CASTLE_TOP_BUILDINGS,
 ];
 
 /**

@@ -127,3 +127,36 @@ export function townlessLeft(state: GameState): number | null {
   const days = player?.townlessDays ?? null;
   return days === null || player?.eliminated === true ? null : TOWNLESS_DAYS - days;
 }
+
+/**
+ * Сколько дней осталось до предела времени карты (41-victory.md); `null` — предела нет
+ * или он уже вышел. Игрок должен видеть срок: иначе победа по сроку — сюрприз.
+ */
+export function daysUntilLimit(state: GameState): number | null {
+  const limit = state.map.daysLimit;
+  if (limit === undefined || state.outcome !== null) {
+    return null;
+  }
+  return Math.max(limit - state.day + 1, 0);
+}
+
+/** Слова о сроке карты: «до срока 12 дней», «последний день срока». */
+export function limitText(days: number): string {
+  if (days <= 0) {
+    return "срок карты вышел";
+  }
+  if (days === 1) {
+    return "последний день срока";
+  }
+  return `до срока ${days} ${daysWord(days)}`;
+}
+
+/** Слово «день» в нужной форме: 1 день, 2 дня, 5 дней, 11 дней, 21 день, 22 дня. */
+function daysWord(days: number): string {
+  const last = days % 10;
+  const twoLast = days % 100;
+  if (last === 1 && twoLast !== 11) {
+    return "день";
+  }
+  return last >= 2 && last <= 4 && (twoLast < 12 || twoLast > 14) ? "дня" : "дней";
+}

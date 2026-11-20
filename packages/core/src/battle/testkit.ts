@@ -4,6 +4,8 @@
 import { applyBattleCommand } from "./commands.ts";
 import { createBattle } from "./create.ts";
 import type { Cell } from "./hex.ts";
+import { CASTLE_TOP_CREATURES } from "./castleTopKit.ts";
+import { GLADE_CREATURES } from "./gladeKit.ts";
 import { commandingSide, findStack } from "./queries.ts";
 import type {
   ArmyDefinition,
@@ -29,6 +31,7 @@ export const MILITIA: CreatureDefinition = {
   shots: 0,
   price: 60,
   growth: 14,
+  level: 1,
 };
 
 export const SLINGER: CreatureDefinition = {
@@ -44,6 +47,7 @@ export const SLINGER: CreatureDefinition = {
   shots: 10,
   price: 100,
   growth: 9,
+  level: 2,
 };
 
 export const FALCON: CreatureDefinition = {
@@ -59,6 +63,7 @@ export const FALCON: CreatureDefinition = {
   shots: 0,
   price: 200,
   growth: 7,
+  level: 3,
 };
 
 const ARMSMAN: CreatureDefinition = {
@@ -74,9 +79,17 @@ const ARMSMAN: CreatureDefinition = {
   shots: 0,
   price: 300,
   growth: 4,
+  level: 4,
 };
 
-export const CREATURES = [MILITIA, SLINGER, FALCON, ARMSMAN];
+export const CREATURES = [
+  ...CASTLE_TOP_CREATURES,
+  MILITIA,
+  SLINGER,
+  FALCON,
+  ARMSMAN,
+  ...GLADE_CREATURES,
+];
 
 /** Армия без героя, с нулевыми боевым духом и удачей. Запись отряда: `"militia:20"`. */
 export function army(
