@@ -1,7 +1,10 @@
-import { basename } from "node:path";
+import { readFileSync } from "node:fs";
+import { basename, join, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { GAME_SPELLS, OPPONENT } from "@homamru/core/testkit";
 import { checkMapFile, listMapFiles, loadDefaults } from "./files.ts";
+
+const ROOT = resolve(import.meta.dirname, "../../..");
 
 // Догма 8: все файлы данных проверяются автоматически.
 describe("карты из папки data/maps", () => {
@@ -104,5 +107,44 @@ describe("список стройки компьютера", () => {
     const { opponent } = loadDefaults();
     expect(opponent.buildOrder).not.toContain("stables");
     expect(opponent.buildOrder).not.toContain("griffin-tower");
+  });
+});
+
+// Каталог того, чего не хватает (docs/content/), называет числа: 13 существ, 24 здания,
+// 54 заклинания, 6 героев. Документ — память проекта, и если он разойдётся с данными,
+// то читатель получит ложь. Этот сторож читает сам каталог и сверяет его числа с данными.
+// Проверено порчей: подмена числа в creatures.md роняет первый тест.
+describe("каталог docs/content и данные игры", () => {
+  it("числа в каталоге — те же, что в данных", () => {
+    const { creatures, buildings, spells, heroes } = loadDefaults();
+    const catalog = readFileSync(join(ROOT, "docs/content/creatures.md"), "utf8");
+    expect([creatures.length, buildings.length, spells.length, heroes.length]).toEqual([
+      13, 24, 54, 6,
+    ]);
+    // «У нас» в каталоге существ — то же число, что в папке существ.
+    expect(catalog).toContain(`| **${String(creatures.length)}** |`);
+    expect(catalog).toContain(`**${creatures.length}**`);
+  });
+
+  it("людей семь уровней и Чащи шесть — как записано в каталоге", () => {
+    const { creatures } = loadDefaults();
+    const levels = (faction: string[]) =>
+      creatures
+        .filter((creature) => faction.includes(creature.id))
+        .map((creature) => creature.level ?? 0)
+        .toSorted((a, b) => a - b);
+    expect(
+      levels(["militia", "slinger", "falcon", "armsman", "cavalier", "champion", "griffin"]),
+    ).toEqual([1, 2, 3, 4, 5, 6, 7]);
+    expect(levels(["kentaur", "huntress", "eagle", "ent", "warden", "wyvern"])).toEqual([
+      1, 2, 3, 4, 5, 6,
+    ]);
+  });
+
+  it("ни одного артефакта: каталог говорит «0 из 134»", () => {
+    const { creatures, buildings, spells } = loadDefaults();
+    expect(
+      [creatures, buildings, spells].map((list) => JSON.stringify(list).includes("artifact")),
+    ).toEqual([false, false, false]);
   });
 });
