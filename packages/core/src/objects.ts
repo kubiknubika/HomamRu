@@ -10,7 +10,7 @@ import type { RngState } from "./rng.ts";
 import { RESOURCES } from "./types.ts";
 
 /** Замок людей: у города без поля `faction` в файле карты он этот (30-town.md). */
-export const CASTLE_FACTION = "castle";
+const CASTLE_FACTION = "castle";
 import type {
   GameEvent,
   GameState,
