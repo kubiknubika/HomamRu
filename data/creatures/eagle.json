@@ -1,0 +1,15 @@
+{
+  "id": "eagle",
+  "name": "Орёл",
+  "attack": 9,
+  "defense": 5,
+  "damageMin": 3,
+  "damageMax": 5,
+  "health": 25,
+  "speed": 9,
+  "flying": true,
+  "shots": 0,
+  "price": 220,
+  "growth": 7,
+  "level": 3
+}

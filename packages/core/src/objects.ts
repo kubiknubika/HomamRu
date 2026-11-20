@@ -8,6 +8,9 @@ import { nextInt } from "./rng.ts";
 import { townIncome } from "./town.ts";
 import type { RngState } from "./rng.ts";
 import { RESOURCES } from "./types.ts";
+
+/** Замок людей: у города без поля `faction` в файле карты он этот (30-town.md). */
+export const CASTLE_FACTION = "castle";
 import type {
   GameEvent,
   GameState,
@@ -86,7 +89,7 @@ export function createObjects(
       return { id, type: "guard", x, y, creature, count, power: count * POWER_PER_CREATURE };
     }
     if (definition.type === "town") {
-      const { owner, buildings = [], garrison = [] } = definition;
+      const { owner, buildings = [], garrison = [], faction = CASTLE_FACTION } = definition;
       // Существа в жилищах появятся, когда партия собрана целиком (game.ts).
       return {
         id,
@@ -94,6 +97,8 @@ export function createObjects(
         x,
         y,
         owner,
+        // Замок города: от него зависит, какие жилища в нём строят (30-town.md).
+        faction,
         buildings: [...buildings],
         builtToday: false,
         available: [],

@@ -1,0 +1,15 @@
+{
+  "id": "huntress",
+  "name": "Охотница",
+  "attack": 6,
+  "defense": 5,
+  "damageMin": 2,
+  "damageMax": 5,
+  "health": 15,
+  "speed": 5,
+  "flying": false,
+  "shots": 12,
+  "price": 110,
+  "growth": 9,
+  "level": 2
+}

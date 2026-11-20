@@ -67,8 +67,10 @@ describe("карта первой версии «Четыре края»", () =>
       const { state, commands } = play(1);
       expect(townOf(state, 0)?.buildings.toSorted()).toEqual(
         // Рынок проходчик не строит: меняться он не умеет (72-market.md).
+        // Только свой замок: жилища Чащи в городе людей не строят (74-second-castle.md).
         state.buildings
           .filter((building) => building.market !== true)
+          .filter((building) => (building.faction ?? "castle") === "castle")
           .map((building) => building.id)
           .toSorted(),
       );

@@ -86,6 +86,8 @@ export type MapObjectDefinition =
       readonly buildings?: readonly string[] | undefined;
       /** Гарнизон в начале. */
       readonly garrison?: readonly ArmyStack[] | undefined;
+      /** Замок города: `castle` (по умолчанию) или `glade` (30-town.md, 74-second-castle.md). */
+      readonly faction?: string | undefined;
     };
 
 /** Здание города: то же, что в файле зданий (30-town.md). */
@@ -107,6 +109,11 @@ export interface BuildingDefinition {
   readonly mageGuild?: number | undefined;
   /** Рынок: здесь меняют ресурсы (72-market.md). */
   readonly market?: boolean | undefined;
+  /**
+   * Замок, к которому относится здание: `castle`, `glade` (30-town.md). Город строит
+   * только здания своего замка. Нет поля — здание общее для всех замков.
+   */
+  readonly faction?: string | undefined;
 }
 
 /** Отряд армии: вид существ и их число. */
@@ -239,6 +246,8 @@ export interface TownState {
   readonly garrison: readonly ArmyStack[];
   /** Набор гильдии магов на все круги, выбран в начале партии; виден по мере постройки (61-magic.md). */
   readonly spells: readonly string[];
+  /** Замок города: `castle` или `glade`. Что в нём можно строить — 30-town.md. */
+  readonly faction: string;
 }
 
 export type ObjectState = PileState | MineState | GuardState | TownState;

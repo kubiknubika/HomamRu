@@ -138,6 +138,8 @@ export const buildingSchema = z.strictObject({
   dwelling: z.string().optional(),
   mageGuild: z.int().min(1).max(5).optional(),
   market: z.boolean().optional(),
+  // Замок здания (30-town.md): город строит только своё.
+  faction: z.string().regex(ID_PATTERN, ID_MESSAGE).optional(),
 }) satisfies z.ZodType<BuildingDefinition>;
 
 /**

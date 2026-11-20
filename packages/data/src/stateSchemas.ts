@@ -110,6 +110,8 @@ export const objectSchema = z.discriminatedUnion("type", [
     x: z.int(),
     y: z.int(),
     owner: playerNumberSchema,
+    // Замок города (30-town.md): нет поля в старом сохранении — замок людей.
+    faction: z.string().catch("castle"),
     // Списки сверяются со зданиями и существами партии при чтении (stateTown.ts).
     buildings: z.array(z.string()).catch([]),
     builtToday: z.boolean().catch(false),

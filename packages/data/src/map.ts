@@ -31,6 +31,11 @@ const objectSchema = z.discriminatedUnion("type", [
     owner: z.int(),
     buildings: z.array(z.string()).optional(),
     garrison: z.array(armyStackSchema).optional(),
+    /** Замок города (30-town.md); нет поля — замок людей. */
+    faction: z
+      .string()
+      .regex(/^[a-z0-9-]+$/)
+      .optional(),
   }),
 ]);
 

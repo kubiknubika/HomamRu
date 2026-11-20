@@ -55,18 +55,60 @@
   cost: { gold: 500, ore: 10 }
   requires: [fort]
   dwelling: militia
+  faction: castle
 - id: slinger-range
   name: Стрельбище пращников
   cost: { gold: 1000, wood: 5, ore: 5 }
   requires: [militia-yard]
   dwelling: slinger
+  faction: castle
 - id: barracks
   name: Казарма
   cost: { gold: 2000, ore: 5 }
   requires: [smithy, militia-yard]
   dwelling: armsman
+  faction: castle
 - id: falcon-tower
   name: Соколиная башня
   cost: { gold: 1000, ore: 5 }
   requires: [barracks]
   dwelling: falcon
+  faction: castle
+# Второй замок — «Чаща» (30-town.md). Свои жилища; постройки вроде форта и ратуши
+# общие, но жилища Чащи строит только город Чащи, а жилища людей — город людей.
+- id: kentaur-glade
+  name: Кентаврийская поляна
+  cost: { gold: 500, ore: 10 }
+  requires: [fort]
+  dwelling: kentaur
+  faction: glade
+- id: huntress-lodge
+  name: Охотничий домик
+  cost: { gold: 1000, wood: 5, ore: 5 }
+  requires: [kentaur-glade]
+  dwelling: huntress
+  faction: glade
+- id: eagle-aerie
+  name: Орлиное гнездо
+  cost: { gold: 1000, ore: 5 }
+  requires: [huntress-lodge]
+  dwelling: eagle
+  faction: glade
+- id: ent-grove
+  name: Роща древней
+  cost: { gold: 2000, ore: 5 }
+  requires: [eagle-aerie]
+  dwelling: ent
+  faction: glade
+- id: warden-hall
+  name: Зал хранителей
+  cost: { gold: 3000, wood: 10, ore: 10 }
+  requires: [ent-grove]
+  dwelling: warden
+  faction: glade
+- id: wyvern-cliff
+  name: Вьюнов утёс
+  cost: { gold: 4000, wood: 10, ore: 15, gems: 5 }
+  requires: [warden-hall]
+  dwelling: wyvern
+  faction: glade

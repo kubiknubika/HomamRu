@@ -93,6 +93,7 @@ describe("сторона игрока в бою", () => {
       x: 4,
       y: 0,
       owner: 1,
+      faction: "castle",
       buildings: [],
       builtToday: false,
       available: [],

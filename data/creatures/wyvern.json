@@ -1,0 +1,15 @@
+{
+  "id": "wyvern",
+  "name": "Вьюн",
+  "attack": 14,
+  "defense": 12,
+  "damageMin": 12,
+  "damageMax": 20,
+  "health": 85,
+  "speed": 7,
+  "flying": true,
+  "shots": 0,
+  "price": 900,
+  "growth": 2,
+  "level": 6
+}

@@ -1,0 +1,15 @@
+{
+  "id": "kentaur",
+  "name": "Кентавр",
+  "attack": 5,
+  "defense": 3,
+  "damageMin": 2,
+  "damageMax": 3,
+  "health": 10,
+  "speed": 6,
+  "flying": false,
+  "shots": 0,
+  "price": 70,
+  "growth": 14,
+  "level": 1
+}

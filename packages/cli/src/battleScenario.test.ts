@@ -21,7 +21,9 @@ function scenarioOf(changes: Partial<BattleScenario>): BattleScenario {
 }
 
 describe("файлы из папок data/creatures и data/battles", () => {
-  it("существа — четыре, с числами из 14-creatures.md и 31-recruitment.md", () => {
+  // Существ стало десять с порции 60: четыре замка людей и шесть второго замка «Чаща»
+  // (74-second-castle.md). Числа первых четырёх — из 14-creatures.md и 31-recruitment.md.
+  it("существа — десять, с числами из документов существ", () => {
     const rows = creatures.map((c) => [
       c.id,
       c.attack,
@@ -37,14 +39,34 @@ describe("файлы из папок data/creatures и data/battles", () => {
     ]);
     expect(rows).toEqual([
       ["armsman", 9, 11, 5, 8, 32, 5, false, 0, 300, 4],
+      ["eagle", 9, 5, 3, 5, 25, 9, true, 0, 220, 7],
+      ["ent", 10, 14, 6, 10, 55, 3, false, 0, 350, 4],
       ["falcon", 7, 5, 3, 5, 18, 8, true, 0, 200, 7],
+      ["huntress", 6, 5, 2, 5, 15, 5, false, 12, 110, 9],
+      ["kentaur", 5, 3, 2, 3, 10, 6, false, 0, 70, 14],
       ["militia", 5, 5, 2, 3, 12, 4, false, 0, 60, 14],
       ["slinger", 5, 3, 1, 4, 9, 5, false, 10, 100, 9],
+      ["warden", 12, 15, 8, 12, 70, 4, false, 0, 500, 3],
+      ["wyvern", 14, 12, 12, 20, 85, 7, true, 0, 900, 2],
     ]);
   });
 
-  it("здания — те же, что в тестах ядра (30-town.md)", () => {
-    expect(loadBuildings()).toEqual(BUILDINGS);
+  // С порции 60 зданий в данных больше, чем в наборе ядра: там два замка
+  // (74-second-castle.md). Сверяем по замкам, а не общим списком.
+  it("здания — те же, что в тестах ядра, в каждом замке (30-town.md)", () => {
+    const loaded = loadBuildings();
+    const mine = loaded.filter((building) => (building.faction ?? "castle") === "castle");
+    const core = BUILDINGS.filter((building) => (building.faction ?? "castle") === "castle");
+    expect(mine.map((building) => building.id)).toEqual(core.map((building) => building.id));
+    // Жилища Чащи в данных есть и принадлежат второму замку.
+    expect(loaded.filter((building) => building.faction === "glade").map((b) => b.id)).toEqual([
+      "kentaur-glade",
+      "huntress-lodge",
+      "eagle-aerie",
+      "ent-grove",
+      "warden-hall",
+      "wyvern-cliff",
+    ]);
   });
 
   it("герои и правила таверны — те же, что в тестах ядра (32-hero-hire.md)", () => {

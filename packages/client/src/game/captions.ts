@@ -64,6 +64,12 @@ export const CREATURE_MANY: Readonly<Record<string, string>> = {
   slinger: "пращников",
   falcon: "соколов",
   armsman: "латников",
+  kentaur: "кентавров",
+  huntress: "охотниц",
+  eagle: "орлов",
+  ent: "древней",
+  warden: "хранителей",
+  wyvern: "вьюнов",
 };
 
 /**
@@ -75,6 +81,12 @@ export const CREATURE_PLURAL: Readonly<Record<string, string>> = {
   slinger: "пращники",
   falcon: "соколы",
   armsman: "латники",
+  kentaur: "кентавры",
+  huntress: "охотницы",
+  eagle: "орлы",
+  ent: "древни",
+  warden: "хранители",
+  wyvern: "вьюны",
 };
 
 /**

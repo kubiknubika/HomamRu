@@ -24,6 +24,13 @@ function buildingErrors(
       errors.push({ field: `${field}.buildings.${index}`, message: `Здания «${id}» нет.` });
       return;
     }
+    const faction = town.faction ?? "castle";
+    if (building.faction !== undefined && building.faction !== faction) {
+      errors.push({
+        field: `${field}.buildings.${index}`,
+        message: `Здание «${id}» другого замка: город — «${faction}».`,
+      });
+    }
     if (built.indexOf(id) !== index) {
       errors.push({
         field: `${field}.buildings.${index}`,

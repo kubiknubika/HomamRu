@@ -1,6 +1,7 @@
 /**
  * Помощники для тестов ядра. В игре не используются.
  */
+import { GLADE_BUILDINGS } from "./gladeBuildings.ts";
 import type { GameContent, HeroKind, OpponentRules, TavernRules } from "./tavernTypes.ts";
 import { CREATURES } from "./battle/testkit.ts";
 import { createGame, DAILY_MOVEMENT, heroIdOf } from "./game.ts";
@@ -83,6 +84,7 @@ export const TAVERN: TavernRules = {
 
 /** Здания для тестов: те же, что в data/buildings.yaml (30-town.md). */
 export const BUILDINGS: readonly BuildingDefinition[] = [
+  ...GLADE_BUILDINGS,
   { id: "tavern", name: "Таверна", cost: { gold: 500, wood: 5 }, requires: [], tavern: true },
   { id: "town-hall", name: "Ратуша", cost: { gold: 2500 }, requires: ["tavern"], income: 1000 },
   { id: "fort", name: "Форт", cost: { gold: 5000, wood: 20, ore: 20 }, requires: [] },
@@ -136,6 +138,7 @@ export const BUILDINGS: readonly BuildingDefinition[] = [
     cost: { gold: 500, ore: 10 },
     requires: ["fort"],
     dwelling: "militia",
+    faction: "castle",
   },
   {
     id: "slinger-range",
@@ -143,6 +146,7 @@ export const BUILDINGS: readonly BuildingDefinition[] = [
     cost: { gold: 1000, wood: 5, ore: 5 },
     requires: ["militia-yard"],
     dwelling: "slinger",
+    faction: "castle",
   },
   {
     id: "barracks",
@@ -150,6 +154,7 @@ export const BUILDINGS: readonly BuildingDefinition[] = [
     cost: { gold: 2000, ore: 5 },
     requires: ["smithy", "militia-yard"],
     dwelling: "armsman",
+    faction: "castle",
   },
   {
     id: "falcon-tower",
@@ -157,6 +162,7 @@ export const BUILDINGS: readonly BuildingDefinition[] = [
     cost: { gold: 1000, ore: 5 },
     requires: ["barracks"],
     dwelling: "falcon",
+    faction: "castle",
   },
 ];
 

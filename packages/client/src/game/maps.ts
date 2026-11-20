@@ -14,6 +14,7 @@ import mapSpellsMapText from "../../../../data/maps/test-map-spells.yaml?raw";
 import objectsMapText from "../../../../data/maps/test-objects.yaml?raw";
 import townGuardMapText from "../../../../data/maps/test-town-guard.yaml?raw";
 import townMapText from "../../../../data/maps/test-town.yaml?raw";
+import gladeMapText from "../../../../data/maps/test-glade.yaml?raw";
 import smallMapText from "../../../../data/maps/test-small.yaml?raw";
 
 const SEED = 1;
@@ -22,6 +23,7 @@ const MAP_FILES = [
   { file: "data/maps/four-corners.yaml", text: firstMapText, label: "Четыре края" },
   { file: "data/maps/test-opponent.yaml", text: duelMapText, label: "с противником" },
   { file: "data/maps/test-town.yaml", text: townMapText, label: "с городом" },
+  { file: "data/maps/test-glade.yaml", text: gladeMapText, label: "с Чащей" },
   { file: "data/maps/test-map-spells.yaml", text: mapSpellsMapText, label: "заклинания карты" },
   { file: "data/maps/test-town-guard.yaml", text: townGuardMapText, label: "город и охранник" },
   { file: "data/maps/test-guards.yaml", text: guardsMapText, label: "с охраной" },
