@@ -50,6 +50,12 @@
   cost: { gold: 1000, wood: 5, ore: 5, mercury: 8, sulfur: 8, crystal: 8, gems: 8 }
   requires: [mage-guild-3]
   mageGuild: 4
+# Пятый круг (docs/content/towns.md): без него три заклинания пятого круга недоступны ни в одном городе.
+- id: mage-guild-5
+  name: Гильдия магов, уровень 5
+  cost: { gold: 2000, wood: 5, ore: 5, mercury: 10, sulfur: 10, crystal: 10, gems: 10 }
+  requires: [mage-guild-4]
+  mageGuild: 5
 - id: militia-yard
   name: Двор ополченцев
   cost: { gold: 500, ore: 10 }
@@ -111,6 +117,12 @@
   cost: { gold: 4000, wood: 10, ore: 15, gems: 5 }
   requires: [warden-hall]
   dwelling: wyvern
+  faction: glade
+- id: aurochs-pen
+  name: Зубровый загон
+  cost: { gold: 6500, wood: 20, ore: 20, crystal: 8, gems: 8 }
+  requires: [wyvern-cliff]
+  dwelling: aurochs
   faction: glade
 # Жилища людей 5–7 уровней (74-second-castle.md, 31-recruitment.md): замок людей
 # дорос до семи существ, как и «Чаща». Цены — по кривой Heroes 3.

@@ -31,6 +31,7 @@ export const MILITIA: CreatureDefinition = {
   shots: 0,
   price: 60,
   growth: 14,
+  level: 1,
 };
 
 export const SLINGER: CreatureDefinition = {
@@ -46,6 +47,7 @@ export const SLINGER: CreatureDefinition = {
   shots: 10,
   price: 100,
   growth: 9,
+  level: 2,
 };
 
 export const FALCON: CreatureDefinition = {
@@ -61,6 +63,7 @@ export const FALCON: CreatureDefinition = {
   shots: 0,
   price: 200,
   growth: 7,
+  level: 3,
 };
 
 const ARMSMAN: CreatureDefinition = {
@@ -76,6 +79,7 @@ const ARMSMAN: CreatureDefinition = {
   shots: 0,
   price: 300,
   growth: 4,
+  level: 4,
 };
 
 export const CREATURES = [

@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { createBattle } from "@homamru/core";
 import type { BattleScenario } from "@homamru/data";
 import { runBattleScenario } from "./battleScenario.ts";
-import { BUILDINGS, HEROES, TAVERN } from "@homamru/core/testkit";
+import { BUILDINGS, CREATURES, HEROES, TAVERN } from "@homamru/core/testkit";
 import {
   listBattleFiles,
   loadBattle,
@@ -21,9 +21,9 @@ function scenarioOf(changes: Partial<BattleScenario>): BattleScenario {
 }
 
 describe("файлы из папок data/creatures и data/battles", () => {
-  // Существ стало десять с порции 60: четыре замка людей и шесть второго замка «Чаща»
-  // (74-second-castle.md). Числа первых четырёх — из 14-creatures.md и 31-recruitment.md.
-  it("существа — тринадцать, с числами из документов существ", () => {
+  // Существ четырнадцать: семь замка людей (74-second-castle.md), семь Чащи — с зубром
+  // (docs/content/creatures.md). Числа первых четырёх — из 14-creatures.md и 31-recruitment.md.
+  it("существа — четырнадцать, с числами из документов существ", () => {
     const rows = creatures.map((c) => [
       c.id,
       c.attack,
@@ -39,6 +39,7 @@ describe("файлы из папок data/creatures и data/battles", () => {
     ]);
     expect(rows).toEqual([
       ["armsman", 9, 11, 5, 8, 32, 5, false, 0, 300, 4],
+      ["aurochs", 15, 16, 18, 24, 110, 7, false, 0, 1300, 1],
       ["cavalier", 12, 9, 7, 12, 45, 9, false, 0, 450, 3],
       ["champion", 14, 13, 10, 16, 65, 7, false, 0, 700, 2],
       ["eagle", 9, 5, 3, 5, 25, 9, true, 0, 220, 7],
@@ -56,6 +57,12 @@ describe("файлы из папок data/creatures и data/battles", () => {
 
   // С порции 60 зданий в данных больше, чем в наборе ядра: там два замка
   // (74-second-castle.md). Сверяем по замкам, а не общим списком.
+  it("уровни существ в наборе боя — те же, что в данных (нужны «Клону» и «Убийце»)", () => {
+    expect(CREATURES.map((c) => [c.id, c.level ?? 0]).toSorted()).toEqual(
+      creatures.map((c) => [c.id, c.level ?? 0]).toSorted(),
+    );
+  });
+
   it("здания — те же, что в тестах ядра, в каждом замке (30-town.md)", () => {
     const loaded = loadBuildings();
     const mine = loaded.filter((building) => (building.faction ?? "castle") === "castle");
@@ -75,6 +82,8 @@ describe("файлы из папок data/creatures и data/battles", () => {
       "ent-grove",
       "warden-hall",
       "wyvern-cliff",
+      // Седьмой уровень Чащи (docs/content/creatures.md): у людей семь уровней, теперь и здесь.
+      "aurochs-pen",
     ]);
   });
 

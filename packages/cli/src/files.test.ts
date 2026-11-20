@@ -61,7 +61,7 @@ describe("файл заклинаний data/spells.yaml", () => {
       ["misfortune", 12, 0, 1, 4],
       ["prayer", 16, 0, 2, 10],
       ["sorrow", 16, 0, 1, 5],
-      ["implosion", 30, 75, 100, 0],
+      ["implosion", 30, 75, 100, 1],
       ["frost-ring", 12, 10, 15, 16],
       ["fireball", 15, 10, 15, 8],
       ["inferno", 16, 10, 20, 5],
@@ -76,7 +76,7 @@ describe("файл заклинаний data/spells.yaml", () => {
       ["fire-shield", 16, 0, 20, 5],
       ["hypnotize", 18, 25, 10, 4],
       ["berserk", 20, 0, 0, 5],
-      ["magic-mirror", 25, 0, 20, 0],
+      ["magic-mirror", 25, 0, 20, 1],
       ["remove-obstacle", 7, 0, 0, 4],
       ["force-field", 12, 0, 2, 4],
       ["earthquake", 20, 0, 2, 4],
@@ -86,7 +86,7 @@ describe("файл заклинаний data/spells.yaml", () => {
       ["land-mine", 18, 10, 25, 8],
       ["resurrection", 20, 50, 40, 10],
       ["clone", 24, 0, 5, 5],
-      ["sacrifice", 25, 1, 3, 0],
+      ["sacrifice", 25, 1, 3, 1],
       ["visions", 4, 0, 1, 2],
       ["disguise", 4, 0, 0, 2],
       ["town-portal", 16, 0, 300, 10],
@@ -110,7 +110,7 @@ describe("список стройки компьютера", () => {
   });
 });
 
-// Каталог того, чего не хватает (docs/content/), называет числа: 13 существ, 24 здания,
+// Каталог того, чего не хватает (docs/content/), называет числа: 14 существ, 26 зданий,
 // 54 заклинания, 6 героев. Документ — память проекта, и если он разойдётся с данными,
 // то читатель получит ложь. Этот сторож читает сам каталог и сверяет его числа с данными.
 // Проверено порчей: подмена числа в creatures.md роняет первый тест.
@@ -119,14 +119,14 @@ describe("каталог docs/content и данные игры", () => {
     const { creatures, buildings, spells, heroes } = loadDefaults();
     const catalog = readFileSync(join(ROOT, "docs/content/creatures.md"), "utf8");
     expect([creatures.length, buildings.length, spells.length, heroes.length]).toEqual([
-      13, 24, 54, 6,
+      14, 26, 54, 6,
     ]);
     // «У нас» в каталоге существ — то же число, что в папке существ.
     expect(catalog).toContain(`| **${String(creatures.length)}** |`);
     expect(catalog).toContain(`**${creatures.length}**`);
   });
 
-  it("людей семь уровней и Чащи шесть — как записано в каталоге", () => {
+  it("у обоих замков по семь уровней — как записано в каталоге", () => {
     const { creatures } = loadDefaults();
     const levels = (faction: string[]) =>
       creatures
@@ -136,8 +136,8 @@ describe("каталог docs/content и данные игры", () => {
     expect(
       levels(["militia", "slinger", "falcon", "armsman", "cavalier", "champion", "griffin"]),
     ).toEqual([1, 2, 3, 4, 5, 6, 7]);
-    expect(levels(["kentaur", "huntress", "eagle", "ent", "warden", "wyvern"])).toEqual([
-      1, 2, 3, 4, 5, 6,
+    expect(levels(["kentaur", "huntress", "eagle", "ent", "warden", "wyvern", "aurochs"])).toEqual([
+      1, 2, 3, 4, 5, 6, 7,
     ]);
   });
 

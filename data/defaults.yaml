@@ -35,3 +35,5 @@ opponent:
     - mage-guild-2
     - mage-guild-3
     - mage-guild-4
+    # Пятый круг (docs/content/towns.md): открывает три заклинания, которые иначе недоступны.
+    - mage-guild-5

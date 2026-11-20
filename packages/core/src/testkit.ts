@@ -2,6 +2,7 @@
  * Помощники для тестов ядра. В игре не используются.
  */
 import { CASTLE_TOP_BUILDINGS } from "./castleTopBuildings.ts";
+import { GUILD_TOP } from "./guildTop.ts";
 import { GLADE_BUILDINGS } from "./gladeBuildings.ts";
 import type { GameContent, HeroKind, OpponentRules, TavernRules } from "./tavernTypes.ts";
 import { CREATURES } from "./battle/testkit.ts";
@@ -72,6 +73,7 @@ export const OPPONENT: OpponentRules = {
     "mage-guild-2",
     "mage-guild-3",
     "mage-guild-4",
+    "mage-guild-5",
   ],
 };
 
@@ -134,6 +136,8 @@ export const BUILDINGS: readonly BuildingDefinition[] = [
     requires: ["mage-guild-3"],
     mageGuild: 4,
   },
+  // Пятый круг (docs/content/towns.md): один он открывает три заклинания пятого круга.
+  ...GUILD_TOP,
   {
     id: "militia-yard",
     name: "Двор ополченцев",

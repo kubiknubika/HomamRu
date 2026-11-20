@@ -10,7 +10,9 @@ const FILE = "data/maps/four-corners.yaml";
 /** Срок прохождения: десять недель. */
 const MAX_DAYS = 70;
 /** Жилища людей 5–7 уровней: проходчик до них не доходит (см. ниже). */
-const TOP_BUILDINGS = ["stables", "champion-hall", "griffin-tower"];
+// Что проходчик не строит за 70 дней: верхние жилища (дорогие) и пятый круг гильдии
+// (2000 золота и по 10 редких ресурсов). Оба здания в правилах есть — их строит игрок.
+const TOP_BUILDINGS = ["stables", "champion-hall", "griffin-tower", "mage-guild-5"];
 /** Тесты проходят карту по многу раз: в CI это дольше обычного предела. */
 const SLOW = 120_000;
 

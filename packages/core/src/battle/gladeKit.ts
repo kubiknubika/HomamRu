@@ -18,6 +18,7 @@ export const GLADE_CREATURES: readonly CreatureDefinition[] = [
     shots: 0,
     price: 70,
     growth: 14,
+    level: 1,
   },
   {
     id: "huntress",
@@ -32,6 +33,7 @@ export const GLADE_CREATURES: readonly CreatureDefinition[] = [
     shots: 12,
     price: 110,
     growth: 9,
+    level: 2,
   },
   {
     id: "eagle",
@@ -46,6 +48,7 @@ export const GLADE_CREATURES: readonly CreatureDefinition[] = [
     shots: 0,
     price: 220,
     growth: 7,
+    level: 3,
   },
   {
     id: "ent",
@@ -60,6 +63,7 @@ export const GLADE_CREATURES: readonly CreatureDefinition[] = [
     shots: 0,
     price: 350,
     growth: 4,
+    level: 4,
   },
   {
     id: "warden",
@@ -74,6 +78,7 @@ export const GLADE_CREATURES: readonly CreatureDefinition[] = [
     shots: 0,
     price: 500,
     growth: 3,
+    level: 5,
   },
   {
     id: "wyvern",
@@ -88,5 +93,21 @@ export const GLADE_CREATURES: readonly CreatureDefinition[] = [
     shots: 0,
     price: 900,
     growth: 2,
+    level: 6,
+  },
+  {
+    id: "aurochs",
+    name: "Зубр",
+    attack: 15,
+    defense: 16,
+    damageMin: 18,
+    damageMax: 24,
+    health: 110,
+    speed: 7,
+    flying: false,
+    shots: 0,
+    price: 1300,
+    growth: 1,
+    level: 7,
   },
 ];

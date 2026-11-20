@@ -17,6 +17,7 @@ export const CASTLE_TOP_CREATURES: readonly CreatureDefinition[] = [
     shots: 0,
     price: 450,
     growth: 3,
+    level: 5,
   },
   {
     id: "champion",
@@ -31,6 +32,7 @@ export const CASTLE_TOP_CREATURES: readonly CreatureDefinition[] = [
     shots: 0,
     price: 700,
     growth: 2,
+    level: 6,
   },
   {
     id: "griffin",
@@ -45,5 +47,6 @@ export const CASTLE_TOP_CREATURES: readonly CreatureDefinition[] = [
     shots: 0,
     price: 1200,
     growth: 1,
+    level: 7,
   },
 ];

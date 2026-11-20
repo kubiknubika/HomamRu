@@ -54,4 +54,12 @@ export const GLADE_BUILDINGS: readonly BuildingDefinition[] = [
     dwelling: "wyvern",
     faction: "glade",
   },
+  {
+    id: "aurochs-pen",
+    name: "Зубровый загон",
+    cost: { gold: 6500, wood: 20, ore: 20, crystal: 8, gems: 8 },
+    requires: ["wyvern-cliff"],
+    dwelling: "aurochs",
+    faction: "glade",
+  },
 ];

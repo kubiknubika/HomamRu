@@ -10,6 +10,7 @@ import {
 import type { ContentError, SaveDefaults } from "@homamru/data";
 import buildingsText from "../../../../data/buildings.yaml?raw";
 import armsmanText from "../../../../data/creatures/armsman.json?raw";
+import aurochsText from "../../../../data/creatures/aurochs.json?raw";
 import cavalierText from "../../../../data/creatures/cavalier.json?raw";
 import championText from "../../../../data/creatures/champion.json?raw";
 import eagleText from "../../../../data/creatures/eagle.json?raw";
@@ -34,6 +35,7 @@ const HEROES_FILE = "data/heroes.yaml";
 
 const CREATURE_FILES = [
   { file: "data/creatures/armsman.json", text: armsmanText },
+  { file: "data/creatures/aurochs.json", text: aurochsText },
   { file: "data/creatures/cavalier.json", text: cavalierText },
   { file: "data/creatures/champion.json", text: championText },
   { file: "data/creatures/eagle.json", text: eagleText },

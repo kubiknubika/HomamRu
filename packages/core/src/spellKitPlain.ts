@@ -32,6 +32,11 @@ const CASTLE_CHANCE: Readonly<Record<string, number>> = {
   precision: 6,
   weakness: 2,
   "disrupting-ray": 6,
+  // Пятый круг: без веса три заклинания не выпадают ни в одном городе ни разу
+  // (docs/content/towns.md, порция 64).
+  implosion: 1,
+  "magic-mirror": 1,
+  sacrifice: 1,
   prayer: 10,
   mirth: 4,
   sorrow: 5,

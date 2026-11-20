@@ -41,10 +41,38 @@ export function readCreatures(
     const ours = defaults.creatures.find((candidate) => candidate.id === creature.id);
     const price = creature.price > 0 ? creature.price : ours?.price;
     const growth = creature.growth > 0 ? creature.growth : ours?.growth;
-    return price === undefined || growth === undefined ? [] : [{ ...creature, price, growth }];
+    return price === undefined || growth === undefined ? [] : [canonical(creature, price, growth)];
   });
   const known = new Set(saved.map((creature) => creature.id));
   return [...saved, ...defaults.creatures.filter((creature) => !known.has(creature.id))];
+}
+
+/**
+ * Существо в том же порядке полей, что и умолчания: иначе повторное чтение даёт
+ * другой порядок ключей, и запись перестаёт быть устойчивой (`saveFuzz.test.ts`).
+ */
+function canonical(
+  creature: z.infer<typeof savedCreatureSchema>,
+  price: number,
+  growth: number,
+): CreatureDefinition {
+  const { id, name, attack, defense, damageMin, damageMax, health, speed, flying, shots, level } =
+    creature;
+  const base: CreatureDefinition = {
+    id,
+    name,
+    attack,
+    defense,
+    damageMin,
+    damageMax,
+    health,
+    speed,
+    flying,
+    shots,
+    price,
+    growth,
+  };
+  return level === undefined ? base : { ...base, level };
 }
 
 /**
