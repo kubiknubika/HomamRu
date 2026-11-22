@@ -116,7 +116,7 @@ export function sorceryPercent(hero: Skilled): number {
 }
 
 /** На сколько процентов «Логистика» увеличивает дневной запас хода. */
-export function logisticsPercent(hero: Skilled): number {
+function logisticsPercent(hero: Skilled): number {
   return byLevel(hero, "logistics", LOGISTICS_PERCENT, 0);
 }
 
@@ -126,18 +126,18 @@ export function dailyMovementOf(hero: Skilled, base: number): number {
 }
 
 /** Насколько удача героя выше обычной: 0, с навыком «Удача» — 1, 2 или 3. */
-export function luckBonusOf(hero: Skilled): number {
+function luckBonusOf(hero: Skilled): number {
   return skillLevel(hero, "luck");
 }
 
 /** Насколько боевой дух героя выше обычного: 0, с навыком — 1, 2 или 3. */
-export function leadershipBonusOf(hero: Skilled): number {
+function leadershipBonusOf(hero: Skilled): number {
   return skillLevel(hero, "leadership");
 }
 
 /** Предел удачи и боевого духа в бою: числа из Heroes 3. */
-export const MAX_BATTLE_LUCK = 3;
-export const MAX_BATTLE_MORALE = 3;
+const MAX_BATTLE_LUCK = 3;
+const MAX_BATTLE_MORALE = 3;
 
 /** Удача отрядов героя: удача армии и «Удача», но не больше трёх. */
 export function battleLuckOf(base: number, hero: Skilled): number {
