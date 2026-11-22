@@ -1,0 +1,19 @@
+# Проверочная карта восьмого замка — «Крепости» (docs/mechanics/80-eighth-castle.md).
+# Игрок у города Крепости: жилища Крепости строятся, жилища других замков — нет.
+id: test-fortress
+name: Проверочная карта с Крепостью
+terrain:
+  - "........"
+  - "........"
+  - "........"
+  - "...##..."
+  - "........"
+  - "........"
+  - "........"
+  - "........"
+players:
+  - hero: { x: 1, y: 1, army: [{ creature: gnoll, count: 12 }] }
+    resources: { gold: 20000, wood: 20, ore: 20 }
+objects:
+  - { type: town, x: 2, y: 2, owner: 0, faction: fortress, buildings: [tavern, fort, gnoll-hut] }
+  - { type: mine, x: 1, y: 5, kind: gold-mine }

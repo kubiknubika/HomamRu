@@ -23,12 +23,12 @@ function scenarioOf(changes: Partial<BattleScenario>): BattleScenario {
 }
 
 describe("файлы из папок data/creatures и data/battles", () => {
-  // Существ замков сорок девять: по семь у людей (74-second-castle.md), Чащи — с зубром,
+  // Существ замков пятьдесят шесть: по семь у людей (74-second-castle.md), Чащи — с зубром,
   // Башни (75-third-castle.md), Инферно (76-fourth-castle.md), Подземелья (77-fifth-castle.md),
-  // Некрополя (78-sixth-castle.md) и Цитадели варваров (79-seventh-castle.md). Числа первых четырёх —
-  // из 14-creatures.md и 31-recruitment.md, у остальных — из их документов.
-  // Полный список здесь ведётся целиком: он и есть сторож.
-  it("существа замков — сорок девять, с числами из документов существ", () => {
+  // Некрополя (78-sixth-castle.md), Цитадели варваров (79-seventh-castle.md) и Крепости
+  // (80-eighth-castle.md). Числа первых четырёх — из 14-creatures.md и 31-recruitment.md,
+  // у остальных — из их документов. Полный список здесь ведётся целиком: он и есть сторож.
+  it("существа замков — пятьдесят шесть, с числами из документов существ", () => {
     const rows = castleCreatures.map((c) => [
       c.id,
       c.attack,
@@ -46,8 +46,10 @@ describe("файлы из папок data/creatures и data/battles", () => {
       ["archfiend", 18, 16, 20, 28, 130, 7, false, 0, 1400, 1],
       ["armsman", 9, 11, 5, 8, 32, 5, false, 0, 300, 4],
       ["aurochs", 15, 16, 18, 24, 110, 7, false, 0, 1300, 1],
+      ["basilisk", 10, 12, 4, 7, 48, 4, false, 0, 420, 4],
       ["behemoth", 17, 15, 20, 30, 130, 7, false, 0, 1450, 1],
       ["blackdragon", 17, 16, 21, 30, 140, 9, true, 0, 1500, 1],
+      ["bogwyvern", 14, 14, 11, 17, 88, 7, true, 0, 950, 2],
       ["bonedragon", 15, 14, 16, 24, 115, 7, true, 0, 1400, 1],
       ["cavalier", 12, 9, 7, 12, 45, 9, false, 0, 450, 3],
       ["champion", 14, 13, 10, 16, 65, 7, false, 0, 700, 2],
@@ -63,17 +65,21 @@ describe("файлы из папок data/creatures и data/battles", () => {
       ["gargoyle", 6, 6, 2, 4, 16, 6, true, 0, 130, 9],
       ["genie", 12, 10, 7, 11, 50, 8, true, 0, 600, 3],
       ["giant", 17, 15, 18, 26, 120, 7, false, 0, 1400, 1],
+      ["gnoll", 4, 4, 1, 3, 12, 4, false, 0, 50, 14],
       ["gnome", 4, 4, 1, 3, 11, 5, false, 0, 60, 14],
       ["goblin", 4, 3, 1, 3, 10, 5, false, 0, 50, 14],
       ["golem", 8, 9, 3, 5, 30, 4, false, 0, 250, 7],
+      ["gorgon", 11, 13, 6, 10, 62, 4, false, 0, 550, 3],
       ["griffin", 16, 14, 15, 25, 95, 11, true, 0, 1200, 1],
       ["harpy", 6, 5, 2, 4, 14, 7, true, 0, 120, 9],
       ["horned", 10, 11, 5, 8, 45, 5, false, 0, 400, 4],
       ["hound", 8, 6, 3, 6, 30, 7, false, 0, 250, 7],
       ["huntress", 6, 5, 2, 5, 15, 5, false, 12, 110, 9],
+      ["hydra", 16, 18, 19, 29, 140, 5, false, 0, 1500, 1],
       ["imp", 4, 3, 1, 3, 10, 6, false, 0, 60, 14],
       ["kentaur", 5, 3, 2, 3, 10, 6, false, 0, 70, 14],
       ["lich", 11, 9, 6, 9, 36, 5, false, 12, 550, 3],
+      ["lizardman", 6, 5, 2, 4, 17, 4, false, 12, 130, 9],
       ["mage", 9, 7, 5, 8, 26, 5, false, 8, 400, 4],
       ["manticore", 14, 12, 10, 16, 80, 8, true, 0, 900, 2],
       ["medusa", 9, 8, 4, 7, 38, 6, false, 6, 420, 4],
@@ -83,6 +89,7 @@ describe("файлы из папок data/creatures и data/battles", () => {
       ["ogre", 10, 10, 6, 9, 50, 4, false, 0, 420, 4],
       ["orc", 8, 6, 3, 5, 28, 5, false, 12, 240, 7],
       ["roc", 11, 9, 7, 11, 52, 8, true, 0, 550, 3],
+      ["serpentfly", 8, 6, 3, 5, 24, 9, true, 0, 240, 7],
       ["skeleton", 4, 4, 1, 3, 11, 4, false, 0, 50, 14],
       ["slinger", 5, 3, 1, 4, 9, 5, false, 10, 100, 9],
       ["troglodyte", 5, 4, 1, 3, 11, 5, false, 0, 50, 14],
