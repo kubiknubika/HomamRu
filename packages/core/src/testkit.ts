@@ -20,6 +20,7 @@ import type {
 } from "./types.ts";
 
 export { CREATURES } from "./battle/testkit.ts";
+export { NEUTRAL_CREATURES } from "./battle/neutralKit.ts";
 export { ALL_SPELLS, GAME_SPELLS, spell, SPELLS } from "./spellKit.ts";
 
 export interface Picture {

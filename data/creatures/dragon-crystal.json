@@ -1,0 +1,16 @@
+{
+  "id": "dragon-crystal",
+  "name": "Хрустальный дракон",
+  "attack": 19,
+  "defense": 19,
+  "damageMin": 26,
+  "damageMax": 38,
+  "health": 170,
+  "speed": 10,
+  "flying": true,
+  "shots": 0,
+  "price": 2900,
+  "growth": 1,
+  "level": 10,
+  "neutral": true
+}

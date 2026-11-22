@@ -56,8 +56,20 @@ function canonical(
   price: number,
   growth: number,
 ): CreatureDefinition {
-  const { id, name, attack, defense, damageMin, damageMax, health, speed, flying, shots, level } =
-    creature;
+  const {
+    id,
+    name,
+    attack,
+    defense,
+    damageMin,
+    damageMax,
+    health,
+    speed,
+    flying,
+    shots,
+    level,
+    neutral,
+  } = creature;
   const base: CreatureDefinition = {
     id,
     name,
@@ -72,7 +84,8 @@ function canonical(
     price,
     growth,
   };
-  return level === undefined ? base : { ...base, level };
+  const withLevel = level === undefined ? base : { ...base, level };
+  return neutral === undefined ? withLevel : { ...withLevel, neutral };
 }
 
 /**

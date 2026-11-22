@@ -1,0 +1,16 @@
+{
+  "id": "enchanter",
+  "name": "Чародей",
+  "attack": 13,
+  "defense": 10,
+  "damageMin": 9,
+  "damageMax": 14,
+  "health": 48,
+  "speed": 6,
+  "flying": false,
+  "shots": 10,
+  "price": 750,
+  "growth": 3,
+  "level": 6,
+  "neutral": true
+}

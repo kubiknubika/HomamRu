@@ -1,0 +1,16 @@
+{
+  "id": "golem-diamond",
+  "name": "Алмазный голем",
+  "attack": 14,
+  "defense": 17,
+  "damageMin": 10,
+  "damageMax": 15,
+  "health": 68,
+  "speed": 4,
+  "flying": false,
+  "shots": 0,
+  "price": 800,
+  "growth": 2,
+  "level": 6,
+  "neutral": true
+}

@@ -20,6 +20,21 @@ import griffinText from "../../../../data/creatures/griffin.json?raw";
 import huntressText from "../../../../data/creatures/huntress.json?raw";
 import kentaurText from "../../../../data/creatures/kentaur.json?raw";
 import militiaText from "../../../../data/creatures/militia.json?raw";
+import boarText from "../../../../data/creatures/boar.json?raw";
+import dragonAzureText from "../../../../data/creatures/dragon-azure.json?raw";
+import dragonCrystalText from "../../../../data/creatures/dragon-crystal.json?raw";
+import dragonFairieText from "../../../../data/creatures/dragon-fairie.json?raw";
+import dragonRustText from "../../../../data/creatures/dragon-rust.json?raw";
+import enchanterText from "../../../../data/creatures/enchanter.json?raw";
+import golemDiamondText from "../../../../data/creatures/golem-diamond.json?raw";
+import golemGoldText from "../../../../data/creatures/golem-gold.json?raw";
+import halflingText from "../../../../data/creatures/halfling.json?raw";
+import mummyText from "../../../../data/creatures/mummy.json?raw";
+import nomadText from "../../../../data/creatures/nomad.json?raw";
+import peasantText from "../../../../data/creatures/peasant.json?raw";
+import rogueText from "../../../../data/creatures/rogue.json?raw";
+import sharpshooterText from "../../../../data/creatures/sharpshooter.json?raw";
+import trollText from "../../../../data/creatures/troll.json?raw";
 import slingerText from "../../../../data/creatures/slinger.json?raw";
 import wardenText from "../../../../data/creatures/warden.json?raw";
 import wyvernText from "../../../../data/creatures/wyvern.json?raw";
@@ -36,16 +51,31 @@ const HEROES_FILE = "data/heroes.yaml";
 const CREATURE_FILES = [
   { file: "data/creatures/armsman.json", text: armsmanText },
   { file: "data/creatures/aurochs.json", text: aurochsText },
+  { file: "data/creatures/boar.json", text: boarText },
   { file: "data/creatures/cavalier.json", text: cavalierText },
   { file: "data/creatures/champion.json", text: championText },
+  { file: "data/creatures/dragon-azure.json", text: dragonAzureText },
+  { file: "data/creatures/dragon-crystal.json", text: dragonCrystalText },
+  { file: "data/creatures/dragon-fairie.json", text: dragonFairieText },
+  { file: "data/creatures/dragon-rust.json", text: dragonRustText },
   { file: "data/creatures/eagle.json", text: eagleText },
+  { file: "data/creatures/enchanter.json", text: enchanterText },
   { file: "data/creatures/ent.json", text: entText },
   { file: "data/creatures/falcon.json", text: falconText },
+  { file: "data/creatures/golem-diamond.json", text: golemDiamondText },
+  { file: "data/creatures/golem-gold.json", text: golemGoldText },
   { file: "data/creatures/griffin.json", text: griffinText },
+  { file: "data/creatures/halfling.json", text: halflingText },
   { file: "data/creatures/huntress.json", text: huntressText },
   { file: "data/creatures/kentaur.json", text: kentaurText },
   { file: "data/creatures/militia.json", text: militiaText },
+  { file: "data/creatures/mummy.json", text: mummyText },
+  { file: "data/creatures/nomad.json", text: nomadText },
+  { file: "data/creatures/peasant.json", text: peasantText },
+  { file: "data/creatures/rogue.json", text: rogueText },
+  { file: "data/creatures/sharpshooter.json", text: sharpshooterText },
   { file: "data/creatures/slinger.json", text: slingerText },
+  { file: "data/creatures/troll.json", text: trollText },
   { file: "data/creatures/warden.json", text: wardenText },
   { file: "data/creatures/wyvern.json", text: wyvernText },
 ] as const;

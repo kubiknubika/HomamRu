@@ -1,0 +1,16 @@
+{
+  "id": "nomad",
+  "name": "Кочевник",
+  "attack": 8,
+  "defense": 6,
+  "damageMin": 4,
+  "damageMax": 7,
+  "health": 24,
+  "speed": 7,
+  "flying": false,
+  "shots": 0,
+  "price": 260,
+  "growth": 9,
+  "level": 3,
+  "neutral": true
+}

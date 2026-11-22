@@ -74,6 +74,21 @@ export const CREATURE_MANY: Readonly<Record<string, string>> = {
   cavalier: "всадников",
   champion: "витязей",
   griffin: "грив",
+  peasant: "селян",
+  halfling: "невысокликов",
+  boar: "вепрей",
+  rogue: "разбойников",
+  mummy: "мумий",
+  nomad: "кочевников",
+  sharpshooter: "метких стрелков",
+  "golem-gold": "золотых големов",
+  troll: "троллей",
+  enchanter: "чародеев",
+  "golem-diamond": "алмазных големов",
+  "dragon-fairie": "лесных драконов",
+  "dragon-rust": "ржавых драконов",
+  "dragon-crystal": "хрустальных драконов",
+  "dragon-azure": "лазурных драконов",
 };
 
 /**
@@ -95,6 +110,21 @@ export const CREATURE_PLURAL: Readonly<Record<string, string>> = {
   cavalier: "всадники",
   champion: "витязи",
   griffin: "гривы",
+  peasant: "селяне",
+  halfling: "невысоклики",
+  boar: "вепри",
+  rogue: "разбойники",
+  mummy: "мумии",
+  nomad: "кочевники",
+  sharpshooter: "меткие стрелки",
+  "golem-gold": "золотые големы",
+  troll: "тролли",
+  enchanter: "чародеи",
+  "golem-diamond": "алмазные големы",
+  "dragon-fairie": "лесные драконы",
+  "dragon-rust": "ржавые драконы",
+  "dragon-crystal": "хрустальные драконы",
+  "dragon-azure": "лазурные драконы",
 };
 
 /**

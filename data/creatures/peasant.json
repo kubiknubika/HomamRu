@@ -1,0 +1,16 @@
+{
+  "id": "peasant",
+  "name": "Селянин",
+  "attack": 2,
+  "defense": 2,
+  "damageMin": 1,
+  "damageMax": 2,
+  "health": 6,
+  "speed": 3,
+  "flying": false,
+  "shots": 0,
+  "price": 40,
+  "growth": 24,
+  "level": 1,
+  "neutral": true
+}

@@ -30,7 +30,8 @@ const creatureFields = {
   speed: z.int().min(1),
   flying: z.boolean(),
   shots: z.int().min(0),
-  level: z.int().min(1).max(7).optional(),
+  level: z.int().min(1).max(10).optional(),
+  neutral: z.boolean().optional(),
 };
 
 /** Файл существа. Описание полей: docs/mechanics/14-creatures.md, 31-recruitment.md. */

@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { createBattle } from "@homamru/core";
 import type { BattleScenario } from "@homamru/data";
 import { runBattleScenario } from "./battleScenario.ts";
-import { BUILDINGS, CREATURES, HEROES, TAVERN } from "@homamru/core/testkit";
+import { BUILDINGS, CREATURES, HEROES, NEUTRAL_CREATURES, TAVERN } from "@homamru/core/testkit";
 import {
   listBattleFiles,
   loadBattle,
@@ -13,6 +13,8 @@ import {
 } from "./files.ts";
 
 const creatures = loadCreatures();
+/** Существа замков: нейтралы (порция 65) сверяются отдельным тестом. */
+const castleCreatures = creatures.filter((creature) => creature.neutral !== true);
 const files = listBattleFiles();
 const duel = loadBattle(files.find((file) => file.endsWith("test-duel.yaml")) ?? "");
 
@@ -21,10 +23,10 @@ function scenarioOf(changes: Partial<BattleScenario>): BattleScenario {
 }
 
 describe("файлы из папок data/creatures и data/battles", () => {
-  // Существ четырнадцать: семь замка людей (74-second-castle.md), семь Чащи — с зубром
+  // Существ замков четырнадцать: семь замка людей (74-second-castle.md), семь Чащи — с зубром
   // (docs/content/creatures.md). Числа первых четырёх — из 14-creatures.md и 31-recruitment.md.
-  it("существа — четырнадцать, с числами из документов существ", () => {
-    const rows = creatures.map((c) => [
+  it("существа замков — четырнадцать, с числами из документов существ", () => {
+    const rows = castleCreatures.map((c) => [
       c.id,
       c.attack,
       c.defense,
@@ -59,8 +61,21 @@ describe("файлы из папок data/creatures и data/battles", () => {
   // (74-second-castle.md). Сверяем по замкам, а не общим списком.
   it("уровни существ в наборе боя — те же, что в данных (нужны «Клону» и «Убийце»)", () => {
     expect(CREATURES.map((c) => [c.id, c.level ?? 0]).toSorted()).toEqual(
-      creatures.map((c) => [c.id, c.level ?? 0]).toSorted(),
+      castleCreatures.map((c) => [c.id, c.level ?? 0]).toSorted(),
     );
+  });
+
+  // Нейтралы (порция 65) в наборе ядра отдельно от существ замков: сверяем их целиком,
+  // иначе правка числа в data/creatures пройдёт мимо тестов ядра.
+  it("нейтралы в наборе ядра — те же, что в данных, со всеми числами", () => {
+    const mine = NEUTRAL_CREATURES.map((creature) => ({ ...creature })).toSorted((a, b) =>
+      a.id.localeCompare(b.id),
+    );
+    const loaded = creatures
+      .filter((creature) => creature.neutral === true)
+      .toSorted((a, b) => a.id.localeCompare(b.id));
+    expect(loaded).toHaveLength(15);
+    expect(mine).toEqual(loaded);
   });
 
   it("здания — те же, что в тестах ядра, в каждом замке (30-town.md)", () => {

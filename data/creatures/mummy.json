@@ -1,0 +1,16 @@
+{
+  "id": "mummy",
+  "name": "Мумия",
+  "attack": 7,
+  "defense": 9,
+  "damageMin": 3,
+  "damageMax": 6,
+  "health": 22,
+  "speed": 4,
+  "flying": false,
+  "shots": 0,
+  "price": 240,
+  "growth": 10,
+  "level": 3,
+  "neutral": true
+}

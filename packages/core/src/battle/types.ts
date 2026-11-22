@@ -30,8 +30,16 @@ export interface CreatureDefinition {
   readonly price: number;
   /** Основной недельный прирост в жилище. */
   readonly growth: number;
-  /** Уровень существа, от 1 до 7; нет — 1. Нужен «Клону» (71-spells-life.md). */
+  /**
+   * Уровень существа, от 1 до 10; нет — 1. Нужен «Клону» (71-spells-life.md).
+   * До 10 — потому что у нейтралов есть драконы десятого уровня (`docs/content/creatures.md`).
+   */
   readonly level?: number | undefined;
+  /**
+   * Нейтрал: не из замка. Живёт только в охранниках и на карте, нанимать его негде
+   * (`docs/mechanics/14-creatures.md`, `docs/content/creatures.md`).
+   */
+  readonly neutral?: boolean | undefined;
 }
 
 /** Герой в бою: прибавки отрядам и магия (62-battle-spells.md). */
