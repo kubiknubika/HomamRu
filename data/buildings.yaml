@@ -608,3 +608,153 @@
   dwelling: giant-storm
   faction: tower
   upgrade: { base: giant-hall, becomes: giant-storm }
+
+# Улучшения жилищ Инферно, Подземелья и Некрополя (82-creature-upgrades.md):
+# второе существо на каждый уровень. Цены — примерно 1,6 цены базового жилища.
+- id: imp-hovel-up
+  name: Приют фамильяров
+  cost: { gold: 800, wood: 8, ore: 8 }
+  requires: [imp-hovel]
+  dwelling: imp-familiar
+  faction: inferno
+  upgrade: { base: imp-hovel, becomes: imp-familiar }
+- id: demonling-pit-up
+  name: Сруб магогов
+  cost: { gold: 1600, wood: 8, ore: 8 }
+  requires: [demonling-pit]
+  dwelling: demonling-magog
+  faction: inferno
+  upgrade: { base: demonling-pit, becomes: demonling-magog }
+- id: hound-kennel-up
+  name: Псарня церберов
+  cost: { gold: 2400, ore: 24 }
+  requires: [hound-kennel]
+  dwelling: hound-cerberus
+  faction: inferno
+  upgrade: { base: hound-kennel, becomes: hound-cerberus }
+- id: horned-tower-up
+  name: Башня демонов
+  cost: { gold: 4000, wood: 8, ore: 16 }
+  requires: [horned-tower]
+  dwelling: horned-demon
+  faction: inferno
+  upgrade: { base: horned-tower, becomes: horned-demon }
+- id: fiend-gate-up
+  name: Врата владык
+  cost: { gold: 5600, wood: 16, ore: 16, mercury: 8 }
+  requires: [fiend-gate]
+  dwelling: fiend-lord
+  faction: inferno
+  upgrade: { base: fiend-gate, becomes: fiend-lord }
+- id: efreet-forge-up
+  name: Кузня султанов
+  cost: { gold: 8000, wood: 16, ore: 24, sulfur: 13 }
+  requires: [efreet-forge]
+  dwelling: efreet-sultan
+  faction: inferno
+  upgrade: { base: efreet-forge, becomes: efreet-sultan }
+- id: archfiend-throne-up
+  name: Престол дьявола
+  cost: { gold: 11200, wood: 32, ore: 32, crystal: 12, gems: 12 }
+  requires: [archfiend-throne]
+  dwelling: archfiend-devil
+  faction: inferno
+  upgrade: { base: archfiend-throne, becomes: archfiend-devil }
+- id: troglodyte-cave-up
+  name: Нора адских пещерников
+  cost: { gold: 800, ore: 16 }
+  requires: [troglodyte-cave]
+  dwelling: troglodyte-infernal
+  faction: dungeon
+  upgrade: { base: troglodyte-cave, becomes: troglodyte-infernal }
+- id: harpy-nest-up
+  name: Насест карг
+  cost: { gold: 1600, wood: 8, ore: 8 }
+  requires: [harpy-nest]
+  dwelling: harpy-hag
+  faction: dungeon
+  upgrade: { base: harpy-nest, becomes: harpy-hag }
+- id: eye-tower-up
+  name: Башня злых глаз
+  cost: { gold: 2400, wood: 8, ore: 16 }
+  requires: [eye-tower]
+  dwelling: eye-evil
+  faction: dungeon
+  upgrade: { base: eye-tower, becomes: eye-evil }
+- id: medusa-temple-up
+  name: Храм цариц
+  cost: { gold: 4000, wood: 8, ore: 8, sulfur: 8 }
+  requires: [medusa-temple]
+  dwelling: medusa-queen
+  faction: dungeon
+  upgrade: { base: medusa-temple, becomes: medusa-queen }
+- id: minotaur-labyrinth-up
+  name: Лабиринт царей
+  cost: { gold: 5600, wood: 16, ore: 16 }
+  requires: [minotaur-labyrinth]
+  dwelling: minotaur-king
+  faction: dungeon
+  upgrade: { base: minotaur-labyrinth, becomes: minotaur-king }
+- id: manticore-den-up
+  name: Логово скорпикоров
+  cost: { gold: 8000, wood: 16, ore: 24, mercury: 8 }
+  requires: [manticore-den]
+  dwelling: manticore-scorpicore
+  faction: dungeon
+  upgrade: { base: manticore-den, becomes: manticore-scorpicore }
+- id: dragon-lair-up
+  name: Логово красных змеев
+  cost: { gold: 12000, wood: 32, ore: 32, crystal: 12, gems: 12 }
+  requires: [dragon-lair]
+  dwelling: blackdragon-red
+  faction: dungeon
+  upgrade: { base: dragon-lair, becomes: blackdragon-red }
+- id: skeleton-pit-up
+  name: Яма скелетов-воинов
+  cost: { gold: 800, wood: 8 }
+  requires: [skeleton-pit]
+  dwelling: skeleton-warrior
+  faction: necropolis
+  upgrade: { base: skeleton-pit, becomes: skeleton-warrior }
+- id: zombie-yard-up
+  name: Двор владык мертвяков
+  cost: { gold: 1600, wood: 8, ore: 8 }
+  requires: [zombie-yard]
+  dwelling: zombie-lord
+  faction: necropolis
+  upgrade: { base: zombie-yard, becomes: zombie-lord }
+- id: wight-crypt-up
+  name: Склеп духов
+  cost: { gold: 2400, ore: 24 }
+  requires: [wight-crypt]
+  dwelling: wraith
+  faction: necropolis
+  upgrade: { base: wight-crypt, becomes: wraith }
+- id: vampire-crypt-up
+  name: Усыпальница владык
+  cost: { gold: 4000, wood: 8, ore: 16 }
+  requires: [vampire-crypt]
+  dwelling: vampire-lord
+  faction: necropolis
+  upgrade: { base: vampire-crypt, becomes: vampire-lord }
+- id: lich-tower-up
+  name: Башня могучих личей
+  cost: { gold: 5600, wood: 16, ore: 16, mercury: 8 }
+  requires: [lich-tower]
+  dwelling: power-lich
+  faction: necropolis
+  upgrade: { base: lich-tower, becomes: power-lich }
+- id: deathknight-hall-up
+  name: Чертог смертельных рыцарей
+  cost: { gold: 8000, wood: 16, ore: 24, sulfur: 13 }
+  requires: [deathknight-hall]
+  dwelling: dread-knight
+  faction: necropolis
+  upgrade: { base: deathknight-hall, becomes: dread-knight }
+- id: bonedragon-lair-up
+  name: Логово драконов-призраков
+  cost: { gold: 11200, wood: 32, ore: 32, crystal: 12, gems: 12 }
+  requires: [bonedragon-lair]
+  dwelling: ghost-dragon
+  faction: necropolis
+  upgrade: { base: bonedragon-lair, becomes: ghost-dragon }

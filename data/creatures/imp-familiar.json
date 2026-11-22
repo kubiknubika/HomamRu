@@ -1,0 +1,15 @@
+{
+  "id": "imp-familiar",
+  "name": "Бес-фамильяр",
+  "attack": 5,
+  "defense": 4,
+  "damageMin": 2,
+  "damageMax": 4,
+  "health": 13,
+  "speed": 7,
+  "flying": false,
+  "shots": 0,
+  "price": 150,
+  "growth": 14,
+  "level": 1
+}

@@ -13,6 +13,27 @@ import armsmanText from "../../../../data/creatures/armsman.json?raw";
 import aurochsText from "../../../../data/creatures/aurochs.json?raw";
 import blackdragonText from "../../../../data/creatures/blackdragon.json?raw";
 import bonedragonText from "../../../../data/creatures/bonedragon.json?raw";
+import impfamiliarText from "../../../../data/creatures/imp-familiar.json?raw";
+import demonlingmagogText from "../../../../data/creatures/demonling-magog.json?raw";
+import houndcerberusText from "../../../../data/creatures/hound-cerberus.json?raw";
+import horneddemonText from "../../../../data/creatures/horned-demon.json?raw";
+import fiendlordText from "../../../../data/creatures/fiend-lord.json?raw";
+import efreetsultanText from "../../../../data/creatures/efreet-sultan.json?raw";
+import archfienddevilText from "../../../../data/creatures/archfiend-devil.json?raw";
+import troglodyteinfernalText from "../../../../data/creatures/troglodyte-infernal.json?raw";
+import harpyhagText from "../../../../data/creatures/harpy-hag.json?raw";
+import eyeevilText from "../../../../data/creatures/eye-evil.json?raw";
+import medusaqueenText from "../../../../data/creatures/medusa-queen.json?raw";
+import minotaurkingText from "../../../../data/creatures/minotaur-king.json?raw";
+import manticorescorpicoreText from "../../../../data/creatures/manticore-scorpicore.json?raw";
+import blackdragonredText from "../../../../data/creatures/blackdragon-red.json?raw";
+import skeletonwarriorText from "../../../../data/creatures/skeleton-warrior.json?raw";
+import zombielordText from "../../../../data/creatures/zombie-lord.json?raw";
+import wraithText from "../../../../data/creatures/wraith.json?raw";
+import vampirelordText from "../../../../data/creatures/vampire-lord.json?raw";
+import powerlichText from "../../../../data/creatures/power-lich.json?raw";
+import dreadknightText from "../../../../data/creatures/dread-knight.json?raw";
+import ghostdragonText from "../../../../data/creatures/ghost-dragon.json?raw";
 import kentaurelderText from "../../../../data/creatures/kentaur-elder.json?raw";
 import huntressrangerText from "../../../../data/creatures/huntress-ranger.json?raw";
 import eaglestormText from "../../../../data/creatures/eagle-storm.json?raw";
@@ -123,6 +144,27 @@ const CREATURE_FILES = [
   { file: "data/creatures/armsman.json", text: armsmanText },
   { file: "data/creatures/aurochs.json", text: aurochsText },
   { file: "data/creatures/bonedragon.json", text: bonedragonText },
+  { file: "data/creatures/imp-familiar.json", text: impfamiliarText },
+  { file: "data/creatures/demonling-magog.json", text: demonlingmagogText },
+  { file: "data/creatures/hound-cerberus.json", text: houndcerberusText },
+  { file: "data/creatures/horned-demon.json", text: horneddemonText },
+  { file: "data/creatures/fiend-lord.json", text: fiendlordText },
+  { file: "data/creatures/efreet-sultan.json", text: efreetsultanText },
+  { file: "data/creatures/archfiend-devil.json", text: archfienddevilText },
+  { file: "data/creatures/troglodyte-infernal.json", text: troglodyteinfernalText },
+  { file: "data/creatures/harpy-hag.json", text: harpyhagText },
+  { file: "data/creatures/eye-evil.json", text: eyeevilText },
+  { file: "data/creatures/medusa-queen.json", text: medusaqueenText },
+  { file: "data/creatures/minotaur-king.json", text: minotaurkingText },
+  { file: "data/creatures/manticore-scorpicore.json", text: manticorescorpicoreText },
+  { file: "data/creatures/blackdragon-red.json", text: blackdragonredText },
+  { file: "data/creatures/skeleton-warrior.json", text: skeletonwarriorText },
+  { file: "data/creatures/zombie-lord.json", text: zombielordText },
+  { file: "data/creatures/wraith.json", text: wraithText },
+  { file: "data/creatures/vampire-lord.json", text: vampirelordText },
+  { file: "data/creatures/power-lich.json", text: powerlichText },
+  { file: "data/creatures/dread-knight.json", text: dreadknightText },
+  { file: "data/creatures/ghost-dragon.json", text: ghostdragonText },
   { file: "data/creatures/kentaur-elder.json", text: kentaurelderText },
   { file: "data/creatures/huntress-ranger.json", text: huntressrangerText },
   { file: "data/creatures/eagle-storm.json", text: eaglestormText },

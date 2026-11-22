@@ -1,0 +1,15 @@
+{
+  "id": "dread-knight",
+  "name": "Смертельный рыцарь",
+  "attack": 17,
+  "defense": 18,
+  "damageMin": 13,
+  "damageMax": 19,
+  "health": 95,
+  "speed": 7,
+  "flying": false,
+  "shots": 0,
+  "price": 2100,
+  "growth": 2,
+  "level": 6
+}

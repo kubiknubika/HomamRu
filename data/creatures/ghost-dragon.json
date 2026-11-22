@@ -1,0 +1,15 @@
+{
+  "id": "ghost-dragon",
+  "name": "Дракон-призрак",
+  "attack": 19,
+  "defense": 18,
+  "damageMin": 21,
+  "damageMax": 30,
+  "health": 150,
+  "speed": 8,
+  "flying": true,
+  "shots": 0,
+  "price": 3300,
+  "growth": 1,
+  "level": 7
+}

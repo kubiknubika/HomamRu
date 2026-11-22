@@ -23,14 +23,15 @@ function scenarioOf(changes: Partial<BattleScenario>): BattleScenario {
 }
 
 describe("файлы из папок data/creatures и data/battles", () => {
-  // Существ замков восемьдесят четыре: по семь базовых у девяти замков (74-second-castle.md, 75–81)
-  // и по семь улучшений у людей, Чащи и Башни (82-creature-upgrades.md), Чащи — с зубром,
+  // Существ замков сто пять: по семь базовых у девяти замков (74-second-castle.md, 75–81)
+  // и по семь улучшений у людей, Чащи, Башни, Инферно, Подземелья и Некрополя
+  // (82-creature-upgrades.md), Чащи — с зубром,
   // Башни (75-third-castle.md), Инферно (76-fourth-castle.md), Подземелья (77-fifth-castle.md),
   // Некрополя (78-sixth-castle.md), Цитадели варваров (79-seventh-castle.md), Крепости
   // (80-eighth-castle.md) и Согласия (81-ninth-castle.md). Числа первых четырёх — из
   // 14-creatures.md и 31-recruitment.md, у остальных — из их документов.
   // Полный список здесь ведётся целиком: он и есть сторож. Все девять замков на месте.
-  it("существа замков — восемьдесят четыре, с числами из документов существ", () => {
+  it("существа замков — сто пять, с числами из документов существ", () => {
     // По идентификатору: имена файлов дают свой порядок («armsman-guard» раньше «armsman»).
     const rows = castleCreatures
       .map((c) => ({ c, id: c.id }))
@@ -51,6 +52,7 @@ describe("файлы из папок data/creatures и data/battles", () => {
     expect(rows).toEqual([
       ["airelem", 6, 6, 2, 4, 18, 8, true, 0, 130, 9],
       ["archfiend", 18, 16, 20, 28, 130, 7, false, 0, 1400, 1],
+      ["archfiend-devil", 22, 19, 25, 34, 165, 7, false, 0, 3200, 1],
       ["armsman", 9, 11, 5, 8, 32, 5, false, 0, 300, 4],
       ["armsman-guard", 11, 13, 6, 9, 40, 5, false, 0, 680, 4],
       ["aurochs", 15, 16, 18, 24, 110, 7, false, 0, 1300, 1],
@@ -58,6 +60,7 @@ describe("файлы из папок data/creatures и data/battles", () => {
       ["basilisk", 10, 12, 4, 7, 48, 4, false, 0, 420, 4],
       ["behemoth", 17, 15, 20, 30, 130, 7, false, 0, 1450, 1],
       ["blackdragon", 17, 16, 21, 30, 140, 9, true, 0, 1500, 1],
+      ["blackdragon-red", 21, 19, 26, 36, 175, 9, true, 0, 3400, 1],
       ["bogwyvern", 14, 14, 11, 17, 88, 7, true, 0, 950, 2],
       ["bonedragon", 15, 14, 16, 24, 115, 7, true, 0, 1400, 1],
       ["cavalier", 12, 9, 7, 12, 45, 9, false, 0, 450, 3],
@@ -67,21 +70,27 @@ describe("файлы из папок data/creatures и data/battles", () => {
       ["cyclop", 14, 12, 11, 16, 75, 6, false, 7, 900, 2],
       ["deathknight", 13, 14, 10, 15, 72, 7, false, 0, 900, 2],
       ["demonling", 5, 5, 2, 4, 15, 5, false, 12, 130, 9],
+      ["demonling-magog", 7, 7, 3, 5, 20, 5, false, 14, 300, 9],
+      ["dread-knight", 17, 18, 13, 19, 95, 7, false, 0, 2100, 2],
       ["eagle", 9, 5, 3, 5, 25, 9, true, 0, 220, 7],
       ["eagle-storm", 12, 7, 4, 7, 33, 10, true, 0, 500, 7],
       ["earthlem", 10, 11, 5, 8, 50, 4, false, 0, 420, 4],
       ["efreet", 15, 12, 11, 17, 80, 8, true, 0, 950, 2],
+      ["efreet-sultan", 18, 15, 14, 21, 100, 8, true, 0, 2200, 2],
       ["ent", 10, 14, 6, 10, 55, 3, false, 0, 350, 4],
       ["ent-ancient", 13, 18, 8, 13, 72, 3, false, 0, 800, 4],
       ["eye", 7, 7, 3, 5, 26, 5, false, 12, 240, 7],
+      ["eye-evil", 9, 9, 4, 7, 34, 5, false, 15, 560, 7],
       ["falcon", 7, 5, 3, 5, 18, 8, true, 0, 200, 7],
       ["falcon-gold", 9, 7, 4, 6, 24, 10, true, 0, 460, 7],
       ["fiend", 13, 10, 8, 12, 55, 6, false, 0, 600, 3],
+      ["fiend-lord", 16, 12, 10, 15, 70, 7, false, 0, 1400, 3],
       ["fireelem", 12, 10, 7, 11, 46, 7, false, 6, 550, 3],
       ["gargoyle", 6, 6, 2, 4, 16, 6, true, 0, 130, 9],
       ["gargoyle-obsidian", 8, 8, 3, 5, 21, 7, true, 0, 280, 9],
       ["genie", 12, 10, 7, 11, 50, 8, true, 0, 600, 3],
       ["genie-pasha", 15, 12, 9, 14, 65, 9, true, 0, 1250, 3],
+      ["ghost-dragon", 19, 18, 21, 30, 150, 8, true, 0, 3300, 1],
       ["giant", 17, 15, 18, 26, 120, 7, false, 0, 1400, 1],
       ["giant-storm", 21, 18, 22, 32, 155, 7, false, 0, 2900, 1],
       ["gnoll", 4, 4, 1, 3, 12, 4, false, 0, 50, 14],
@@ -94,12 +103,16 @@ describe("файлы из папок data/creatures и data/battles", () => {
       ["griffin", 16, 14, 15, 25, 95, 11, true, 0, 1200, 1],
       ["griffin-silver", 20, 17, 18, 29, 130, 12, true, 0, 3200, 1],
       ["harpy", 6, 5, 2, 4, 14, 7, true, 0, 120, 9],
+      ["harpy-hag", 8, 7, 3, 5, 19, 8, true, 0, 290, 9],
       ["horned", 10, 11, 5, 8, 45, 5, false, 0, 400, 4],
+      ["horned-demon", 12, 13, 6, 10, 58, 5, false, 0, 950, 4],
       ["hound", 8, 6, 3, 6, 30, 7, false, 0, 250, 7],
+      ["hound-cerberus", 10, 8, 4, 7, 38, 8, false, 0, 580, 7],
       ["huntress", 6, 5, 2, 5, 15, 5, false, 12, 110, 9],
       ["huntress-ranger", 8, 7, 3, 6, 20, 6, false, 14, 250, 9],
       ["hydra", 16, 18, 19, 29, 140, 5, false, 0, 1500, 1],
       ["imp", 4, 3, 1, 3, 10, 6, false, 0, 60, 14],
+      ["imp-familiar", 5, 4, 2, 4, 13, 7, false, 0, 150, 14],
       ["kentaur", 5, 3, 2, 3, 10, 6, false, 0, 70, 14],
       ["kentaur-elder", 7, 5, 2, 4, 14, 7, false, 0, 160, 14],
       ["lich", 11, 9, 6, 9, 36, 5, false, 12, 550, 3],
@@ -107,32 +120,41 @@ describe("файлы из папок data/creatures и data/battles", () => {
       ["mage", 9, 7, 5, 8, 26, 5, false, 8, 400, 4],
       ["mage-arch", 11, 9, 6, 10, 34, 6, false, 10, 850, 4],
       ["manticore", 14, 12, 10, 16, 80, 8, true, 0, 900, 2],
+      ["manticore-scorpicore", 18, 16, 13, 21, 105, 9, true, 0, 2100, 2],
       ["medusa", 9, 8, 4, 7, 38, 6, false, 6, 420, 4],
+      ["medusa-queen", 12, 10, 5, 9, 50, 6, false, 9, 980, 4],
       ["militia", 5, 5, 2, 3, 12, 4, false, 0, 60, 14],
       ["militia-vet", 6, 6, 2, 4, 16, 4, false, 0, 140, 14],
       ["minotaur", 12, 11, 7, 12, 55, 6, false, 0, 600, 3],
+      ["minotaur-king", 16, 14, 9, 16, 72, 6, false, 0, 1400, 3],
       ["naga", 14, 13, 10, 16, 75, 6, false, 0, 950, 2],
       ["naga-empress", 17, 16, 13, 20, 95, 6, false, 0, 1950, 2],
       ["ogre", 10, 10, 6, 9, 50, 4, false, 0, 420, 4],
       ["orc", 8, 6, 3, 5, 28, 5, false, 12, 240, 7],
       ["phoenix", 19, 16, 22, 32, 125, 11, true, 0, 1550, 1],
       ["pixie", 4, 3, 1, 3, 11, 7, true, 0, 50, 14],
+      ["power-lich", 14, 11, 8, 12, 46, 5, false, 15, 1300, 3],
       ["psychelem", 13, 13, 9, 14, 70, 8, false, 0, 950, 2],
       ["roc", 11, 9, 7, 11, 52, 8, true, 0, 550, 3],
       ["serpentfly", 8, 6, 3, 5, 24, 9, true, 0, 240, 7],
       ["skeleton", 4, 4, 1, 3, 11, 4, false, 0, 50, 14],
+      ["skeleton-warrior", 5, 5, 2, 4, 14, 5, false, 0, 120, 14],
       ["slinger", 5, 3, 1, 4, 9, 5, false, 10, 100, 9],
       ["slinger-ace", 6, 4, 2, 4, 12, 5, false, 12, 220, 9],
       ["troglodyte", 5, 4, 1, 3, 11, 5, false, 0, 50, 14],
+      ["troglodyte-infernal", 6, 6, 2, 4, 15, 5, false, 0, 120, 14],
       ["vampire", 9, 9, 4, 6, 44, 6, false, 0, 420, 4],
+      ["vampire-lord", 12, 12, 5, 8, 58, 6, false, 0, 980, 4],
       ["warden", 12, 15, 8, 12, 70, 4, false, 0, 500, 3],
       ["warden-stone", 15, 19, 10, 15, 90, 4, false, 0, 1150, 3],
       ["waterelem", 7, 7, 3, 5, 28, 6, false, 0, 240, 7],
       ["wight", 7, 7, 3, 6, 24, 6, true, 0, 240, 7],
       ["wolfrider", 6, 5, 2, 4, 16, 7, false, 0, 130, 9],
+      ["wraith", 9, 9, 4, 8, 30, 7, true, 0, 560, 7],
       ["wyvern", 14, 12, 12, 20, 85, 7, true, 0, 900, 2],
       ["wyvern-royal", 17, 15, 15, 24, 105, 8, true, 0, 1900, 2],
       ["zombie", 6, 5, 2, 4, 20, 3, false, 0, 130, 9],
+      ["zombie-lord", 8, 6, 3, 5, 26, 3, false, 0, 300, 9],
     ]);
   });
 

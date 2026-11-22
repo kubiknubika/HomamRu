@@ -1,0 +1,15 @@
+{
+  "id": "medusa-queen",
+  "name": "Царица медуз",
+  "attack": 12,
+  "defense": 10,
+  "damageMin": 5,
+  "damageMax": 9,
+  "health": 50,
+  "speed": 6,
+  "flying": false,
+  "shots": 9,
+  "price": 980,
+  "growth": 4,
+  "level": 4
+}

@@ -1,0 +1,15 @@
+{
+  "id": "fiend-lord",
+  "name": "Владыка исчадий",
+  "attack": 16,
+  "defense": 12,
+  "damageMin": 10,
+  "damageMax": 15,
+  "health": 70,
+  "speed": 7,
+  "flying": false,
+  "shots": 0,
+  "price": 1400,
+  "growth": 3,
+  "level": 5
+}

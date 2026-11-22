@@ -1,0 +1,15 @@
+{
+  "id": "eye-evil",
+  "name": "Злой глаз",
+  "attack": 9,
+  "defense": 9,
+  "damageMin": 4,
+  "damageMax": 7,
+  "health": 34,
+  "speed": 5,
+  "flying": false,
+  "shots": 15,
+  "price": 560,
+  "growth": 7,
+  "level": 3
+}

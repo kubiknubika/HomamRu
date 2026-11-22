@@ -1,0 +1,15 @@
+{
+  "id": "manticore-scorpicore",
+  "name": "Скорпикор",
+  "attack": 18,
+  "defense": 16,
+  "damageMin": 13,
+  "damageMax": 21,
+  "health": 105,
+  "speed": 9,
+  "flying": true,
+  "shots": 0,
+  "price": 2100,
+  "growth": 2,
+  "level": 6
+}

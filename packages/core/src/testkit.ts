@@ -13,6 +13,7 @@ import { FORTRESS_BUILDINGS } from "./fortressBuildings.ts";
 import { CONFLUX_BUILDINGS } from "./confluxBuildings.ts";
 import { CASTLE_UPGRADE_BUILDINGS } from "./castleUpgradeBuildings.ts";
 import { GLADE_TOWER_UPGRADE_BUILDINGS } from "./gladeTowerUpgradeBuildings.ts";
+import { LATE_UPGRADE_BUILDINGS } from "./lateUpgradeBuildings.ts";
 import type { GameContent, HeroKind, OpponentRules, TavernRules } from "./tavernTypes.ts";
 import { CREATURES } from "./battle/testkit.ts";
 import { createGame, DAILY_MOVEMENT, heroIdOf } from "./game.ts";
@@ -192,6 +193,7 @@ export const BUILDINGS: readonly BuildingDefinition[] = [
   ...CONFLUX_BUILDINGS,
   ...CASTLE_UPGRADE_BUILDINGS,
   ...GLADE_TOWER_UPGRADE_BUILDINGS,
+  ...LATE_UPGRADE_BUILDINGS,
 ];
 
 /**

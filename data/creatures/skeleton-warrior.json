@@ -1,0 +1,15 @@
+{
+  "id": "skeleton-warrior",
+  "name": "Скелет-воин",
+  "attack": 5,
+  "defense": 5,
+  "damageMin": 2,
+  "damageMax": 4,
+  "health": 14,
+  "speed": 5,
+  "flying": false,
+  "shots": 0,
+  "price": 120,
+  "growth": 14,
+  "level": 1
+}

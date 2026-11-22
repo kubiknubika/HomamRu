@@ -1,0 +1,15 @@
+{
+  "id": "archfiend-devil",
+  "name": "Дьявол",
+  "attack": 22,
+  "defense": 19,
+  "damageMin": 25,
+  "damageMax": 34,
+  "health": 165,
+  "speed": 7,
+  "flying": false,
+  "shots": 0,
+  "price": 3200,
+  "growth": 1,
+  "level": 7
+}

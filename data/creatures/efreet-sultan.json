@@ -1,0 +1,15 @@
+{
+  "id": "efreet-sultan",
+  "name": "Ифрит-султан",
+  "attack": 18,
+  "defense": 15,
+  "damageMin": 14,
+  "damageMax": 21,
+  "health": 100,
+  "speed": 8,
+  "flying": true,
+  "shots": 0,
+  "price": 2200,
+  "growth": 2,
+  "level": 6
+}
