@@ -1,0 +1,15 @@
+{
+  "id": "wight",
+  "name": "Призрак",
+  "attack": 7,
+  "defense": 7,
+  "damageMin": 3,
+  "damageMax": 6,
+  "health": 24,
+  "speed": 6,
+  "flying": true,
+  "shots": 0,
+  "price": 240,
+  "growth": 7,
+  "level": 3
+}

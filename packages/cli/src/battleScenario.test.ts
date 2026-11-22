@@ -23,10 +23,11 @@ function scenarioOf(changes: Partial<BattleScenario>): BattleScenario {
 }
 
 describe("файлы из папок data/creatures и data/battles", () => {
-  // Существ замков тридцать пять: по семь у людей (74-second-castle.md), Чащи — с зубром,
-  // Башни (75-third-castle.md), Инферно (76-fourth-castle.md), Подземелья (77-fifth-castle.md). Числа первых четырёх — из 14-creatures.md и 31-recruitment.md,
-  // у Башни — из её документа. Полный список здесь ведётся целиком: он и есть сторож.
-  it("существа замков — тридцать пять, с числами из документов существ", () => {
+  // Существ замков сорок два: по семь у людей (74-second-castle.md), Чащи — с зубром,
+  // Башни (75-third-castle.md), Инферно (76-fourth-castle.md), Подземелья (77-fifth-castle.md)
+  // и Некрополя (78-sixth-castle.md). Числа первых четырёх — из 14-creatures.md и 31-recruitment.md,
+  // у остальных — из их документов. Полный список здесь ведётся целиком: он и есть сторож.
+  it("существа замков — сорок два, с числами из документов существ", () => {
     const rows = castleCreatures.map((c) => [
       c.id,
       c.attack,
@@ -45,8 +46,10 @@ describe("файлы из папок data/creatures и data/battles", () => {
       ["armsman", 9, 11, 5, 8, 32, 5, false, 0, 300, 4],
       ["aurochs", 15, 16, 18, 24, 110, 7, false, 0, 1300, 1],
       ["blackdragon", 17, 16, 21, 30, 140, 9, true, 0, 1500, 1],
+      ["bonedragon", 15, 14, 16, 24, 115, 7, true, 0, 1400, 1],
       ["cavalier", 12, 9, 7, 12, 45, 9, false, 0, 450, 3],
       ["champion", 14, 13, 10, 16, 65, 7, false, 0, 700, 2],
+      ["deathknight", 13, 14, 10, 15, 72, 7, false, 0, 900, 2],
       ["demonling", 5, 5, 2, 4, 15, 5, false, 12, 130, 9],
       ["eagle", 9, 5, 3, 5, 25, 9, true, 0, 220, 7],
       ["efreet", 15, 12, 11, 17, 80, 8, true, 0, 950, 2],
@@ -66,16 +69,21 @@ describe("файлы из папок data/creatures и data/battles", () => {
       ["huntress", 6, 5, 2, 5, 15, 5, false, 12, 110, 9],
       ["imp", 4, 3, 1, 3, 10, 6, false, 0, 60, 14],
       ["kentaur", 5, 3, 2, 3, 10, 6, false, 0, 70, 14],
+      ["lich", 11, 9, 6, 9, 36, 5, false, 12, 550, 3],
       ["mage", 9, 7, 5, 8, 26, 5, false, 8, 400, 4],
       ["manticore", 14, 12, 10, 16, 80, 8, true, 0, 900, 2],
       ["medusa", 9, 8, 4, 7, 38, 6, false, 6, 420, 4],
       ["militia", 5, 5, 2, 3, 12, 4, false, 0, 60, 14],
       ["minotaur", 12, 11, 7, 12, 55, 6, false, 0, 600, 3],
       ["naga", 14, 13, 10, 16, 75, 6, false, 0, 950, 2],
+      ["skeleton", 4, 4, 1, 3, 11, 4, false, 0, 50, 14],
       ["slinger", 5, 3, 1, 4, 9, 5, false, 10, 100, 9],
       ["troglodyte", 5, 4, 1, 3, 11, 5, false, 0, 50, 14],
+      ["vampire", 9, 9, 4, 6, 44, 6, false, 0, 420, 4],
       ["warden", 12, 15, 8, 12, 70, 4, false, 0, 500, 3],
+      ["wight", 7, 7, 3, 6, 24, 6, true, 0, 240, 7],
       ["wyvern", 14, 12, 12, 20, 85, 7, true, 0, 900, 2],
+      ["zombie", 6, 5, 2, 4, 20, 3, false, 0, 130, 9],
     ]);
   });
 

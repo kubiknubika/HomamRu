@@ -110,6 +110,13 @@ export const CREATURE_MANY: Readonly<Record<string, string>> = {
   minotaur: "минотавров",
   manticore: "мантикор",
   blackdragon: "чёрных змеев",
+  bonedragon: "костяных драконов",
+  deathknight: "могильных рыцарей",
+  lich: "личей",
+  skeleton: "скелетов",
+  vampire: "вампиров",
+  wight: "призраков",
+  zombie: "мертвяков",
 };
 
 /**
@@ -167,6 +174,13 @@ export const CREATURE_PLURAL: Readonly<Record<string, string>> = {
   minotaur: "минотавры",
   manticore: "мантикоры",
   blackdragon: "чёрные змеи",
+  bonedragon: "костяные драконы",
+  deathknight: "могильные рыцари",
+  lich: "личи",
+  skeleton: "скелеты",
+  vampire: "вампиры",
+  wight: "призраки",
+  zombie: "мертвяки",
 };
 
 /**

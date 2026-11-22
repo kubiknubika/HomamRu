@@ -12,6 +12,13 @@ import buildingsText from "../../../../data/buildings.yaml?raw";
 import armsmanText from "../../../../data/creatures/armsman.json?raw";
 import aurochsText from "../../../../data/creatures/aurochs.json?raw";
 import blackdragonText from "../../../../data/creatures/blackdragon.json?raw";
+import bonedragonText from "../../../../data/creatures/bonedragon.json?raw";
+import deathknightText from "../../../../data/creatures/deathknight.json?raw";
+import lichText from "../../../../data/creatures/lich.json?raw";
+import skeletonText from "../../../../data/creatures/skeleton.json?raw";
+import vampireText from "../../../../data/creatures/vampire.json?raw";
+import wightText from "../../../../data/creatures/wight.json?raw";
+import zombieText from "../../../../data/creatures/zombie.json?raw";
 import eyeText from "../../../../data/creatures/eye.json?raw";
 import harpyText from "../../../../data/creatures/harpy.json?raw";
 import manticoreText from "../../../../data/creatures/manticore.json?raw";
@@ -73,6 +80,13 @@ const CREATURE_FILES = [
   { file: "data/creatures/archfiend.json", text: archfiendText },
   { file: "data/creatures/armsman.json", text: armsmanText },
   { file: "data/creatures/aurochs.json", text: aurochsText },
+  { file: "data/creatures/bonedragon.json", text: bonedragonText },
+  { file: "data/creatures/deathknight.json", text: deathknightText },
+  { file: "data/creatures/lich.json", text: lichText },
+  { file: "data/creatures/skeleton.json", text: skeletonText },
+  { file: "data/creatures/vampire.json", text: vampireText },
+  { file: "data/creatures/wight.json", text: wightText },
+  { file: "data/creatures/zombie.json", text: zombieText },
   { file: "data/creatures/blackdragon.json", text: blackdragonText },
   { file: "data/creatures/boar.json", text: boarText },
   { file: "data/creatures/cavalier.json", text: cavalierText },

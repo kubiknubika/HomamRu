@@ -1,0 +1,15 @@
+{
+  "id": "bonedragon",
+  "name": "Костяной дракон",
+  "attack": 15,
+  "defense": 14,
+  "damageMin": 16,
+  "damageMax": 24,
+  "health": 115,
+  "speed": 7,
+  "flying": true,
+  "shots": 0,
+  "price": 1400,
+  "growth": 1,
+  "level": 7
+}

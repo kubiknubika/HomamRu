@@ -1,0 +1,15 @@
+{
+  "id": "lich",
+  "name": "Лич",
+  "attack": 11,
+  "defense": 9,
+  "damageMin": 6,
+  "damageMax": 9,
+  "health": 36,
+  "speed": 5,
+  "flying": false,
+  "shots": 12,
+  "price": 550,
+  "growth": 3,
+  "level": 5
+}
