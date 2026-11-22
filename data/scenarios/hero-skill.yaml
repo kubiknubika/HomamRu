@@ -1,20 +1,20 @@
 name: Герой получает уровень и выбирает навык
 map: test-level
-seed: 1
+seed: 58
 steps:
   - move: { hero: A, path: [E, E, E] }
   - fight: {}
   # Пока навык не выбран, игрок ничего другого сделать не может.
   - endTurn: {}
     expectError: SKILL_CHOICE_PENDING
-  # Не предложенный навык взять нельзя. Предложены: повышение «Мистицизма» и новая «Мудрость».
-  - chooseSkill: sorcery
+  # Не предложенный навык взять нельзя. Предложены: повышение «Мистицизма» и новое «Волшебство».
+  - chooseSkill: wisdom
     expectError: SKILL_NOT_OFFERED
-  - chooseSkill: wisdom
-  - chooseSkill: wisdom
+  - chooseSkill: sorcery
+  - chooseSkill: sorcery
     expectError: NO_SKILL_OFFER
   - endTurn: {}
 expect:
   day: 2
   heroes:
-    A: { level: 2, learned: [mysticism 1, wisdom 1], offered: [] }
+    A: { level: 2, learned: [mysticism 1, sorcery 1], offered: [] }

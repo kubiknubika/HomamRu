@@ -208,7 +208,8 @@ describe("чего в записи нет — берётся начальное 
             ? [
                 { id: "wisdom", level: 3 },
                 { id: "wisdom", level: 1 },
-                { id: "leadership", level: 1 },
+                // «Навигация» — навык Heroes 3, которого у нас нет (65-hero-skills.md).
+                { id: "navigation", level: 1 },
                 { id: "air-magic", level: 4 },
                 "навык",
               ]

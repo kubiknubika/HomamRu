@@ -4,7 +4,7 @@
 import type { GameEvent } from "./events.ts";
 import { nextInt } from "./rng.ts";
 import type { RngState } from "./rng.ts";
-import { rollSkillOffer, withSkill } from "./skills.ts";
+import { learningPercent, rollSkillOffer, withSkill } from "./skills.ts";
 import { reject } from "./types.ts";
 import type { ChooseSkillCommand, CommandResult, GameState, HeroState } from "./types.ts";
 
@@ -71,8 +71,10 @@ export function gainExperience(
   initialRng: RngState,
   events: GameEvent[],
 ): { hero: HeroState; rng: RngState } {
-  const experience = Math.min(hero.experience + amount, Number.MAX_SAFE_INTEGER);
-  events.push({ type: "experienceGained", heroId: hero.id, amount, total: experience });
+  // «Обучение»: за бой герой получает больше опыта (65-hero-skills.md); дробь отбрасывается.
+  const gained = Math.floor((amount * (100 + learningPercent(hero))) / 100);
+  const experience = Math.min(hero.experience + gained, Number.MAX_SAFE_INTEGER);
+  events.push({ type: "experienceGained", heroId: hero.id, amount: gained, total: experience });
   const target = levelOf(experience);
   let { level } = hero;
   const stats = {

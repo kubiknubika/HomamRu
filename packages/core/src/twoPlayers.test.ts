@@ -41,8 +41,31 @@ describe("бой героя с героем", () => {
     expect(after.battle).toMatchObject({ heroId: "A", guardId: null, defenderHeroId: "B" });
     expect(after.battle?.townId).toBeNull();
     expect(after.battle?.state.sides.map((side) => side.hero)).toEqual([
-      { attack: 0, defense: 0, spellPower: 1, mana: 10, sorcery: 0, spells: [] },
-      { attack: 0, defense: 0, spellPower: 1, mana: 10, sorcery: 0, spells: [] },
+      // Числовые навыки героя в бою (65-hero-skills.md): их нет — проценты нулевые.
+      {
+        attack: 0,
+        defense: 0,
+        spellPower: 1,
+        mana: 10,
+        sorcery: 0,
+        offence: 0,
+        armorer: 0,
+        archery: 0,
+        ballistics: 0,
+        spells: [],
+      },
+      {
+        attack: 0,
+        defense: 0,
+        spellPower: 1,
+        mana: 10,
+        sorcery: 0,
+        offence: 0,
+        armorer: 0,
+        archery: 0,
+        ballistics: 0,
+        spells: [],
+      },
     ]);
     expect(lines(state, TO_HERO).at(-1)).toBe("Начался бой: герой A против героя B");
   });

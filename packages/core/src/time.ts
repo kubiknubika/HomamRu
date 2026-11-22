@@ -1,7 +1,7 @@
 /**
  * Ходы игроков и календарь. Спецификация: docs/mechanics/03-time.md.
  */
-import { DAILY_MOVEMENT } from "./heroIds.ts";
+import { movementFor } from "./heroIds.ts";
 import { growGuards } from "./guards.ts";
 import { restoreMana } from "./magic.ts";
 import { giveIncome } from "./objects.ts";
@@ -51,7 +51,7 @@ export function applyEndTurn(initial: GameState, command: EndTurnCommand): Comma
     // Действие «Видений» и «Маскировки» кончается с днём (73-map-spells.md).
     heroes: state.heroes.map((hero) => ({
       ...hero,
-      movement: DAILY_MOVEMENT,
+      movement: movementFor(hero.skills),
       visions: 0,
       disguise: 0,
     })),

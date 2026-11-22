@@ -34,7 +34,19 @@ describe("начало боя", () => {
     const battle = state.battle?.state;
     expect(battle?.sides).toEqual([
       {
-        hero: { attack: 2, defense: 1, spellPower: 1, mana: 10, sorcery: 0, spells: [] },
+        // Числовые навыки (65-hero-skills.md, порция 77): их нет — проценты нулевые.
+        hero: {
+          attack: 2,
+          defense: 1,
+          spellPower: 1,
+          mana: 10,
+          sorcery: 0,
+          offence: 0,
+          armorer: 0,
+          archery: 0,
+          ballistics: 0,
+          spells: [],
+        },
         morale: 1,
         luck: 0,
         cast: false,

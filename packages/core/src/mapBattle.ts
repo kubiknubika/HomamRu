@@ -2,7 +2,16 @@
  * Бой внутри партии: начало, команды, итог.
  * Спецификации: docs/mechanics/23-map-battle.md, 40-two-players.md.
  */
-import { masteryOf, sorceryPercent } from "./skills.ts";
+import {
+  archeryPercent,
+  ballisticsShots,
+  armorerPercent,
+  battleLuckOf,
+  battleMoraleOf,
+  masteryOf,
+  offencePercent,
+  sorceryPercent,
+} from "./skills.ts";
 import { spellAtMastery } from "./spells.ts";
 import { applyBattleCommand } from "./battle/commands.ts";
 import { createBattle } from "./battle/create.ts";
@@ -72,6 +81,10 @@ function battleHero(state: GameState, hero: HeroState): BattleHero {
     spellPower: hero.spellPower,
     mana: hero.mana,
     sorcery: sorceryPercent(hero),
+    offence: offencePercent(hero),
+    armorer: armorerPercent(hero),
+    archery: archeryPercent(hero),
+    ballistics: ballisticsShots(hero),
     // Заклинания — уже с навыками школ героя: цена, сила, цели (65-hero-skills.md).
     spells: hero.book
       ? state.spells
@@ -149,14 +162,16 @@ export function startBattle(
       ...(siege === undefined ? {} : { siege }),
       attacker: {
         hero: battleHero(state, hero),
-        morale: ARMY_MORALE,
-        luck: ARMY_LUCK,
+        morale: battleMoraleOf(ARMY_MORALE, hero),
+        luck: battleLuckOf(ARMY_LUCK, hero),
         army: hero.army,
       },
       defender: {
         ...(defender.hero === undefined ? {} : { hero: battleHero(state, defender.hero) }),
-        morale: ARMY_MORALE,
-        luck: ARMY_LUCK,
+        // «Удача» и «Боевой дух» героя обороняющегося — его отрядам, гарнизону — нет (65-hero-skills.md).
+        morale:
+          defender.hero === undefined ? ARMY_MORALE : battleMoraleOf(ARMY_MORALE, defender.hero),
+        luck: defender.hero === undefined ? ARMY_LUCK : battleLuckOf(ARMY_LUCK, defender.hero),
         army: defender.army,
       },
     },

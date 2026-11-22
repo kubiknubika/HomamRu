@@ -209,6 +209,11 @@ const armySchema = z.strictObject({
       mana: z.int().min(0).optional(),
       /** «Волшебство»: на сколько процентов больше урон заклинаний. */
       sorcery: z.int().min(0).optional(),
+      /** «Нападение», «Защита», «Стрельба»: проценты к урону (65-hero-skills.md). */
+      offence: z.int().min(0).optional(),
+      armorer: z.int().min(0).optional(),
+      archery: z.int().min(0).optional(),
+      ballistics: z.int().min(0).optional(),
       /** Книга со всеми заклинаниями игры: для проверочных боёв. */
       allSpells: z.boolean().optional(),
       /** Уровень всех школ магии героя, 0–3: с ним колдуются заклинания книги. */

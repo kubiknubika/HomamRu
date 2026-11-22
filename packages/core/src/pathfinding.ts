@@ -2,7 +2,7 @@
  * Поиск пути героя. Это запрос: он ничего не меняет.
  * Спецификация: docs/mechanics/02-hero-movement.md, раздел «Поиск пути».
  */
-import { DAILY_MOVEMENT } from "./game.ts";
+import { movementFor } from "./heroIds.ts";
 import { MinHeap } from "./heap.ts";
 import { deltaOf, isLand, stepCost, terrainAllowsStep } from "./map.ts";
 import { DIRECTIONS } from "./types.ts";
@@ -160,7 +160,7 @@ function costsToTarget(
 }
 
 /** Считает, как путь ляжет на дни при заданном остатке запаса хода. */
-function schedule(steps: readonly Direction[], movement: number) {
+function schedule(steps: readonly Direction[], movement: number, daily: number) {
   let left = movement;
   let days = 1;
   let stepsToday = 0;
@@ -169,7 +169,7 @@ function schedule(steps: readonly Direction[], movement: number) {
     const cost = delta === undefined ? 0 : stepCost(delta);
     if (left < cost) {
       days += 1;
-      left = DAILY_MOVEMENT;
+      left = daily;
     }
     left -= cost;
     if (days === 1) {
@@ -223,5 +223,5 @@ export function findPath(state: GameState, heroId: string, target: Position): Pa
     y += next.delta.dy;
     left -= next.cost;
   }
-  return { found: true, steps, cost, ...schedule(steps, hero.movement) };
+  return { found: true, steps, cost, ...schedule(steps, hero.movement, movementFor(hero.skills)) };
 }

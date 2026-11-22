@@ -10,6 +10,7 @@ import {
   GOOD_DICE,
   halvingsOf,
   rollBaseDamage,
+  skillPercent,
 } from "./damage.ts";
 import { rollChance } from "./draft.ts";
 import type { BattleDraft } from "./draft.ts";
@@ -97,7 +98,8 @@ export function strike(
     defenseOf(draft, target),
     lucky,
     halvingsOf(draft, kind, attacker, target),
-    (strikePercent(attacker, target, kind) * share) / 100,
+    (strikePercent(attacker, target, kind) * skillPercent(draft, attacker, target, kind) * share) /
+      10_000,
   );
   const attack = attackOf(draft, attacker, kind);
   const unguarded = computeDamage(

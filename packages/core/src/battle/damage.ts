@@ -121,6 +121,23 @@ export function defendBonusOf(defense: number): number {
 /** Что нужно знать о бое, чтобы посчитать удар: герои сторон и осада. */
 type Combat = Pick<BattleState, "sides" | "siege">;
 
+/**
+ * Доля урона от навыков героев, в процентах: «Стрельба» — выстрелу, «Нападение» — ближнему
+ * бою и ответному удару, «Защита» — по отрядам обороняющегося героя (65-hero-skills.md).
+ */
+export function skillPercent(
+  combat: Combat,
+  attacker: StackState,
+  target: StackState,
+  kind: StrikeKind,
+): number {
+  const attackerHero = combat.sides[attacker.side].hero;
+  const defenderHero = combat.sides[target.side].hero;
+  const up = kind === "shot" ? (attackerHero?.archery ?? 0) : (attackerHero?.offence ?? 0);
+  const down = defenderHero?.armorer ?? 0;
+  return ((100 + up) * (100 - down)) / 100;
+}
+
 /** Атака отряда с прибавками героя и заклинаний; «Жажда крови» — только в ближнем бою. */
 export function attackOf(combat: Combat, stack: StackState, kind: StrikeKind): number {
   const hero = combat.sides[stack.side].hero?.attack ?? 0;
@@ -176,7 +193,8 @@ export function damageRange(
   const attack = attackOf(combat, attacker, kind);
   const defense = defenseOf(combat, target);
   const halvings = halvingsOf(combat, kind, attacker, target);
-  const percent = strikePercent(attacker, target, kind);
+  const percent =
+    (strikePercent(attacker, target, kind) * skillPercent(combat, attacker, target, kind)) / 100;
   const { damageMin, damageMax } = attacker.creature;
   const fixed = fixedDamage(attacker);
   const of = (roll: number): number =>

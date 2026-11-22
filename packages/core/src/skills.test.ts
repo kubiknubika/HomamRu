@@ -166,19 +166,22 @@ describe("предложение навыков", () => {
     expect(rollSkillOffer(done, createRng(3)).offer).toEqual([]);
   });
 
-  it("шансы равные: каждый навык бывает первым предложением новичку", () => {
+  it("шансы равные: каждый навык бывает первым предложением, и перекоса нет", () => {
     const seen = new Map<SkillId, number>();
-    for (let seed = 1; seed <= 800; seed += 1) {
+    // Навыков семнадцать: 13 000 бросков дают около 765 на каждый. Допуск широкий —
+    // проверяется, что перекоса нет, а не точная доля.
+    const seeds = 13_000;
+    for (let seed = 1; seed <= seeds; seed += 1) {
       const [first] = rollSkillOffer([], createRng(seed)).offer;
       if (first !== undefined) {
         seen.set(first, (seen.get(first) ?? 0) + 1);
       }
     }
     expect(seen.size).toBe(SKILL_IDS.length);
+    const expected = seeds / SKILL_IDS.length;
     for (const count of seen.values()) {
-      // Ожидается 100 из 800; допуск широкий — проверяется, что перекоса нет.
-      expect(count).toBeGreaterThan(60);
-      expect(count).toBeLessThan(140);
+      expect(count).toBeGreaterThan(expected * 0.8);
+      expect(count).toBeLessThan(expected * 1.2);
     }
   });
 

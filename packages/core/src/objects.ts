@@ -5,6 +5,7 @@
 import { mergeArmy } from "./army.ts";
 import { POWER_PER_CREATURE } from "./guards.ts";
 import { nextInt } from "./rng.ts";
+import { estatesGold } from "./skills.ts";
 import { townIncome } from "./town.ts";
 import type { RngState } from "./rng.ts";
 import { RESOURCES } from "./types.ts";
@@ -121,9 +122,15 @@ export function createObjects(
   return { objects, rng };
 }
 
-/** Дневной доход игрока от его шахт и города. */
+/** Дневной доход игрока от его шахт, города и «Поместий» его героев. */
 export function incomeOf(state: GameState, player: number): Resources {
   let income = NO_RESOURCES;
+  // «Поместья»: каждый герой игрока приносит золото сверх дохода (65-hero-skills.md).
+  for (const hero of state.heroes) {
+    if (hero.owner === player) {
+      income = addResources(income, { gold: estatesGold(hero) });
+    }
+  }
   for (const object of state.objects) {
     if (object.type === "town" && object.owner === player) {
       income = addResources(income, { gold: townIncome(state, object) });
