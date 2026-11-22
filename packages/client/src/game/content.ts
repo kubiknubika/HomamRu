@@ -11,6 +11,13 @@ import type { ContentError, SaveDefaults } from "@homamru/data";
 import buildingsText from "../../../../data/buildings.yaml?raw";
 import armsmanText from "../../../../data/creatures/armsman.json?raw";
 import aurochsText from "../../../../data/creatures/aurochs.json?raw";
+import gargoyleText from "../../../../data/creatures/gargoyle.json?raw";
+import genieText from "../../../../data/creatures/genie.json?raw";
+import giantText from "../../../../data/creatures/giant.json?raw";
+import gnomeText from "../../../../data/creatures/gnome.json?raw";
+import golemText from "../../../../data/creatures/golem.json?raw";
+import mageText from "../../../../data/creatures/mage.json?raw";
+import nagaText from "../../../../data/creatures/naga.json?raw";
 import cavalierText from "../../../../data/creatures/cavalier.json?raw";
 import championText from "../../../../data/creatures/champion.json?raw";
 import eagleText from "../../../../data/creatures/eagle.json?raw";
@@ -62,14 +69,21 @@ const CREATURE_FILES = [
   { file: "data/creatures/enchanter.json", text: enchanterText },
   { file: "data/creatures/ent.json", text: entText },
   { file: "data/creatures/falcon.json", text: falconText },
+  { file: "data/creatures/gargoyle.json", text: gargoyleText },
+  { file: "data/creatures/genie.json", text: genieText },
+  { file: "data/creatures/giant.json", text: giantText },
+  { file: "data/creatures/gnome.json", text: gnomeText },
+  { file: "data/creatures/golem.json", text: golemText },
   { file: "data/creatures/golem-diamond.json", text: golemDiamondText },
   { file: "data/creatures/golem-gold.json", text: golemGoldText },
   { file: "data/creatures/griffin.json", text: griffinText },
   { file: "data/creatures/halfling.json", text: halflingText },
   { file: "data/creatures/huntress.json", text: huntressText },
   { file: "data/creatures/kentaur.json", text: kentaurText },
+  { file: "data/creatures/mage.json", text: mageText },
   { file: "data/creatures/militia.json", text: militiaText },
   { file: "data/creatures/mummy.json", text: mummyText },
+  { file: "data/creatures/naga.json", text: nagaText },
   { file: "data/creatures/nomad.json", text: nomadText },
   { file: "data/creatures/peasant.json", text: peasantText },
   { file: "data/creatures/rogue.json", text: rogueText },

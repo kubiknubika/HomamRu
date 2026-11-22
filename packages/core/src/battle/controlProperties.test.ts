@@ -110,7 +110,14 @@ describe("свойства заклинаний контроля (69)", () => {
         // событие `stackBlind` (turns.ts:113). К концу команды состояние уже шагнуло вперёд —
         // раунд мог смениться, и `turn` снова «ready». Поэтому смотрим на событие: сам
         // ослеплённый отряд не должен ни ходить, ни бить.
-        for (const event of result.events) {
+        // События команды открывает `stackTurn` того отряда, чей ход начался. Всё, что было
+        // до него, — события прошлой команды (при смене раунда там бывает чужой ход), и
+        // приписывать их ослеплённому нельзя: проверка ловила бы движение соседа.
+        const turnAt = result.events.findLastIndex((event) => event.type === "stackTurn");
+        for (const [at, event] of result.events.entries()) {
+          if (at < turnAt) {
+            continue;
+          }
           if (event.type === "stackBlind") {
             blindSteps += 1;
             const acted = result.events.some(

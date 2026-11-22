@@ -89,6 +89,13 @@ export const CREATURE_MANY: Readonly<Record<string, string>> = {
   "dragon-rust": "ржавых драконов",
   "dragon-crystal": "хрустальных драконов",
   "dragon-azure": "лазурных драконов",
+  gnome: "гномов",
+  gargoyle: "горгулий",
+  golem: "големов",
+  mage: "магов",
+  genie: "джиннов",
+  naga: "нагов",
+  giant: "великанов",
 };
 
 /**
@@ -125,6 +132,13 @@ export const CREATURE_PLURAL: Readonly<Record<string, string>> = {
   "dragon-rust": "ржавые драконы",
   "dragon-crystal": "хрустальные драконы",
   "dragon-azure": "лазурные драконы",
+  gnome: "гномы",
+  gargoyle: "горгульи",
+  golem: "големы",
+  mage: "маги",
+  genie: "джинны",
+  naga: "наги",
+  giant: "великаны",
 };
 
 /**

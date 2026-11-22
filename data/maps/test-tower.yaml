@@ -1,0 +1,19 @@
+# Проверочная карта третьего замка — «Башни» (docs/mechanics/75-third-castle.md).
+# Игрок у города Башни: жилища Башни строятся, жилища людей и Чащи — нет.
+id: test-tower
+name: Проверочная карта с Башней
+terrain:
+  - "........"
+  - "........"
+  - "........"
+  - "...##..."
+  - "........"
+  - "........"
+  - "........"
+  - "........"
+players:
+  - hero: { x: 1, y: 1, army: [{ creature: gnome, count: 12 }] }
+    resources: { gold: 20000, wood: 20, ore: 20 }
+objects:
+  - { type: town, x: 2, y: 2, owner: 0, faction: tower, buildings: [tavern, fort, gnome-hill] }
+  - { type: mine, x: 1, y: 5, kind: gold-mine }

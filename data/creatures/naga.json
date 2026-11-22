@@ -1,0 +1,15 @@
+{
+  "id": "naga",
+  "name": "Нага",
+  "attack": 14,
+  "defense": 13,
+  "damageMin": 10,
+  "damageMax": 16,
+  "health": 75,
+  "speed": 6,
+  "flying": false,
+  "shots": 0,
+  "price": 950,
+  "growth": 2,
+  "level": 6
+}

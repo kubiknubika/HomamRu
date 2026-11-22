@@ -6,6 +6,7 @@ import { createBattle } from "./create.ts";
 import type { Cell } from "./hex.ts";
 import { CASTLE_TOP_CREATURES } from "./castleTopKit.ts";
 import { GLADE_CREATURES } from "./gladeKit.ts";
+import { TOWER_CREATURES } from "./towerKit.ts";
 import { commandingSide, findStack } from "./queries.ts";
 import type {
   ArmyDefinition,
@@ -89,6 +90,7 @@ export const CREATURES = [
   FALCON,
   ARMSMAN,
   ...GLADE_CREATURES,
+  ...TOWER_CREATURES,
 ];
 
 /** Армия без героя, с нулевыми боевым духом и удачей. Запись отряда: `"militia:20"`. */

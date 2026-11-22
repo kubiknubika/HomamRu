@@ -1,0 +1,15 @@
+{
+  "id": "genie",
+  "name": "Джинн",
+  "attack": 12,
+  "defense": 10,
+  "damageMin": 7,
+  "damageMax": 11,
+  "health": 50,
+  "speed": 8,
+  "flying": true,
+  "shots": 0,
+  "price": 600,
+  "growth": 3,
+  "level": 5
+}

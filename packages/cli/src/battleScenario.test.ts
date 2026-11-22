@@ -23,9 +23,10 @@ function scenarioOf(changes: Partial<BattleScenario>): BattleScenario {
 }
 
 describe("файлы из папок data/creatures и data/battles", () => {
-  // Существ замков четырнадцать: семь замка людей (74-second-castle.md), семь Чащи — с зубром
-  // (docs/content/creatures.md). Числа первых четырёх — из 14-creatures.md и 31-recruitment.md.
-  it("существа замков — четырнадцать, с числами из документов существ", () => {
+  // Существ замков двадцать одно: семь людей (74-second-castle.md), семь Чащи — с зубром,
+  // семь Башни (75-third-castle.md). Числа первых четырёх — из 14-creatures.md и 31-recruitment.md,
+  // у Башни — из её документа. Полный список здесь ведётся целиком: он и есть сторож.
+  it("существа замков — двадцать одно, с числами из документов существ", () => {
     const rows = castleCreatures.map((c) => [
       c.id,
       c.attack,
@@ -47,10 +48,17 @@ describe("файлы из папок data/creatures и data/battles", () => {
       ["eagle", 9, 5, 3, 5, 25, 9, true, 0, 220, 7],
       ["ent", 10, 14, 6, 10, 55, 3, false, 0, 350, 4],
       ["falcon", 7, 5, 3, 5, 18, 8, true, 0, 200, 7],
+      ["gargoyle", 6, 6, 2, 4, 16, 6, true, 0, 130, 9],
+      ["genie", 12, 10, 7, 11, 50, 8, true, 0, 600, 3],
+      ["giant", 17, 15, 18, 26, 120, 7, false, 0, 1400, 1],
+      ["gnome", 4, 4, 1, 3, 11, 5, false, 0, 60, 14],
+      ["golem", 8, 9, 3, 5, 30, 4, false, 0, 250, 7],
       ["griffin", 16, 14, 15, 25, 95, 11, true, 0, 1200, 1],
       ["huntress", 6, 5, 2, 5, 15, 5, false, 12, 110, 9],
       ["kentaur", 5, 3, 2, 3, 10, 6, false, 0, 70, 14],
+      ["mage", 9, 7, 5, 8, 26, 5, false, 8, 400, 4],
       ["militia", 5, 5, 2, 3, 12, 4, false, 0, 60, 14],
+      ["naga", 14, 13, 10, 16, 75, 6, false, 0, 950, 2],
       ["slinger", 5, 3, 1, 4, 9, 5, false, 10, 100, 9],
       ["warden", 12, 15, 8, 12, 70, 4, false, 0, 500, 3],
       ["wyvern", 14, 12, 12, 20, 85, 7, true, 0, 900, 2],

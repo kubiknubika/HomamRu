@@ -1,0 +1,15 @@
+{
+  "id": "gargoyle",
+  "name": "Горгулья",
+  "attack": 6,
+  "defense": 6,
+  "damageMin": 2,
+  "damageMax": 4,
+  "health": 16,
+  "speed": 6,
+  "flying": true,
+  "shots": 0,
+  "price": 130,
+  "growth": 9,
+  "level": 2
+}
