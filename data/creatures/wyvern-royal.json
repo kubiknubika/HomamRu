@@ -1,0 +1,15 @@
+{
+  "id": "wyvern-royal",
+  "name": "Царский вьюн",
+  "attack": 17,
+  "defense": 15,
+  "damageMin": 15,
+  "damageMax": 24,
+  "health": 105,
+  "speed": 8,
+  "flying": true,
+  "shots": 0,
+  "price": 1900,
+  "growth": 2,
+  "level": 6
+}

@@ -1,0 +1,15 @@
+{
+  "id": "kentaur-elder",
+  "name": "Старейшина кентавров",
+  "attack": 7,
+  "defense": 5,
+  "damageMin": 2,
+  "damageMax": 4,
+  "health": 14,
+  "speed": 7,
+  "flying": false,
+  "shots": 0,
+  "price": 160,
+  "growth": 14,
+  "level": 1
+}

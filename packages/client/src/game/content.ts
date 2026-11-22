@@ -13,6 +13,20 @@ import armsmanText from "../../../../data/creatures/armsman.json?raw";
 import aurochsText from "../../../../data/creatures/aurochs.json?raw";
 import blackdragonText from "../../../../data/creatures/blackdragon.json?raw";
 import bonedragonText from "../../../../data/creatures/bonedragon.json?raw";
+import kentaurelderText from "../../../../data/creatures/kentaur-elder.json?raw";
+import huntressrangerText from "../../../../data/creatures/huntress-ranger.json?raw";
+import eaglestormText from "../../../../data/creatures/eagle-storm.json?raw";
+import entancientText from "../../../../data/creatures/ent-ancient.json?raw";
+import wardenstoneText from "../../../../data/creatures/warden-stone.json?raw";
+import wyvernroyalText from "../../../../data/creatures/wyvern-royal.json?raw";
+import aurochskingText from "../../../../data/creatures/aurochs-king.json?raw";
+import gnomeruneText from "../../../../data/creatures/gnome-rune.json?raw";
+import gargoyleobsidianText from "../../../../data/creatures/gargoyle-obsidian.json?raw";
+import golemmithrilText from "../../../../data/creatures/golem-mithril.json?raw";
+import magearchText from "../../../../data/creatures/mage-arch.json?raw";
+import geniepashaText from "../../../../data/creatures/genie-pasha.json?raw";
+import nagaempressText from "../../../../data/creatures/naga-empress.json?raw";
+import giantstormText from "../../../../data/creatures/giant-storm.json?raw";
 import militiavetText from "../../../../data/creatures/militia-vet.json?raw";
 import slingeraceText from "../../../../data/creatures/slinger-ace.json?raw";
 import falcongoldText from "../../../../data/creatures/falcon-gold.json?raw";
@@ -109,6 +123,20 @@ const CREATURE_FILES = [
   { file: "data/creatures/armsman.json", text: armsmanText },
   { file: "data/creatures/aurochs.json", text: aurochsText },
   { file: "data/creatures/bonedragon.json", text: bonedragonText },
+  { file: "data/creatures/kentaur-elder.json", text: kentaurelderText },
+  { file: "data/creatures/huntress-ranger.json", text: huntressrangerText },
+  { file: "data/creatures/eagle-storm.json", text: eaglestormText },
+  { file: "data/creatures/ent-ancient.json", text: entancientText },
+  { file: "data/creatures/warden-stone.json", text: wardenstoneText },
+  { file: "data/creatures/wyvern-royal.json", text: wyvernroyalText },
+  { file: "data/creatures/aurochs-king.json", text: aurochskingText },
+  { file: "data/creatures/gnome-rune.json", text: gnomeruneText },
+  { file: "data/creatures/gargoyle-obsidian.json", text: gargoyleobsidianText },
+  { file: "data/creatures/golem-mithril.json", text: golemmithrilText },
+  { file: "data/creatures/mage-arch.json", text: magearchText },
+  { file: "data/creatures/genie-pasha.json", text: geniepashaText },
+  { file: "data/creatures/naga-empress.json", text: nagaempressText },
+  { file: "data/creatures/giant-storm.json", text: giantstormText },
   { file: "data/creatures/militia-vet.json", text: militiavetText },
   { file: "data/creatures/slinger-ace.json", text: slingeraceText },
   { file: "data/creatures/falcon-gold.json", text: falcongoldText },

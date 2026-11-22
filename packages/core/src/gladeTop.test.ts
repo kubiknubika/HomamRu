@@ -75,15 +75,13 @@ describe("седьмой уровень Чащи", () => {
     const dwellings = built.state.buildings.filter(
       (building) => building.faction === "glade" && building.dwelling !== undefined,
     );
-    expect(dwellings.map((building) => building.dwelling).toSorted()).toEqual([
-      "aurochs",
-      "eagle",
-      "ent",
-      "huntress",
-      "kentaur",
-      "warden",
-      "wyvern",
-    ]);
+    // Семь уровней у Чащи; улучшения (82-creature-upgrades.md) — второй жилец того же уровня.
+    expect(
+      dwellings
+        .filter((building) => building.upgrade === undefined)
+        .map((building) => building.dwelling)
+        .toSorted(),
+    ).toEqual(["aurochs", "eagle", "ent", "huntress", "kentaur", "warden", "wyvern"]);
     expect(town?.type === "town" ? town.buildings : []).toContain("aurochs-pen");
   });
 });

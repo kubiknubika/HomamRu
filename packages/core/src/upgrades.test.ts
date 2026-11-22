@@ -3,7 +3,7 @@
 // того же уровня, и нанимать можно обоих. Новых команд нет.
 import { describe, expect, it } from "vitest";
 import { applyCommand } from "./commands.ts";
-import { fromPicture } from "./testkit.ts";
+import { BUILDINGS, fromPicture } from "./testkit.ts";
 import { stockTown } from "./town.ts";
 import type { GameState, TownState } from "./types.ts";
 
@@ -128,5 +128,40 @@ describe("улучшения жилищ", () => {
       count: 15,
     });
     expect(tooMany.ok ? "" : tooMany.code).toBe("NOT_AVAILABLE");
+  });
+});
+
+describe("улучшения Чащи и Башни", () => {
+  it("у каждого замка семь улучшений, и каждое строится после своего жилища", () => {
+    const homes: Record<string, string[]> = {
+      glade: [
+        "kentaur-glade",
+        "huntress-lodge",
+        "eagle-aerie",
+        "ent-grove",
+        "warden-hall",
+        "wyvern-cliff",
+        "aurochs-pen",
+      ],
+      tower: [
+        "gnome-hill",
+        "gargoyle-roost",
+        "golem-workshop",
+        "mage-tower",
+        "genie-lamp",
+        "naga-temple",
+        "giant-hall",
+      ],
+    };
+    for (const [faction, bases] of Object.entries(homes)) {
+      const upgrades = BUILDINGS.filter(
+        (building) => building.faction === faction && building.upgrade !== undefined,
+      );
+      expect(upgrades.map((building) => building.upgrade?.base)).toEqual(bases);
+      for (const upgrade of upgrades) {
+        expect(upgrade.requires).toContain(upgrade.upgrade?.base);
+        expect(upgrade.dwelling).toBe(upgrade.upgrade?.becomes);
+      }
+    }
   });
 });

@@ -1,0 +1,15 @@
+{
+  "id": "aurochs-king",
+  "name": "Зубр-вожак",
+  "attack": 18,
+  "defense": 20,
+  "damageMin": 22,
+  "damageMax": 29,
+  "health": 140,
+  "speed": 7,
+  "flying": false,
+  "shots": 0,
+  "price": 2800,
+  "growth": 1,
+  "level": 7
+}

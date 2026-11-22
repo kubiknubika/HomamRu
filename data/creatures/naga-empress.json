@@ -1,0 +1,15 @@
+{
+  "id": "naga-empress",
+  "name": "Императрица нагов",
+  "attack": 17,
+  "defense": 16,
+  "damageMin": 13,
+  "damageMax": 20,
+  "health": 95,
+  "speed": 6,
+  "flying": false,
+  "shots": 0,
+  "price": 1950,
+  "growth": 2,
+  "level": 6
+}

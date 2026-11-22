@@ -1,0 +1,15 @@
+{
+  "id": "eagle-storm",
+  "name": "Буревой орёл",
+  "attack": 12,
+  "defense": 7,
+  "damageMin": 4,
+  "damageMax": 7,
+  "health": 33,
+  "speed": 10,
+  "flying": true,
+  "shots": 0,
+  "price": 500,
+  "growth": 7,
+  "level": 3
+}

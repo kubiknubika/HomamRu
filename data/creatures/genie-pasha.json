@@ -1,0 +1,15 @@
+{
+  "id": "genie-pasha",
+  "name": "Джинн-паша",
+  "attack": 15,
+  "defense": 12,
+  "damageMin": 9,
+  "damageMax": 14,
+  "health": 65,
+  "speed": 9,
+  "flying": true,
+  "shots": 0,
+  "price": 1250,
+  "growth": 3,
+  "level": 5
+}

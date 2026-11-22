@@ -14,6 +14,7 @@ import { STRONGHOLD_CREATURES } from "./strongholdKit.ts";
 import { FORTRESS_CREATURES } from "./fortressKit.ts";
 import { CONFLUX_CREATURES } from "./confluxKit.ts";
 import { CASTLE_UPGRADE_CREATURES } from "./castleUpgradeKit.ts";
+import { GLADE_TOWER_UPGRADE_CREATURES } from "./gladeTowerUpgradeKit.ts";
 import { commandingSide, findStack } from "./queries.ts";
 import type {
   ArmyDefinition,
@@ -105,6 +106,7 @@ export const CREATURES = [
   ...FORTRESS_CREATURES,
   ...CONFLUX_CREATURES,
   ...CASTLE_UPGRADE_CREATURES,
+  ...GLADE_TOWER_UPGRADE_CREATURES,
 ];
 
 /** Армия без героя, с нулевыми боевым духом и удачей. Запись отряда: `"militia:20"`. */

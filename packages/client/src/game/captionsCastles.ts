@@ -4,6 +4,20 @@
  * в 300 строк, а слова замков — самая большая и самая однородная их часть.
  */
 export const CASTLE_CREATURE_MANY: Readonly<Record<string, string>> = {
+  "kentaur-elder": "старейшин кентавров",
+  "huntress-ranger": "следопыток",
+  "eagle-storm": "буревых орлов",
+  "ent-ancient": "древних древней",
+  "warden-stone": "каменных хранителей",
+  "wyvern-royal": "царских вьюнов",
+  "aurochs-king": "зубров-вожаков",
+  "gnome-rune": "рунных гномов",
+  "gargoyle-obsidian": "обсидиановых горгулий",
+  "golem-mithril": "мифриловых големов",
+  "mage-arch": "архимагов",
+  "genie-pasha": "джиннов-пашей",
+  "naga-empress": "императриц нагов",
+  "giant-storm": "громовых великанов",
   "militia-vet": "ветеранов ополчения",
   "slinger-ace": "метких пращников",
   "falcon-gold": "золотых соколов",
@@ -63,6 +77,20 @@ export const CASTLE_CREATURE_MANY: Readonly<Record<string, string>> = {
 };
 
 export const CASTLE_CREATURE_PLURAL: Readonly<Record<string, string>> = {
+  "kentaur-elder": "старейшины кентавров",
+  "huntress-ranger": "следопытки",
+  "eagle-storm": "буревые орлы",
+  "ent-ancient": "древние древни",
+  "warden-stone": "каменные хранители",
+  "wyvern-royal": "царские вьюны",
+  "aurochs-king": "зубры-вожаки",
+  "gnome-rune": "рунные гномы",
+  "gargoyle-obsidian": "обсидиановые горгульи",
+  "golem-mithril": "мифриловые големы",
+  "mage-arch": "архимаги",
+  "genie-pasha": "джинны-паши",
+  "naga-empress": "императрицы нагов",
+  "giant-storm": "громовые великаны",
   "militia-vet": "ветераны ополчения",
   "slinger-ace": "меткие пращники",
   "falcon-gold": "золотые соколы",

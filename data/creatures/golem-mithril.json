@@ -1,0 +1,15 @@
+{
+  "id": "golem-mithril",
+  "name": "Мифриловый голем",
+  "attack": 10,
+  "defense": 12,
+  "damageMin": 4,
+  "damageMax": 6,
+  "health": 40,
+  "speed": 4,
+  "flying": false,
+  "shots": 0,
+  "price": 530,
+  "growth": 7,
+  "level": 3
+}

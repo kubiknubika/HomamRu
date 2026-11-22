@@ -1,0 +1,15 @@
+{
+  "id": "warden-stone",
+  "name": "Каменный хранитель",
+  "attack": 15,
+  "defense": 19,
+  "damageMin": 10,
+  "damageMax": 15,
+  "health": 90,
+  "speed": 4,
+  "flying": false,
+  "shots": 0,
+  "price": 1150,
+  "growth": 3,
+  "level": 5
+}

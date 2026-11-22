@@ -1,0 +1,15 @@
+{
+  "id": "mage-arch",
+  "name": "Архимаг",
+  "attack": 11,
+  "defense": 9,
+  "damageMin": 6,
+  "damageMax": 10,
+  "health": 34,
+  "speed": 6,
+  "flying": false,
+  "shots": 10,
+  "price": 850,
+  "growth": 4,
+  "level": 4
+}

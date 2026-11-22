@@ -1,0 +1,15 @@
+{
+  "id": "huntress-ranger",
+  "name": "Следопытка",
+  "attack": 8,
+  "defense": 7,
+  "damageMin": 3,
+  "damageMax": 6,
+  "health": 20,
+  "speed": 6,
+  "flying": false,
+  "shots": 14,
+  "price": 250,
+  "growth": 9,
+  "level": 2
+}
