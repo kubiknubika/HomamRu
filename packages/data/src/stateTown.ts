@@ -92,6 +92,20 @@ function canonical(
  * Здания партии: читаемые из записи, а за ними здания игры, которых в записи нет.
  * Из требований убираются здания, которых в списке нет.
  */
+const COST_KEYS = ["gold", "wood", "ore", "mercury", "sulfur", "crystal", "gems"] as const;
+
+/** Цена здания: ключи ресурсов в постоянном порядке, пустые убраны. */
+function orderedCost(cost: BuildingDefinition["cost"]): BuildingDefinition["cost"] {
+  const ordered: { -readonly [K in (typeof COST_KEYS)[number]]?: number } = {};
+  for (const key of COST_KEYS) {
+    const amount = cost[key];
+    if (amount !== undefined) {
+      ordered[key] = amount;
+    }
+  }
+  return ordered;
+}
+
 export function readBuildings(
   items: readonly unknown[],
   defaults: SaveDefaults,
@@ -100,10 +114,25 @@ export function readBuildings(
   const known = new Set(saved.map((building) => building.id));
   const all = [...saved, ...defaults.buildings.filter((building) => !known.has(building.id))];
   const ids = new Set(all.map((building) => building.id));
-  return all.map((building) => ({
-    ...building,
-    requires: building.requires.filter((id) => ids.has(id)),
-  }));
+  // Улучшение без своей пары (старое и новое жилище) теряет смысл: его выбрасываем.
+  return all
+    .filter((building) => building.upgrade === undefined || ids.has(building.upgrade.base))
+    .map((building) => ({
+      // Порядок полей задан здесь, а не в записи: иначе порча, переставившая ключи,
+      // давала бы при повторном чтении другой JSON (04-save.md, «чтение устойчиво»).
+      id: building.id,
+      name: building.name,
+      cost: orderedCost(building.cost),
+      requires: building.requires.filter((id) => ids.has(id)),
+      ...(building.income === undefined ? {} : { income: building.income }),
+      ...(building.growthPercent === undefined ? {} : { growthPercent: building.growthPercent }),
+      ...(building.tavern === undefined ? {} : { tavern: building.tavern }),
+      ...(building.dwelling === undefined ? {} : { dwelling: building.dwelling }),
+      ...(building.upgrade === undefined ? {} : { upgrade: building.upgrade }),
+      ...(building.mageGuild === undefined ? {} : { mageGuild: building.mageGuild }),
+      ...(building.market === undefined ? {} : { market: building.market }),
+      ...(building.faction === undefined ? {} : { faction: building.faction }),
+    }));
 }
 
 /** Армия: отряды знакомых существ с числом от 1; одинаковые сливаются. */

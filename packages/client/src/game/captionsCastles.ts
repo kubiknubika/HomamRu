@@ -4,6 +4,13 @@
  * в 300 строк, а слова замков — самая большая и самая однородная их часть.
  */
 export const CASTLE_CREATURE_MANY: Readonly<Record<string, string>> = {
+  "militia-vet": "ветеранов ополчения",
+  "slinger-ace": "метких пращников",
+  "falcon-gold": "золотых соколов",
+  "armsman-guard": "стражников",
+  "cavalier-lance": "копейщиков-всадников",
+  "champion-paladin": "паладинов",
+  "griffin-silver": "серебряных грив",
   gnome: "гномов",
   gargoyle: "горгулий",
   golem: "големов",
@@ -56,6 +63,13 @@ export const CASTLE_CREATURE_MANY: Readonly<Record<string, string>> = {
 };
 
 export const CASTLE_CREATURE_PLURAL: Readonly<Record<string, string>> = {
+  "militia-vet": "ветераны ополчения",
+  "slinger-ace": "меткие пращники",
+  "falcon-gold": "золотые соколы",
+  "armsman-guard": "стражники",
+  "cavalier-lance": "копейщики-всадники",
+  "champion-paladin": "паладины",
+  "griffin-silver": "серебряные гривы",
   gnome: "гномы",
   gargoyle: "горгульи",
   golem: "големы",

@@ -13,6 +13,13 @@ import armsmanText from "../../../../data/creatures/armsman.json?raw";
 import aurochsText from "../../../../data/creatures/aurochs.json?raw";
 import blackdragonText from "../../../../data/creatures/blackdragon.json?raw";
 import bonedragonText from "../../../../data/creatures/bonedragon.json?raw";
+import militiavetText from "../../../../data/creatures/militia-vet.json?raw";
+import slingeraceText from "../../../../data/creatures/slinger-ace.json?raw";
+import falcongoldText from "../../../../data/creatures/falcon-gold.json?raw";
+import armsmanguardText from "../../../../data/creatures/armsman-guard.json?raw";
+import cavalierlanceText from "../../../../data/creatures/cavalier-lance.json?raw";
+import championpaladinText from "../../../../data/creatures/champion-paladin.json?raw";
+import griffinsilverText from "../../../../data/creatures/griffin-silver.json?raw";
 import pixieText from "../../../../data/creatures/pixie.json?raw";
 import airelemText from "../../../../data/creatures/airelem.json?raw";
 import waterelemText from "../../../../data/creatures/waterelem.json?raw";
@@ -102,6 +109,13 @@ const CREATURE_FILES = [
   { file: "data/creatures/armsman.json", text: armsmanText },
   { file: "data/creatures/aurochs.json", text: aurochsText },
   { file: "data/creatures/bonedragon.json", text: bonedragonText },
+  { file: "data/creatures/militia-vet.json", text: militiavetText },
+  { file: "data/creatures/slinger-ace.json", text: slingeraceText },
+  { file: "data/creatures/falcon-gold.json", text: falcongoldText },
+  { file: "data/creatures/armsman-guard.json", text: armsmanguardText },
+  { file: "data/creatures/cavalier-lance.json", text: cavalierlanceText },
+  { file: "data/creatures/champion-paladin.json", text: championpaladinText },
+  { file: "data/creatures/griffin-silver.json", text: griffinsilverText },
   { file: "data/creatures/pixie.json", text: pixieText },
   { file: "data/creatures/airelem.json", text: airelemText },
   { file: "data/creatures/waterelem.json", text: waterelemText },

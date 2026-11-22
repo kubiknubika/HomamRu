@@ -1,0 +1,15 @@
+{
+  "id": "armsman-guard",
+  "name": "Стражник",
+  "attack": 11,
+  "defense": 13,
+  "damageMin": 6,
+  "damageMax": 9,
+  "health": 40,
+  "speed": 5,
+  "flying": false,
+  "shots": 0,
+  "price": 680,
+  "growth": 4,
+  "level": 4
+}

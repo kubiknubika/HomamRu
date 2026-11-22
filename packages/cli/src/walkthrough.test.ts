@@ -13,6 +13,8 @@ const MAX_DAYS = 70;
 // Что проходчик не строит за 70 дней: верхние жилища (дорогие) и пятый круг гильдии
 // (2000 золота и по 10 редких ресурсов). Оба здания в правилах есть — их строит игрок.
 const TOP_BUILDINGS = ["stables", "champion-hall", "griffin-tower", "mage-guild-5"];
+// Улучшения жилищ (82-creature-upgrades.md) проходчик не строит: его `buildOrder` — список
+// базовых зданий, как и у компьютера. Здания в правилах есть — их строит игрок.
 /** Тесты проходят карту по многу раз: в CI это дольше обычного предела. */
 const SLOW = 120_000;
 
@@ -78,6 +80,7 @@ describe("карта первой версии «Четыре края»", () =>
           .filter((building) => building.market !== true)
           .filter((building) => (building.faction ?? "castle") === "castle")
           .filter((building) => !TOP_BUILDINGS.includes(building.id))
+          .filter((building) => building.upgrade === undefined)
           .map((building) => building.id)
           .toSorted(),
       );

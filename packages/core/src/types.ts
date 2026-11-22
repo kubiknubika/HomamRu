@@ -105,6 +105,11 @@ export interface BuildingDefinition {
   readonly tavern?: boolean | undefined;
   /** Жилище: идентификатор существа, которое здесь нанимают (31-recruitment.md). */
   readonly dwelling?: string | undefined;
+  /**
+   * Улучшение: это здание улучшает жилище `upgrade.base` в жилище `upgrade.becomes`
+   * (82-creature-upgrades.md). Улучшенное жилище даёт второго жильца того же уровня.
+   */
+  readonly upgrade?: { readonly base: string; readonly becomes: string } | undefined;
   /** Гильдия магов: её уровень (61-magic.md). */
   readonly mageGuild?: number | undefined;
   /** Рынок: здесь меняют ресурсы (72-market.md). */

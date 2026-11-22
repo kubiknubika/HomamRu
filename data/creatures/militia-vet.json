@@ -1,0 +1,15 @@
+{
+  "id": "militia-vet",
+  "name": "Ветеран ополчения",
+  "attack": 6,
+  "defense": 6,
+  "damageMin": 2,
+  "damageMax": 4,
+  "health": 16,
+  "speed": 4,
+  "flying": false,
+  "shots": 0,
+  "price": 140,
+  "growth": 14,
+  "level": 1
+}

@@ -132,7 +132,11 @@ function dwellers(state: GameState, town: TownState): CreatureDefinition[] {
   return result;
 }
 
-/** Существа, которые сразу ждут найма в только что построенном жилище. */
+/**
+ * Существа, которые сразу ждут найма в только что построенном жилище. В улучшенном
+ * жилище (82-creature-upgrades.md) новый жилец приходит со своим приростом, а старый
+ * остаётся: нанять можно и того, и другого.
+ */
 function withDwellingStock(state: GameState, town: TownState, buildingId: string): TownState {
   const dwelling = state.buildings.find((building) => building.id === buildingId)?.dwelling;
   const creature = state.creatures.find((candidate) => candidate.id === dwelling);
@@ -183,6 +187,7 @@ function recruit(
   if (dweller === undefined) {
     return reject("NO_DWELLING", `Жилища существа «${creature}» в городе нет.`);
   }
+
   if (!isCount(count)) {
     return reject("BAD_COUNT", `Число ${count} не годится: нужно целое, не меньше 1.`);
   }
