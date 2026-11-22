@@ -96,6 +96,13 @@ export const CREATURE_MANY: Readonly<Record<string, string>> = {
   genie: "джиннов",
   naga: "нагов",
   giant: "великанов",
+  imp: "бесов",
+  demonling: "бесят",
+  hound: "гончих",
+  horned: "рогатых",
+  fiend: "исчадий",
+  efreet: "ифритов",
+  archfiend: "архибесов",
 };
 
 /**
@@ -139,6 +146,13 @@ export const CREATURE_PLURAL: Readonly<Record<string, string>> = {
   genie: "джинны",
   naga: "наги",
   giant: "великаны",
+  imp: "бесы",
+  demonling: "бесята",
+  hound: "гончие",
+  horned: "рогатые",
+  fiend: "исчадия",
+  efreet: "ифриты",
+  archfiend: "архибесы",
 };
 
 /**

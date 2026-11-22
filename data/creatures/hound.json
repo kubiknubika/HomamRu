@@ -1,0 +1,15 @@
+{
+  "id": "hound",
+  "name": "Гончая",
+  "attack": 8,
+  "defense": 6,
+  "damageMin": 3,
+  "damageMax": 6,
+  "health": 30,
+  "speed": 7,
+  "flying": false,
+  "shots": 0,
+  "price": 250,
+  "growth": 7,
+  "level": 3
+}

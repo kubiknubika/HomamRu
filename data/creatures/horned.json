@@ -1,0 +1,15 @@
+{
+  "id": "horned",
+  "name": "Рогатый",
+  "attack": 10,
+  "defense": 11,
+  "damageMin": 5,
+  "damageMax": 8,
+  "health": 45,
+  "speed": 5,
+  "flying": false,
+  "shots": 0,
+  "price": 400,
+  "growth": 4,
+  "level": 4
+}

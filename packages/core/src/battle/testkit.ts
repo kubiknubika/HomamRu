@@ -7,6 +7,7 @@ import type { Cell } from "./hex.ts";
 import { CASTLE_TOP_CREATURES } from "./castleTopKit.ts";
 import { GLADE_CREATURES } from "./gladeKit.ts";
 import { TOWER_CREATURES } from "./towerKit.ts";
+import { INFERNO_CREATURES } from "./infernoKit.ts";
 import { commandingSide, findStack } from "./queries.ts";
 import type {
   ArmyDefinition,
@@ -91,6 +92,7 @@ export const CREATURES = [
   ARMSMAN,
   ...GLADE_CREATURES,
   ...TOWER_CREATURES,
+  ...INFERNO_CREATURES,
 ];
 
 /** Армия без героя, с нулевыми боевым духом и удачей. Запись отряда: `"militia:20"`. */
