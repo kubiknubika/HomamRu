@@ -1,0 +1,15 @@
+{
+  "id": "minotaur-king",
+  "name": "Царь минотавров",
+  "attack": 16,
+  "defense": 14,
+  "damageMin": 9,
+  "damageMax": 16,
+  "health": 72,
+  "speed": 6,
+  "flying": false,
+  "shots": 0,
+  "price": 1400,
+  "growth": 3,
+  "level": 5
+}

@@ -3,6 +3,7 @@
  * Спецификация: docs/mechanics/61-magic.md.
  */
 import { intelligencePercent, learnableLevel, manaPerDay } from "./skills.ts";
+import { createRng } from "./rng.ts";
 import { rollGuildSpells } from "./spells.ts";
 import { pay } from "./town.ts";
 import { reject } from "./types.ts";
@@ -135,16 +136,25 @@ export function applyBuyBook(state: GameState, command: BuyBookCommand): Command
   return { ok: true, state: { ...paid, heroes }, events };
 }
 
-/** Начало партии: каждому городу выбирается набор гильдии на все круги. */
+/**
+ * Начало партии: каждому городу выбирается набор гильдии на все круги, даже если
+ * гильдию ещё не построили, — набор виден по мере постройки (61-magic.md).
+ * Жребий гильдий идёт по своему генератору, снятому с состояния партии на этот миг:
+ * он не тратит жребий партии, поэтому ни наборы гильдий, ни их правка не сдвигают
+ * ход боёв и проверочных сценариев (порция 64).
+ */
 export function withGuildSpells(state: GameState): GameState {
-  let { rng } = state;
+  if (state.objects.every((object) => object.type !== "town")) {
+    return state;
+  }
+  let guildRng = createRng(state.rng.s);
   const objects = state.objects.map((object) => {
     if (object.type !== "town") {
       return object;
     }
-    const rolled = rollGuildSpells(rng, state.spells);
-    ({ rng } = rolled);
+    const rolled = rollGuildSpells(guildRng, state.spells);
+    guildRng = rolled.rng;
     return { ...object, spells: rolled.value };
   });
-  return { ...state, rng, objects };
+  return { ...state, objects };
 }

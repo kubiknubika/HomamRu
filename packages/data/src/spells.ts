@@ -63,6 +63,11 @@ export const battleHeroSchema = z.strictObject({
   spellPower: z.int().min(0).default(0),
   mana: z.int().min(0).default(0),
   sorcery: z.int().min(0).default(0),
+  // Навыки «числовые» (65-hero-skills.md, порция 77): в записях до версии 14 их нет — 0.
+  offence: z.int().min(0).default(0),
+  armorer: z.int().min(0).default(0),
+  archery: z.int().min(0).default(0),
+  ballistics: z.int().min(0).default(0),
   spells: z.array(savedSpellSchema).default([]),
 });
 

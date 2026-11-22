@@ -1,0 +1,15 @@
+{
+  "id": "imp",
+  "name": "Бес",
+  "attack": 4,
+  "defense": 3,
+  "damageMin": 1,
+  "damageMax": 3,
+  "health": 10,
+  "speed": 6,
+  "flying": false,
+  "shots": 0,
+  "price": 60,
+  "growth": 14,
+  "level": 1
+}

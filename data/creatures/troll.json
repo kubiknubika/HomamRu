@@ -1,0 +1,16 @@
+{
+  "id": "troll",
+  "name": "Тролль",
+  "attack": 12,
+  "defense": 12,
+  "damageMin": 8,
+  "damageMax": 13,
+  "health": 55,
+  "speed": 5,
+  "flying": false,
+  "shots": 0,
+  "price": 600,
+  "growth": 3,
+  "level": 5,
+  "neutral": true
+}

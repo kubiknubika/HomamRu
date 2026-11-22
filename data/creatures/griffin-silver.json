@@ -1,0 +1,15 @@
+{
+  "id": "griffin-silver",
+  "name": "Серебряная грива",
+  "attack": 20,
+  "defense": 17,
+  "damageMin": 18,
+  "damageMax": 29,
+  "health": 130,
+  "speed": 12,
+  "flying": true,
+  "shots": 0,
+  "price": 3200,
+  "growth": 1,
+  "level": 7
+}

@@ -1,0 +1,15 @@
+{
+  "id": "fiend",
+  "name": "Исчадие",
+  "attack": 13,
+  "defense": 10,
+  "damageMin": 8,
+  "damageMax": 12,
+  "health": 55,
+  "speed": 6,
+  "flying": false,
+  "shots": 0,
+  "price": 600,
+  "growth": 3,
+  "level": 5
+}

@@ -1,0 +1,15 @@
+{
+  "id": "aurochs",
+  "name": "Зубр",
+  "attack": 15,
+  "defense": 16,
+  "damageMin": 18,
+  "damageMax": 24,
+  "health": 110,
+  "speed": 7,
+  "flying": false,
+  "shots": 0,
+  "price": 1300,
+  "growth": 1,
+  "level": 7
+}

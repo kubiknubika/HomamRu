@@ -1,0 +1,15 @@
+{
+  "id": "efreet",
+  "name": "Ифрит",
+  "attack": 15,
+  "defense": 12,
+  "damageMin": 11,
+  "damageMax": 17,
+  "health": 80,
+  "speed": 8,
+  "flying": true,
+  "shots": 0,
+  "price": 950,
+  "growth": 2,
+  "level": 6
+}

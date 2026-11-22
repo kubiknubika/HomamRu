@@ -1,0 +1,8 @@
+name: Ничья — обе армии погибли разом
+battle: test-draw
+seed: 1
+steps:
+  # «Армагеддон» бьёт по всем: по одному ополченцу с каждой стороны не остаётся.
+  - cast: { spell: armageddon }
+expect:
+  winner: nobody

@@ -113,6 +113,8 @@ describe("город в сохранении", () => {
     const bare = { id: "o5", type: "town", x: 2, y: 2, owner: 1 };
     expect(townOf({ ...FULL_STATE, objects: [bare] })).toEqual({
       ...bare,
+      // Замок в старом сохранении не записан — город людей (74-second-castle.md).
+      faction: "castle",
       buildings: [],
       builtToday: false,
       available: [],

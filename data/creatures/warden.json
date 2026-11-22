@@ -1,0 +1,15 @@
+{
+  "id": "warden",
+  "name": "Хранитель",
+  "attack": 12,
+  "defense": 15,
+  "damageMin": 8,
+  "damageMax": 12,
+  "health": 70,
+  "speed": 4,
+  "flying": false,
+  "shots": 0,
+  "price": 500,
+  "growth": 3,
+  "level": 5
+}

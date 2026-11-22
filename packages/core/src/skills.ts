@@ -1,5 +1,5 @@
 /**
- * Навыки героя: восемь магических навыков, выбор при новом уровне.
+ * Навыки героя: восемь магических и пять «числовых» — всего тринадцать, выбор при новом уровне.
  * Спецификация: docs/mechanics/65-hero-skills.md.
  */
 import { nextInt } from "./rng.ts";
@@ -15,6 +15,15 @@ export const SKILL_IDS = [
   "mysticism",
   "intelligence",
   "sorcery",
+  "logistics",
+  "luck",
+  "leadership",
+  "offence",
+  "armorer",
+  "archery",
+  "learning",
+  "estates",
+  "ballistics",
 ] as const;
 export type SkillId = (typeof SKILL_IDS)[number];
 
@@ -38,6 +47,15 @@ export const SKILL_NAMES: Readonly<Record<SkillId, string>> = {
   mysticism: "Мистицизм",
   intelligence: "Интеллект",
   sorcery: "Волшебство",
+  logistics: "Логистика",
+  luck: "Удача",
+  leadership: "Боевой дух",
+  offence: "Нападение",
+  armorer: "Защита",
+  archery: "Стрельба",
+  learning: "Обучение",
+  estates: "Поместья",
+  ballistics: "Баллистика",
 };
 
 const SCHOOL_SKILLS: Readonly<Record<SpellSchool, SkillId>> = {
@@ -51,6 +69,20 @@ const SCHOOL_SKILLS: Readonly<Record<SpellSchool, SkillId>> = {
 const MYSTICISM_MANA = [2, 3, 4] as const;
 const INTELLIGENCE_PERCENT = [25, 50, 100] as const;
 const SORCERY_PERCENT = [5, 10, 15] as const;
+/** «Логистика»: на сколько процентов больше запас хода на суше. */
+const LOGISTICS_PERCENT = [10, 20, 30] as const;
+/** «Нападение»: на сколько процентов больше урон в ближнем бою и от ответного удара. */
+const OFFENCE_PERCENT = [10, 20, 30] as const;
+/** «Защита»: на сколько процентов меньше урона по своим отрядам. */
+const ARMORER_PERCENT = [5, 10, 15] as const;
+/** «Стрельба»: на сколько процентов больше урон выстрела. */
+const ARCHERY_PERCENT = [10, 25, 50] as const;
+/** «Обучение»: на сколько процентов больше опыта за бой. */
+const LEARNING_PERCENT = [5, 10, 15] as const;
+/** «Поместья»: сколько золота в день приносит герой сверх дохода. */
+const ESTATES_GOLD = [125, 250, 500] as const;
+/** «Баллистика»: сколько лишних выстрелов у катапульты. */
+const BALLISTICS_SHOTS = [1, 2, 3] as const;
 
 type Skilled = { readonly skills: readonly HeroSkill[] };
 
@@ -81,6 +113,70 @@ export function intelligencePercent(hero: Skilled): number {
 /** На сколько процентов «Волшебство» увеличивает урон заклинаний. */
 export function sorceryPercent(hero: Skilled): number {
   return byLevel(hero, "sorcery", SORCERY_PERCENT, 0);
+}
+
+/** На сколько процентов «Логистика» увеличивает дневной запас хода. */
+function logisticsPercent(hero: Skilled): number {
+  return byLevel(hero, "logistics", LOGISTICS_PERCENT, 0);
+}
+
+/** Дневной запас хода героя: 1000 и больше с «Логистикой»; дробь отбрасывается. */
+export function dailyMovementOf(hero: Skilled, base: number): number {
+  return Math.floor((base * (100 + logisticsPercent(hero))) / 100);
+}
+
+/** Насколько удача героя выше обычной: 0, с навыком «Удача» — 1, 2 или 3. */
+function luckBonusOf(hero: Skilled): number {
+  return skillLevel(hero, "luck");
+}
+
+/** Насколько боевой дух героя выше обычного: 0, с навыком — 1, 2 или 3. */
+function leadershipBonusOf(hero: Skilled): number {
+  return skillLevel(hero, "leadership");
+}
+
+/** Предел удачи и боевого духа в бою: числа из Heroes 3. */
+const MAX_BATTLE_LUCK = 3;
+const MAX_BATTLE_MORALE = 3;
+
+/** Удача отрядов героя: удача армии и «Удача», но не больше трёх. */
+export function battleLuckOf(base: number, hero: Skilled): number {
+  return Math.min(MAX_BATTLE_LUCK, base + luckBonusOf(hero));
+}
+
+/** Боевой дух отрядов героя: дух армии и «Боевой дух», но не больше трёх. */
+export function battleMoraleOf(base: number, hero: Skilled): number {
+  return Math.min(MAX_BATTLE_MORALE, base + leadershipBonusOf(hero));
+}
+
+/** На сколько процентов «Нападение» увеличивает урон в ближнем бою и от ответного удара. */
+export function offencePercent(hero: Skilled): number {
+  return byLevel(hero, "offence", OFFENCE_PERCENT, 0);
+}
+
+/** На сколько процентов «Защита» уменьшает урон по отрядам героя. */
+export function armorerPercent(hero: Skilled): number {
+  return byLevel(hero, "armorer", ARMORER_PERCENT, 0);
+}
+
+/** На сколько процентов «Стрельба» увеличивает урон выстрела. */
+export function archeryPercent(hero: Skilled): number {
+  return byLevel(hero, "archery", ARCHERY_PERCENT, 0);
+}
+
+/** На сколько процентов «Обучение» увеличивает опыт за бой. */
+export function learningPercent(hero: Skilled): number {
+  return byLevel(hero, "learning", LEARNING_PERCENT, 0);
+}
+
+/** Сколько золота в день приносит «Поместья»; 0 — без навыка. */
+export function estatesGold(hero: Skilled): number {
+  return byLevel(hero, "estates", ESTATES_GOLD, 0);
+}
+
+/** Сколько лишних выстрелов даёт катапульте «Баллистика»; 0 — без навыка. */
+export function ballisticsShots(hero: Skilled): number {
+  return byLevel(hero, "ballistics", BALLISTICS_SHOTS, 0);
 }
 
 /** До какого круга герой учит заклинания: 2, с «Мудростью» — 3, 4 или 5. */

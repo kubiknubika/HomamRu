@@ -1,0 +1,26 @@
+# Проверочная карта пятого замка — «Подземелья» (docs/mechanics/77-fifth-castle.md).
+# Игрок у города Подземелья: жилища Подземелья строятся, жилища других замков — нет.
+id: test-dungeon
+name: Проверочная карта с Подземельем
+terrain:
+  - "........"
+  - "........"
+  - "........"
+  - "...##..."
+  - "........"
+  - "........"
+  - "........"
+  - "........"
+players:
+  - hero: { x: 1, y: 1, army: [{ creature: troglodyte, count: 12 }] }
+    resources: { gold: 20000, wood: 20, ore: 20 }
+objects:
+  - {
+      type: town,
+      x: 2,
+      y: 2,
+      owner: 0,
+      faction: dungeon,
+      buildings: [tavern, fort, troglodyte-cave],
+    }
+  - { type: mine, x: 1, y: 5, kind: gold-mine }

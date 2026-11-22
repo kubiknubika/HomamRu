@@ -1,11 +1,11 @@
 /**
  * Ходы игроков и календарь. Спецификация: docs/mechanics/03-time.md.
  */
-import { DAILY_MOVEMENT } from "./heroIds.ts";
+import { movementFor } from "./heroIds.ts";
 import { growGuards } from "./guards.ts";
 import { restoreMana } from "./magic.ts";
 import { giveIncome } from "./objects.ts";
-import { countTownlessDay, firstPlayer, nextPlayerAfter } from "./players.ts";
+import { countTownlessDay, firstPlayer, nextPlayerAfter, timeLimitResult } from "./players.ts";
 import { refreshTavern } from "./tavern.ts";
 import { startTownDay } from "./town.ts";
 import type { CommandResult, EndTurnCommand, GameEvent, GameState } from "./types.ts";
@@ -51,7 +51,7 @@ export function applyEndTurn(initial: GameState, command: EndTurnCommand): Comma
     // Действие «Видений» и «Маскировки» кончается с днём (73-map-spells.md).
     heroes: state.heroes.map((hero) => ({
       ...hero,
-      movement: DAILY_MOVEMENT,
+      movement: movementFor(hero.skills),
       visions: 0,
       disguise: 0,
     })),
@@ -66,6 +66,12 @@ export function applyEndTurn(initial: GameState, command: EndTurnCommand): Comma
   // В начале недели в тавернах новые герои (32-hero-hire.md).
   for (const player of newWeek ? grown.players : []) {
     grown = refreshTavern(grown, player.id, events);
+  }
+  // Предел времени партии проверяется на новом дне: день перевалил за предел карты —
+  // партия кончается, побеждает сильнейший (41-victory.md).
+  const limited = timeLimitResult(grown, events);
+  if (limited !== null) {
+    return { ok: true, state: limited, events };
   }
   // Доход приходит в начале хода владельца шахт, до его первой команды.
   return { ok: true, state: giveIncome(grown, first, events), events };

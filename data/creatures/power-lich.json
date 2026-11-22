@@ -1,0 +1,15 @@
+{
+  "id": "power-lich",
+  "name": "Могучий лич",
+  "attack": 14,
+  "defense": 11,
+  "damageMin": 8,
+  "damageMax": 12,
+  "health": 46,
+  "speed": 5,
+  "flying": false,
+  "shots": 15,
+  "price": 1300,
+  "growth": 3,
+  "level": 5
+}

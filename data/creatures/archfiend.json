@@ -1,0 +1,15 @@
+{
+  "id": "archfiend",
+  "name": "Архибес",
+  "attack": 18,
+  "defense": 16,
+  "damageMin": 20,
+  "damageMax": 28,
+  "health": 130,
+  "speed": 7,
+  "flying": false,
+  "shots": 0,
+  "price": 1400,
+  "growth": 1,
+  "level": 7
+}

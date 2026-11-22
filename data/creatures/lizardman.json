@@ -1,0 +1,15 @@
+{
+  "id": "lizardman",
+  "name": "Ящер",
+  "attack": 6,
+  "defense": 5,
+  "damageMin": 2,
+  "damageMax": 4,
+  "health": 17,
+  "speed": 4,
+  "flying": false,
+  "shots": 12,
+  "price": 130,
+  "growth": 9,
+  "level": 2
+}

@@ -1,0 +1,15 @@
+{
+  "id": "wraith",
+  "name": "Дух",
+  "attack": 9,
+  "defense": 9,
+  "damageMin": 4,
+  "damageMax": 8,
+  "health": 30,
+  "speed": 7,
+  "flying": true,
+  "shots": 0,
+  "price": 560,
+  "growth": 7,
+  "level": 3
+}

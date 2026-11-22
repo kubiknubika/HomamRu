@@ -5,9 +5,13 @@
 import { mergeArmy } from "./army.ts";
 import { POWER_PER_CREATURE } from "./guards.ts";
 import { nextInt } from "./rng.ts";
+import { estatesGold } from "./skills.ts";
 import { townIncome } from "./town.ts";
 import type { RngState } from "./rng.ts";
 import { RESOURCES } from "./types.ts";
+
+/** Замок людей: у города без поля `faction` в файле карты он этот (30-town.md). */
+const CASTLE_FACTION = "castle";
 import type {
   GameEvent,
   GameState,
@@ -86,7 +90,7 @@ export function createObjects(
       return { id, type: "guard", x, y, creature, count, power: count * POWER_PER_CREATURE };
     }
     if (definition.type === "town") {
-      const { owner, buildings = [], garrison = [] } = definition;
+      const { owner, buildings = [], garrison = [], faction = CASTLE_FACTION } = definition;
       // Существа в жилищах появятся, когда партия собрана целиком (game.ts).
       return {
         id,
@@ -94,6 +98,8 @@ export function createObjects(
         x,
         y,
         owner,
+        // Замок города: от него зависит, какие жилища в нём строят (30-town.md).
+        faction,
         buildings: [...buildings],
         builtToday: false,
         available: [],
@@ -116,9 +122,15 @@ export function createObjects(
   return { objects, rng };
 }
 
-/** Дневной доход игрока от его шахт и города. */
+/** Дневной доход игрока от его шахт, города и «Поместий» его героев. */
 export function incomeOf(state: GameState, player: number): Resources {
   let income = NO_RESOURCES;
+  // «Поместья»: каждый герой игрока приносит золото сверх дохода (65-hero-skills.md).
+  for (const hero of state.heroes) {
+    if (hero.owner === player) {
+      income = addResources(income, { gold: estatesGold(hero) });
+    }
+  }
   for (const object of state.objects) {
     if (object.type === "town" && object.owner === player) {
       income = addResources(income, { gold: townIncome(state, object) });

@@ -1,0 +1,15 @@
+{
+  "id": "behemoth",
+  "name": "Бегемот",
+  "attack": 17,
+  "defense": 15,
+  "damageMin": 20,
+  "damageMax": 30,
+  "health": 130,
+  "speed": 7,
+  "flying": false,
+  "shots": 0,
+  "price": 1450,
+  "growth": 1,
+  "level": 7
+}

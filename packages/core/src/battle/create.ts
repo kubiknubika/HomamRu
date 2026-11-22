@@ -147,6 +147,10 @@ function sideOf(army: ArmyDefinition): BattleDraft["sides"][number] {
             spellPower: hero.spellPower ?? 0,
             mana: hero.mana ?? 0,
             sorcery: hero.sorcery ?? 0,
+            offence: hero.offence ?? 0,
+            armorer: hero.armorer ?? 0,
+            archery: hero.archery ?? 0,
+            ballistics: hero.ballistics ?? 0,
             spells: [...(hero.spells ?? [])],
           },
     morale: army.morale,
@@ -155,8 +159,11 @@ function sideOf(army: ArmyDefinition): BattleDraft["sides"][number] {
   };
 }
 
-/** Катапульта нападающего: стоит на своём месте у края поля и в очереди ходов не участвует. */
-function catapult(): StackState {
+/**
+ * Катапульта нападающего: стоит на своём месте у края поля и в очереди ходов не участвует.
+ * «Баллистика» героя даёт ей лишние выстрелы (65-hero-skills.md).
+ */
+function catapult(extraShots: number): StackState {
   return {
     id: "ac",
     side: 0,
@@ -165,7 +172,7 @@ function catapult(): StackState {
     count: 1,
     initialCount: 1,
     firstHealth: CATAPULT.health,
-    shots: CATAPULT.shots,
+    shots: CATAPULT.shots + extraShots,
     col: CATAPULT_CELL.col,
     row: CATAPULT_CELL.row,
     turn: "done",
@@ -211,7 +218,7 @@ export function createBattle(
     stacks: [
       ...placeArmy(0, definition.attacker, byId),
       ...placeArmy(1, definition.defender, byId),
-      ...(siege === undefined ? [] : [catapult()]),
+      ...(siege === undefined ? [] : [catapult(definition.attacker.hero?.ballistics ?? 0)]),
     ],
     activeStack: null,
     // В начале боя преимущество у нападающего: считается, что последним ходил обороняющийся.

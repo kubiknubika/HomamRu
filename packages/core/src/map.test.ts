@@ -140,7 +140,7 @@ describe("создание партии", () => {
     expect(createGame(mapOf({ players }), 42, CONTENT)).toEqual({
       ok: true,
       state: {
-        version: 13,
+        version: 14,
         rng: { s: 42 },
         map: {
           id: "test",

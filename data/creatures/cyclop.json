@@ -1,0 +1,15 @@
+{
+  "id": "cyclop",
+  "name": "Циклоп",
+  "attack": 14,
+  "defense": 12,
+  "damageMin": 11,
+  "damageMax": 16,
+  "health": 75,
+  "speed": 6,
+  "flying": false,
+  "shots": 7,
+  "price": 900,
+  "growth": 2,
+  "level": 6
+}

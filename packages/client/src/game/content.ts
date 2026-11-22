@@ -9,26 +9,16 @@ import {
 } from "@homamru/data";
 import type { ContentError, SaveDefaults } from "@homamru/data";
 import buildingsText from "../../../../data/buildings.yaml?raw";
-import armsmanText from "../../../../data/creatures/armsman.json?raw";
-import falconText from "../../../../data/creatures/falcon.json?raw";
-import militiaText from "../../../../data/creatures/militia.json?raw";
-import slingerText from "../../../../data/creatures/slinger.json?raw";
+import defaultsText from "../../../../data/defaults.yaml?raw";
 import heroesText from "../../../../data/heroes.yaml?raw";
 import spellsText from "../../../../data/spells.yaml?raw";
-import defaultsText from "../../../../data/defaults.yaml?raw";
+import { CREATURE_FILES } from "./contentCreatureFiles.ts";
 
 const DEFAULTS_FILE = "data/defaults.yaml";
 const SPELLS_FILE = "data/spells.yaml";
 
 const BUILDINGS_FILE = "data/buildings.yaml";
 const HEROES_FILE = "data/heroes.yaml";
-
-const CREATURE_FILES = [
-  { file: "data/creatures/armsman.json", text: armsmanText },
-  { file: "data/creatures/falcon.json", text: falconText },
-  { file: "data/creatures/militia.json", text: militiaText },
-  { file: "data/creatures/slinger.json", text: slingerText },
-] as const;
 
 /** Ошибка в файлах игры — исключение: с ней нельзя ни начать партию, ни продолжить. */
 export function failContent(errors: readonly ContentError[]): never {

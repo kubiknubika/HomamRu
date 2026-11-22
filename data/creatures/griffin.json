@@ -1,0 +1,15 @@
+{
+  "id": "griffin",
+  "name": "Грива",
+  "attack": 16,
+  "defense": 14,
+  "damageMin": 15,
+  "damageMax": 25,
+  "health": 95,
+  "speed": 11,
+  "flying": true,
+  "shots": 0,
+  "price": 1200,
+  "growth": 1,
+  "level": 7
+}

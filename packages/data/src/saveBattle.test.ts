@@ -1,5 +1,5 @@
 // Параметры шага 3.2 в сохранении: docs/mechanics/04-save.md и 23-map-battle.md.
-import { applyCommand, createGame, playBattleOut, replay } from "@homamru/core";
+import { applyCommand, createGame, playBattleOut, replay, STATE_VERSION } from "@homamru/core";
 import type { Command, GameState } from "@homamru/core";
 import { BUILDINGS, CONTENT, CREATURES, HEROES, OPPONENT, TAVERN } from "@homamru/core/testkit";
 import { describe, expect, it } from "vitest";
@@ -91,7 +91,7 @@ describe("сохранение посреди боя", () => {
 });
 
 describe("параметры шага 3.2: чего нет — начальное, чего игра не знает — убирается", () => {
-  it("сохранение шага 3.1 (вторая версия состояния) загружается", () => {
+  it("сохранение шага 3.1 (вторая версия состояния) загружается как нынешняя", () => {
     // Так выглядело состояние до шага 3.2: у героя нет армии, нет существ, боя и итога.
     const old = {
       version: 2,
@@ -116,7 +116,7 @@ describe("параметры шага 3.2: чего нет — начально�
     );
     const state = {
       ...old,
-      version: 13,
+      version: STATE_VERSION,
       // Города в записи нет — нет и таверны.
       players: FULL.players.map((player) => ({ ...player, tavern: [] })),
       heroes: [

@@ -4,6 +4,23 @@
 import { applyBattleCommand } from "./commands.ts";
 import { createBattle } from "./create.ts";
 import type { Cell } from "./hex.ts";
+import { CASTLE_TOP_CREATURES } from "./castleTopKit.ts";
+import { GLADE_CREATURES } from "./gladeKit.ts";
+import { TOWER_CREATURES } from "./towerKit.ts";
+import { INFERNO_CREATURES } from "./infernoKit.ts";
+import { DUNGEON_CREATURES } from "./dungeonKit.ts";
+import { NECROPOLIS_CREATURES } from "./necropolisKit.ts";
+import { STRONGHOLD_CREATURES } from "./strongholdKit.ts";
+import { FORTRESS_CREATURES } from "./fortressKit.ts";
+import { CONFLUX_CREATURES } from "./confluxKit.ts";
+import { CASTLE_UPGRADE_CREATURES } from "./castleUpgradeKit.ts";
+import { GLADE_TOWER_UPGRADE_CREATURES } from "./gladeTowerUpgradeKit.ts";
+import { INFERNO_UPGRADE_CREATURES } from "./infernoUpgradeKit.ts";
+import { DUNGEON_UPGRADE_CREATURES } from "./dungeonUpgradeKit.ts";
+import { NECROPOLIS_UPGRADE_CREATURES } from "./necropolisUpgradeKit.ts";
+import { STRONGHOLD_UPGRADE_CREATURES } from "./strongholdUpgradeKit.ts";
+import { FORTRESS_UPGRADE_CREATURES } from "./fortressUpgradeKit.ts";
+import { CONFLUX_UPGRADE_CREATURES } from "./confluxUpgradeKit.ts";
 import { commandingSide, findStack } from "./queries.ts";
 import type {
   ArmyDefinition,
@@ -29,6 +46,7 @@ export const MILITIA: CreatureDefinition = {
   shots: 0,
   price: 60,
   growth: 14,
+  level: 1,
 };
 
 export const SLINGER: CreatureDefinition = {
@@ -44,6 +62,7 @@ export const SLINGER: CreatureDefinition = {
   shots: 10,
   price: 100,
   growth: 9,
+  level: 2,
 };
 
 export const FALCON: CreatureDefinition = {
@@ -59,6 +78,7 @@ export const FALCON: CreatureDefinition = {
   shots: 0,
   price: 200,
   growth: 7,
+  level: 3,
 };
 
 const ARMSMAN: CreatureDefinition = {
@@ -74,9 +94,32 @@ const ARMSMAN: CreatureDefinition = {
   shots: 0,
   price: 300,
   growth: 4,
+  level: 4,
 };
 
-export const CREATURES = [MILITIA, SLINGER, FALCON, ARMSMAN];
+export const CREATURES = [
+  ...CASTLE_TOP_CREATURES,
+  MILITIA,
+  SLINGER,
+  FALCON,
+  ARMSMAN,
+  ...GLADE_CREATURES,
+  ...TOWER_CREATURES,
+  ...INFERNO_CREATURES,
+  ...DUNGEON_CREATURES,
+  ...NECROPOLIS_CREATURES,
+  ...STRONGHOLD_CREATURES,
+  ...FORTRESS_CREATURES,
+  ...CONFLUX_CREATURES,
+  ...CASTLE_UPGRADE_CREATURES,
+  ...GLADE_TOWER_UPGRADE_CREATURES,
+  ...INFERNO_UPGRADE_CREATURES,
+  ...DUNGEON_UPGRADE_CREATURES,
+  ...NECROPOLIS_UPGRADE_CREATURES,
+  ...STRONGHOLD_UPGRADE_CREATURES,
+  ...FORTRESS_UPGRADE_CREATURES,
+  ...CONFLUX_UPGRADE_CREATURES,
+];
 
 /** Армия без героя, с нулевыми боевым духом и удачей. Запись отряда: `"militia:20"`. */
 export function army(

@@ -1,0 +1,15 @@
+{
+  "id": "phoenix-eternal",
+  "name": "Вечный феникс",
+  "attack": 23,
+  "defense": 19,
+  "damageMin": 27,
+  "damageMax": 39,
+  "health": 165,
+  "speed": 12,
+  "flying": true,
+  "shots": 0,
+  "price": 3400,
+  "growth": 1,
+  "level": 7
+}

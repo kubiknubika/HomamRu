@@ -1,0 +1,16 @@
+{
+  "id": "dragon-azure",
+  "name": "Лазурный дракон",
+  "attack": 21,
+  "defense": 21,
+  "damageMin": 30,
+  "damageMax": 45,
+  "health": 200,
+  "speed": 11,
+  "flying": true,
+  "shots": 0,
+  "price": 3600,
+  "growth": 1,
+  "level": 10,
+  "neutral": true
+}

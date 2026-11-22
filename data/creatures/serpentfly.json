@@ -1,0 +1,15 @@
+{
+  "id": "serpentfly",
+  "name": "Змеиная муха",
+  "attack": 8,
+  "defense": 6,
+  "damageMin": 3,
+  "damageMax": 5,
+  "health": 24,
+  "speed": 9,
+  "flying": true,
+  "shots": 0,
+  "price": 240,
+  "growth": 7,
+  "level": 3
+}

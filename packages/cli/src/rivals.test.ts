@@ -48,6 +48,27 @@ describe("партии компьютер против компьютера", ()
     SLOW,
   );
 
+  // Сиды 47 и 58 стояли до срока 120 дней: две армии не решались напасть друг на друга
+  // (перевес 1,32 при требуемом 1,5 — docs/scales.md). Предел времени карты их закрывает.
+  it(
+    "хвосты 47, 58, 43 и 76 не висят: предел времени карты закрывает партию",
+    () => {
+      for (const seed of [43, 47, 58, 76]) {
+        const state = start(seed);
+        expect(state.map.daysLimit, "у проверочной карты нет предела времени").toBe(120);
+      }
+      const stuck: string[] = [];
+      for (const seed of [43, 47, 58, 76]) {
+        const shown = showComputerGame(seed, map, content);
+        if (!shown.ok) {
+          stuck.push(`сид ${seed}: ${shown.failures.join("; ")}`);
+        }
+      }
+      expect(stuck, "партия не кончилась за предел времени карты").toEqual([]);
+    },
+    SLOW,
+  );
+
   it("одна партия печатается целиком и кончается победой", () => {
     const run = showComputerGame(3, map, content);
     expect(run.ok).toBe(true);

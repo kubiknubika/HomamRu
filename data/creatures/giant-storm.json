@@ -1,0 +1,15 @@
+{
+  "id": "giant-storm",
+  "name": "Громовой великан",
+  "attack": 21,
+  "defense": 18,
+  "damageMin": 22,
+  "damageMax": 32,
+  "health": 155,
+  "speed": 7,
+  "flying": false,
+  "shots": 0,
+  "price": 2900,
+  "growth": 1,
+  "level": 7
+}

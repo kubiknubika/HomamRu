@@ -1,0 +1,15 @@
+{
+  "id": "mage",
+  "name": "Маг",
+  "attack": 9,
+  "defense": 7,
+  "damageMin": 5,
+  "damageMax": 8,
+  "health": 26,
+  "speed": 5,
+  "flying": false,
+  "shots": 8,
+  "price": 400,
+  "growth": 4,
+  "level": 4
+}

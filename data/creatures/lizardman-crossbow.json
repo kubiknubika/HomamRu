@@ -1,0 +1,15 @@
+{
+  "id": "lizardman-crossbow",
+  "name": "Ящер-арбалетчик",
+  "attack": 8,
+  "defense": 6,
+  "damageMin": 3,
+  "damageMax": 5,
+  "health": 22,
+  "speed": 4,
+  "flying": false,
+  "shots": 14,
+  "price": 300,
+  "growth": 9,
+  "level": 2
+}

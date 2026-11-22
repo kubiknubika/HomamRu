@@ -121,6 +121,7 @@ export const FULL_STATE: GameState = {
       x: 2,
       y: 2,
       owner: 1,
+      faction: "castle",
       buildings: ["tavern", "fort", "militia-yard", "citadel"],
       builtToday: true,
       available: [{ creature: "militia", count: 31 }],

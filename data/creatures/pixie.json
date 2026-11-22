@@ -1,0 +1,15 @@
+{
+  "id": "pixie",
+  "name": "Фея",
+  "attack": 4,
+  "defense": 3,
+  "damageMin": 1,
+  "damageMax": 3,
+  "health": 11,
+  "speed": 7,
+  "flying": true,
+  "shots": 0,
+  "price": 50,
+  "growth": 14,
+  "level": 1
+}

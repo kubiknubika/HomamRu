@@ -6,10 +6,11 @@ import type { LifeEvent } from "./lifeEvents.ts";
 import type { RngState } from "../rng.ts";
 import type { SpellDefinition, SpellEffect, SpellSchool } from "../spells.ts";
 import type { Cell } from "./hex.ts";
+import type { BattleHeroSkills } from "./heroSkills.ts";
 import type { Fortification, SiegeState, Tower, WallPart } from "./siege.ts";
 
 /** Номер версии формата состояния боя. */
-export const BATTLE_VERSION = 4;
+export const BATTLE_VERSION = 5;
 
 export const MAX_STACKS = 7;
 
@@ -30,25 +31,31 @@ export interface CreatureDefinition {
   readonly price: number;
   /** Основной недельный прирост в жилище. */
   readonly growth: number;
-  /** Уровень существа, от 1 до 7; нет — 1. Нужен «Клону» (71-spells-life.md). */
+  /**
+   * Уровень существа, от 1 до 10; нет — 1. Нужен «Клону» (71-spells-life.md).
+   * До 10 — потому что у нейтралов есть драконы десятого уровня (`docs/content/creatures.md`).
+   */
   readonly level?: number | undefined;
+  /**
+   * Нейтрал: не из замка. Живёт только в охранниках и на карте, нанимать его негде
+   * (`docs/mechanics/14-creatures.md`, `docs/content/creatures.md`).
+   */
+  readonly neutral?: boolean | undefined;
 }
 
-/** Герой в бою: прибавки отрядам и магия (62-battle-spells.md). */
-export interface BattleHero {
+/** Герой в бою: прибавки отрядам и магия (62-battle-spells.md, 65-hero-skills.md). */
+export interface BattleHero extends BattleHeroSkills {
   readonly attack: number;
   readonly defense: number;
-  readonly spellPower: number;
-  readonly mana: number;
-  /** «Волшебство»: на сколько процентов больше урон заклинаний. */
-  readonly sorcery: number;
   /** Заклинания целиком: состояние боя не зависит от файлов. У героя без книги — пусто. */
   readonly spells: readonly SpellDefinition[];
 }
 
 /** Герой в описании боя: магию можно не называть. */
 type BattleHeroDefinition = Pick<BattleHero, "attack" | "defense"> & {
-  readonly [K in "spellPower" | "mana" | "sorcery" | "spells"]?: BattleHero[K] | undefined;
+  readonly [K in keyof BattleHeroSkills]?: BattleHero[K] | undefined;
+} & {
+  readonly spells?: readonly SpellDefinition[] | undefined;
 };
 
 /** Действие заклинания на отряде. */

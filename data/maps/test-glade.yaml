@@ -1,0 +1,19 @@
+# Проверочная карта второго замка — «Чащи» (docs/mechanics/30-town.md, 74-second-castle.md).
+# Игрок у города Чащи: жилища Чащи строятся, жилища людей — нет.
+id: test-glade
+name: Проверочная карта с Чащей
+terrain:
+  - "........"
+  - "........"
+  - "........"
+  - "...##..."
+  - "........"
+  - "........"
+  - "........"
+  - "........"
+players:
+  - hero: { x: 1, y: 1, army: [{ creature: kentaur, count: 10 }] }
+    resources: { gold: 20000, wood: 20, ore: 20 }
+objects:
+  - { type: town, x: 2, y: 2, owner: 0, faction: glade, buildings: [tavern, fort, kentaur-glade] }
+  - { type: mine, x: 1, y: 5, kind: gold-mine }

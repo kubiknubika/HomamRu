@@ -1,0 +1,15 @@
+{
+  "id": "basilisk",
+  "name": "Василиск",
+  "attack": 10,
+  "defense": 12,
+  "damageMin": 4,
+  "damageMax": 7,
+  "health": 48,
+  "speed": 4,
+  "flying": false,
+  "shots": 0,
+  "price": 420,
+  "growth": 4,
+  "level": 4
+}

@@ -9,6 +9,7 @@ import type {
 } from "@homamru/core";
 import { z } from "zod";
 import { parseContentFile } from "./parse.ts";
+import { upgradeErrors } from "./buildingUpgrades.ts";
 import type { ContentResult } from "./parse.ts";
 
 const ID_PATTERN = /^[a-z0-9-]+$/;
@@ -30,7 +31,8 @@ const creatureFields = {
   speed: z.int().min(1),
   flying: z.boolean(),
   shots: z.int().min(0),
-  level: z.int().min(1).max(7).optional(),
+  level: z.int().min(1).max(10).optional(),
+  neutral: z.boolean().optional(),
 };
 
 /** Файл существа. Описание полей: docs/mechanics/14-creatures.md, 31-recruitment.md. */
@@ -136,8 +138,17 @@ export const buildingSchema = z.strictObject({
   growthPercent: z.int().min(1).optional(),
   tavern: z.boolean().optional(),
   dwelling: z.string().optional(),
+  // Улучшение жилища (82-creature-upgrades.md): старое жилище становится новым.
+  upgrade: z
+    .strictObject({
+      base: z.string().regex(ID_PATTERN, ID_MESSAGE),
+      becomes: z.string().regex(ID_PATTERN, ID_MESSAGE),
+    })
+    .optional(),
   mageGuild: z.int().min(1).max(5).optional(),
   market: z.boolean().optional(),
+  // Замок здания (30-town.md): город строит только своё.
+  faction: z.string().regex(ID_PATTERN, ID_MESSAGE).optional(),
 }) satisfies z.ZodType<BuildingDefinition>;
 
 /**
@@ -174,6 +185,7 @@ export function parseBuildingsFile(
     if (dwelling !== undefined && !creatures.some((creature) => creature.id === dwelling)) {
       errors.push({ file, field: `${index}.dwelling`, message: `Существа «${dwelling}» нет.` });
     }
+    errors.push(...upgradeErrors(file, index, building, buildings, ids, creatures));
   });
   if (buildings.filter((building) => building.tavern === true).length !== 1) {
     errors.push({ file, field: "tavern", message: "Таверна должна быть ровно одна." });
@@ -197,6 +209,11 @@ const armySchema = z.strictObject({
       mana: z.int().min(0).optional(),
       /** «Волшебство»: на сколько процентов больше урон заклинаний. */
       sorcery: z.int().min(0).optional(),
+      /** «Нападение», «Защита», «Стрельба»: проценты к урону (65-hero-skills.md). */
+      offence: z.int().min(0).optional(),
+      armorer: z.int().min(0).optional(),
+      archery: z.int().min(0).optional(),
+      ballistics: z.int().min(0).optional(),
       /** Книга со всеми заклинаниями игры: для проверочных боёв. */
       allSpells: z.boolean().optional(),
       /** Уровень всех школ магии героя, 0–3: с ним колдуются заклинания книги. */
@@ -284,7 +301,11 @@ const battleScenarioSchema = z.strictObject({
   steps: z.array(stepSchema),
   expect: z
     .strictObject({
-      winner: z.enum(["attacker", "defender"]).optional(),
+      /**
+       * Кто победил. «nobody» — обе армии погибли разом: тогда в итоге боя стоит
+       * обороняющийся (город остаётся за ним), и по одному полю `winner` ничью не отличить.
+       */
+      winner: z.enum(["attacker", "defender", "nobody"]).optional(),
       /** Ход какого отряда ожидается в конце. */
       active: z.string().optional(),
       stacks: z

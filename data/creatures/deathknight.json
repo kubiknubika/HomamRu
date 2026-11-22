@@ -1,0 +1,15 @@
+{
+  "id": "deathknight",
+  "name": "Могильный рыцарь",
+  "attack": 13,
+  "defense": 14,
+  "damageMin": 10,
+  "damageMax": 15,
+  "health": 72,
+  "speed": 7,
+  "flying": false,
+  "shots": 0,
+  "price": 900,
+  "growth": 2,
+  "level": 6
+}

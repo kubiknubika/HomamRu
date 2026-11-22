@@ -1,0 +1,15 @@
+{
+  "id": "gorgon",
+  "name": "Горгона",
+  "attack": 11,
+  "defense": 13,
+  "damageMin": 6,
+  "damageMax": 10,
+  "health": 62,
+  "speed": 4,
+  "flying": false,
+  "shots": 0,
+  "price": 550,
+  "growth": 3,
+  "level": 5
+}

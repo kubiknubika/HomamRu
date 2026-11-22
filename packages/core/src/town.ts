@@ -100,6 +100,10 @@ export function buildObstacle(
   if (town.builtToday) {
     return reject("BUILT_TODAY", "Сегодня в этом городе уже строили.");
   }
+  // Чужой замок в своём городе не строят: жилища Чащи — только в городе Чащи (30-town.md).
+  if (building.faction !== undefined && building.faction !== town.faction) {
+    return reject("WRONG_FACTION", `«${building.name}» строят только в городе другого замка.`);
+  }
   const absent = building.requires.filter((id) => !town.buildings.includes(id));
   if (absent.length > 0) {
     const names = absent.map((id) => state.buildings.find((b) => b.id === id)?.name ?? id);
@@ -128,7 +132,11 @@ function dwellers(state: GameState, town: TownState): CreatureDefinition[] {
   return result;
 }
 
-/** Существа, которые сразу ждут найма в только что построенном жилище. */
+/**
+ * Существа, которые сразу ждут найма в только что построенном жилище. В улучшенном
+ * жилище (82-creature-upgrades.md) новый жилец приходит со своим приростом, а старый
+ * остаётся: нанять можно и того, и другого.
+ */
 function withDwellingStock(state: GameState, town: TownState, buildingId: string): TownState {
   const dwelling = state.buildings.find((building) => building.id === buildingId)?.dwelling;
   const creature = state.creatures.find((candidate) => candidate.id === dwelling);
@@ -179,6 +187,7 @@ function recruit(
   if (dweller === undefined) {
     return reject("NO_DWELLING", `Жилища существа «${creature}» в городе нет.`);
   }
+
   if (!isCount(count)) {
     return reject("BAD_COUNT", `Число ${count} не годится: нужно целое, не меньше 1.`);
   }

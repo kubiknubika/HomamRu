@@ -1,0 +1,15 @@
+{
+  "id": "blackdragon-red",
+  "name": "Красный змей",
+  "attack": 21,
+  "defense": 19,
+  "damageMin": 26,
+  "damageMax": 36,
+  "health": 175,
+  "speed": 9,
+  "flying": true,
+  "shots": 0,
+  "price": 3400,
+  "growth": 1,
+  "level": 7
+}

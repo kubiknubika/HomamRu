@@ -159,6 +159,7 @@ function battleEndViolations(before: GameState, after: GameState): string[] {
 }
 
 describe("случайные партии с охранниками", () => {
+  // Существ стало 120 (улучшения порций 73–75), случайных боёв больше — тесту нужна минута.
   it("ни одно свойство не нарушено; повтор партии даёт то же состояние", () => {
     const seen = { battles: 0, wins: 0, defeats: 0, levels: 0, rejected: 0, grown: 0 };
     for (let seed = 1; seed <= GAMES; seed += 1) {
@@ -204,5 +205,5 @@ describe("случайные партии с охранниками", () => {
     expect(seen.levels).toBeGreaterThan(5);
     expect(seen.rejected).toBeGreaterThan(GAMES);
     expect(seen.grown).toBeGreaterThan(5);
-  });
+  }, 60_000);
 });

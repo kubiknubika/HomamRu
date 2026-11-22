@@ -1,0 +1,15 @@
+{
+  "id": "vampire",
+  "name": "Вампир",
+  "attack": 9,
+  "defense": 9,
+  "damageMin": 4,
+  "damageMax": 6,
+  "health": 44,
+  "speed": 6,
+  "flying": false,
+  "shots": 0,
+  "price": 420,
+  "growth": 4,
+  "level": 4
+}

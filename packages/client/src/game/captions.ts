@@ -22,6 +22,7 @@ import type {
   Resources,
   TownState,
 } from "@homamru/core";
+import { CASTLE_CREATURE_MANY, CASTLE_CREATURE_PLURAL } from "./captionsCastles.ts";
 import { humanOf } from "./view.ts";
 import type { Fight } from "./view.ts";
 
@@ -64,6 +65,32 @@ export const CREATURE_MANY: Readonly<Record<string, string>> = {
   slinger: "пращников",
   falcon: "соколов",
   armsman: "латников",
+  kentaur: "кентавров",
+  huntress: "охотниц",
+  eagle: "орлов",
+  ent: "древней",
+  warden: "хранителей",
+  wyvern: "вьюнов",
+  aurochs: "зубров",
+  cavalier: "всадников",
+  champion: "витязей",
+  griffin: "грив",
+  peasant: "селян",
+  halfling: "невысокликов",
+  boar: "вепрей",
+  rogue: "разбойников",
+  mummy: "мумий",
+  nomad: "кочевников",
+  sharpshooter: "метких стрелков",
+  "golem-gold": "золотых големов",
+  troll: "троллей",
+  enchanter: "чародеев",
+  "golem-diamond": "алмазных големов",
+  "dragon-fairie": "лесных драконов",
+  "dragon-rust": "ржавых драконов",
+  "dragon-crystal": "хрустальных драконов",
+  "dragon-azure": "лазурных драконов",
+  ...CASTLE_CREATURE_MANY,
 };
 
 /**
@@ -75,6 +102,32 @@ export const CREATURE_PLURAL: Readonly<Record<string, string>> = {
   slinger: "пращники",
   falcon: "соколы",
   armsman: "латники",
+  kentaur: "кентавры",
+  huntress: "охотницы",
+  eagle: "орлы",
+  ent: "древни",
+  warden: "хранители",
+  wyvern: "вьюны",
+  aurochs: "зубры",
+  cavalier: "всадники",
+  champion: "витязи",
+  griffin: "гривы",
+  peasant: "селяне",
+  halfling: "невысоклики",
+  boar: "вепри",
+  rogue: "разбойники",
+  mummy: "мумии",
+  nomad: "кочевники",
+  sharpshooter: "меткие стрелки",
+  "golem-gold": "золотые големы",
+  troll: "тролли",
+  enchanter: "чародеи",
+  "golem-diamond": "алмазные големы",
+  "dragon-fairie": "лесные драконы",
+  "dragon-rust": "ржавые драконы",
+  "dragon-crystal": "хрустальные драконы",
+  "dragon-azure": "лазурные драконы",
+  ...CASTLE_CREATURE_PLURAL,
 };
 
 /**

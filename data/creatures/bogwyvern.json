@@ -1,0 +1,15 @@
+{
+  "id": "bogwyvern",
+  "name": "Трясинный вьюн",
+  "attack": 14,
+  "defense": 14,
+  "damageMin": 11,
+  "damageMax": 17,
+  "health": 88,
+  "speed": 7,
+  "flying": true,
+  "shots": 0,
+  "price": 950,
+  "growth": 2,
+  "level": 6
+}

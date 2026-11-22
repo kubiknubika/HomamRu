@@ -1,0 +1,15 @@
+{
+  "id": "behemoth-ancient",
+  "name": "Древний бегемот",
+  "attack": 20,
+  "defense": 18,
+  "damageMin": 26,
+  "damageMax": 38,
+  "health": 170,
+  "speed": 7,
+  "flying": false,
+  "shots": 0,
+  "price": 3200,
+  "growth": 1,
+  "level": 7
+}

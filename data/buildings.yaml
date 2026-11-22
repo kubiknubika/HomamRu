@@ -50,23 +50,861 @@
   cost: { gold: 1000, wood: 5, ore: 5, mercury: 8, sulfur: 8, crystal: 8, gems: 8 }
   requires: [mage-guild-3]
   mageGuild: 4
+# Пятый круг (docs/content/towns.md): без него три заклинания пятого круга недоступны ни в одном городе.
+- id: mage-guild-5
+  name: Гильдия магов, уровень 5
+  cost: { gold: 2000, wood: 5, ore: 5, mercury: 10, sulfur: 10, crystal: 10, gems: 10 }
+  requires: [mage-guild-4]
+  mageGuild: 5
 - id: militia-yard
   name: Двор ополченцев
   cost: { gold: 500, ore: 10 }
   requires: [fort]
   dwelling: militia
+  faction: castle
 - id: slinger-range
   name: Стрельбище пращников
   cost: { gold: 1000, wood: 5, ore: 5 }
   requires: [militia-yard]
   dwelling: slinger
+  faction: castle
 - id: barracks
   name: Казарма
   cost: { gold: 2000, ore: 5 }
   requires: [smithy, militia-yard]
   dwelling: armsman
+  faction: castle
 - id: falcon-tower
   name: Соколиная башня
   cost: { gold: 1000, ore: 5 }
   requires: [barracks]
   dwelling: falcon
+  faction: castle
+# Второй замок — «Чаща» (30-town.md). Свои жилища; постройки вроде форта и ратуши
+# общие, но жилища Чащи строит только город Чащи, а жилища людей — город людей.
+- id: kentaur-glade
+  name: Кентаврийская поляна
+  cost: { gold: 500, ore: 10 }
+  requires: [fort]
+  dwelling: kentaur
+  faction: glade
+- id: huntress-lodge
+  name: Охотничий домик
+  cost: { gold: 1000, wood: 5, ore: 5 }
+  requires: [kentaur-glade]
+  dwelling: huntress
+  faction: glade
+- id: eagle-aerie
+  name: Орлиное гнездо
+  cost: { gold: 1000, ore: 5 }
+  requires: [huntress-lodge]
+  dwelling: eagle
+  faction: glade
+- id: ent-grove
+  name: Роща древней
+  cost: { gold: 2000, ore: 5 }
+  requires: [eagle-aerie]
+  dwelling: ent
+  faction: glade
+- id: warden-hall
+  name: Зал хранителей
+  cost: { gold: 3000, wood: 10, ore: 10 }
+  requires: [ent-grove]
+  dwelling: warden
+  faction: glade
+- id: wyvern-cliff
+  name: Вьюнов утёс
+  cost: { gold: 4000, wood: 10, ore: 15, gems: 5 }
+  requires: [warden-hall]
+  dwelling: wyvern
+  faction: glade
+- id: aurochs-pen
+  name: Зубровый загон
+  cost: { gold: 6500, wood: 20, ore: 20, crystal: 8, gems: 8 }
+  requires: [wyvern-cliff]
+  dwelling: aurochs
+  faction: glade
+# Жилища людей 5–7 уровней (74-second-castle.md, 31-recruitment.md): замок людей
+# дорос до семи существ, как и «Чаща». Цены — по кривой Heroes 3.
+- id: stables
+  name: Конюшня
+  cost: { gold: 3000, wood: 5, ore: 10 }
+  requires: [barracks]
+  dwelling: cavalier
+  faction: castle
+- id: champion-hall
+  name: Палата витязей
+  cost: { gold: 4000, wood: 10, ore: 10, gems: 5 }
+  requires: [stables]
+  dwelling: champion
+  faction: castle
+- id: griffin-tower
+  name: Гнездо гривы
+  cost: { gold: 6000, wood: 15, ore: 15, crystal: 8, gems: 8 }
+  requires: [champion-hall]
+  dwelling: griffin
+  faction: castle
+# Третий замок «Башня» (75-third-castle.md, docs/content/towns.md): семь существ, семь жилищ.
+# Цены — по той же кривой, что у людей и Чащи. Порядок требований тот же: форт, затем цепочка.
+- id: gnome-hill
+  name: Гномий холм
+  cost: { gold: 500, wood: 5, ore: 5 }
+  requires: [fort]
+  dwelling: gnome
+  faction: tower
+- id: gargoyle-roost
+  name: Горгулий насест
+  cost: { gold: 1000, ore: 10 }
+  requires: [gnome-hill]
+  dwelling: gargoyle
+  faction: tower
+- id: golem-workshop
+  name: Големная мастерская
+  cost: { gold: 1500, ore: 15 }
+  requires: [gargoyle-roost]
+  dwelling: golem
+  faction: tower
+- id: mage-tower
+  name: Башня магов
+  cost: { gold: 2500, wood: 5, ore: 5, mercury: 5 }
+  requires: [golem-workshop]
+  dwelling: mage
+  faction: tower
+- id: genie-lamp
+  name: Лампа джиннов
+  cost: { gold: 3500, wood: 10, ore: 10, sulfur: 5 }
+  requires: [mage-tower]
+  dwelling: genie
+  faction: tower
+- id: naga-temple
+  name: Храм нагов
+  cost: { gold: 5000, wood: 10, ore: 15, gems: 5 }
+  requires: [genie-lamp]
+  dwelling: naga
+  faction: tower
+- id: giant-hall
+  name: Чертог великанов
+  cost: { gold: 7000, wood: 20, ore: 20, crystal: 8, gems: 8 }
+  requires: [naga-temple]
+  dwelling: giant
+  faction: tower
+# Четвёртый замок «Инферно» (76-fourth-castle.md): семь существ, семь жилищ.
+# Цены — по той же кривой. Порядок требований тот же: форт, затем цепочка.
+- id: imp-hovel
+  name: Бесовская нора
+  cost: { gold: 500, wood: 5, ore: 5 }
+  requires: [fort]
+  dwelling: imp
+  faction: inferno
+- id: demonling-pit
+  name: Бесёнкин сруб
+  cost: { gold: 1000, wood: 5, ore: 5 }
+  requires: [imp-hovel]
+  dwelling: demonling
+  faction: inferno
+- id: hound-kennel
+  name: Гончая псарня
+  cost: { gold: 1500, ore: 15 }
+  requires: [demonling-pit]
+  dwelling: hound
+  faction: inferno
+- id: horned-tower
+  name: Рогатая башня
+  cost: { gold: 2500, wood: 5, ore: 10 }
+  requires: [hound-kennel]
+  dwelling: horned
+  faction: inferno
+- id: fiend-gate
+  name: Врата исчадий
+  cost: { gold: 3500, wood: 10, ore: 10, mercury: 5 }
+  requires: [horned-tower]
+  dwelling: fiend
+  faction: inferno
+- id: efreet-forge
+  name: Ифритова кузня
+  cost: { gold: 5000, wood: 10, ore: 15, sulfur: 8 }
+  requires: [fiend-gate]
+  dwelling: efreet
+  faction: inferno
+- id: archfiend-throne
+  name: Престол архибеса
+  cost: { gold: 7000, wood: 20, ore: 20, crystal: 8, gems: 8 }
+  requires: [efreet-forge]
+  dwelling: archfiend
+  faction: inferno
+# Пятый замок «Подземелье» (77-fifth-castle.md): семь существ, семь жилищ.
+# Цены — по той же кривой. Порядок требований тот же: форт, затем цепочка.
+- id: troglodyte-cave
+  name: Пещерникова нора
+  cost: { gold: 500, ore: 10 }
+  requires: [fort]
+  dwelling: troglodyte
+  faction: dungeon
+- id: harpy-nest
+  name: Гарпий насест
+  cost: { gold: 1000, wood: 5, ore: 5 }
+  requires: [troglodyte-cave]
+  dwelling: harpy
+  faction: dungeon
+- id: eye-tower
+  name: Башня глаз
+  cost: { gold: 1500, wood: 5, ore: 10 }
+  requires: [harpy-nest]
+  dwelling: eye
+  faction: dungeon
+- id: medusa-temple
+  name: Храм медуз
+  cost: { gold: 2500, wood: 5, ore: 5, sulfur: 5 }
+  requires: [eye-tower]
+  dwelling: medusa
+  faction: dungeon
+- id: minotaur-labyrinth
+  name: Лабиринт минотавра
+  cost: { gold: 3500, wood: 10, ore: 10 }
+  requires: [medusa-temple]
+  dwelling: minotaur
+  faction: dungeon
+- id: manticore-den
+  name: Мантикор логово
+  cost: { gold: 5000, wood: 10, ore: 15, mercury: 5 }
+  requires: [minotaur-labyrinth]
+  dwelling: manticore
+  faction: dungeon
+- id: dragon-lair
+  name: Змеиное логово
+  cost: { gold: 7500, wood: 20, ore: 20, crystal: 8, gems: 8 }
+  requires: [manticore-den]
+  dwelling: blackdragon
+  faction: dungeon
+# Шестой замок «Некрополь» (78-sixth-castle.md): семь существ, семь жилищ.
+# Цены — по той же кривой: первые четыре дешевле (нежить не жалко), шестое — среднее,
+# седьмое — на уровне остальных драконов. Порядок требований тот же: форт, затем цепочка.
+- id: skeleton-pit
+  name: Скелетная яма
+  cost: { gold: 500, wood: 5 }
+  requires: [fort]
+  dwelling: skeleton
+  faction: necropolis
+- id: zombie-yard
+  name: Мертвяцкий двор
+  cost: { gold: 1000, wood: 5, ore: 5 }
+  requires: [skeleton-pit]
+  dwelling: zombie
+  faction: necropolis
+- id: wight-crypt
+  name: Склеп призраков
+  cost: { gold: 1500, ore: 15 }
+  requires: [zombie-yard]
+  dwelling: wight
+  faction: necropolis
+- id: vampire-crypt
+  name: Вампирья усыпальница
+  cost: { gold: 2500, wood: 5, ore: 10 }
+  requires: [wight-crypt]
+  dwelling: vampire
+  faction: necropolis
+- id: lich-tower
+  name: Личья башня
+  cost: { gold: 3500, wood: 10, ore: 10, mercury: 5 }
+  requires: [vampire-crypt]
+  dwelling: lich
+  faction: necropolis
+- id: deathknight-hall
+  name: Чертог могильных рыцарей
+  cost: { gold: 5000, wood: 10, ore: 15, sulfur: 8 }
+  requires: [lich-tower]
+  dwelling: deathknight
+  faction: necropolis
+- id: bonedragon-lair
+  name: Костяное логово
+  cost: { gold: 7000, wood: 20, ore: 20, crystal: 8, gems: 8 }
+  requires: [deathknight-hall]
+  dwelling: bonedragon
+  faction: necropolis
+# Седьмой замок «Цитадель варваров» (79-seventh-castle.md): семь существ, семь жилищ.
+# Цены — по той же кривой; у варваров она сдвинута в дешёвую сторону, но седьмое жилище
+# дороже всех (8000): у Цитадели самый сильный седьмой уровень.
+- id: goblin-camp
+  name: Гоблинский табор
+  cost: { gold: 500, wood: 5 }
+  requires: [fort]
+  dwelling: goblin
+  faction: stronghold
+- id: wolfrider-pen
+  name: Волчий загон
+  cost: { gold: 1000, wood: 5, ore: 5 }
+  requires: [goblin-camp]
+  dwelling: wolfrider
+  faction: stronghold
+- id: orc-hut
+  name: Оркова хижина
+  cost: { gold: 1500, ore: 15 }
+  requires: [wolfrider-pen]
+  dwelling: orc
+  faction: stronghold
+- id: ogre-mound
+  name: Огрова насыпь
+  cost: { gold: 2500, wood: 5, ore: 10 }
+  requires: [orc-hut]
+  dwelling: ogre
+  faction: stronghold
+- id: roc-nest
+  name: Гнездовье рух
+  cost: { gold: 3500, wood: 10, ore: 10, mercury: 5 }
+  requires: [ogre-mound]
+  dwelling: roc
+  faction: stronghold
+- id: cyclop-cave
+  name: Циклопова пещера
+  cost: { gold: 5000, wood: 10, ore: 15, sulfur: 8 }
+  requires: [roc-nest]
+  dwelling: cyclop
+  faction: stronghold
+- id: behemoth-den
+  name: Бегемотово логово
+  cost: { gold: 8000, wood: 20, ore: 20, crystal: 8, gems: 8 }
+  requires: [cyclop-cave]
+  dwelling: behemoth
+  faction: stronghold
+# Восьмой замок «Крепость» (80-eighth-castle.md): семь существ, семь жилищ.
+# Цены — по той же кривой: 500 → 1000 → 1500 → 2500 → 3500 → 5000 → 7500.
+- id: gnoll-hut
+  name: Гнолльская хижина
+  cost: { gold: 500, wood: 5 }
+  requires: [fort]
+  dwelling: gnoll
+  faction: fortress
+- id: lizard-pool
+  name: Ящерье озерцо
+  cost: { gold: 1000, wood: 5, ore: 5 }
+  requires: [gnoll-hut]
+  dwelling: lizardman
+  faction: fortress
+- id: serpentfly-swamp
+  name: Топь змеиных мух
+  cost: { gold: 1500, ore: 15 }
+  requires: [lizard-pool]
+  dwelling: serpentfly
+  faction: fortress
+- id: basilisk-pit
+  name: Василискова яма
+  cost: { gold: 2500, wood: 5, ore: 10, sulfur: 5 }
+  requires: [serpentfly-swamp]
+  dwelling: basilisk
+  faction: fortress
+- id: gorgon-temple
+  name: Храм горгон
+  cost: { gold: 3500, wood: 10, ore: 10, gems: 5 }
+  requires: [basilisk-pit]
+  dwelling: gorgon
+  faction: fortress
+- id: bogwyvern-cliff
+  name: Трясинный утёс
+  cost: { gold: 5000, wood: 10, ore: 15, mercury: 5 }
+  requires: [gorgon-temple]
+  dwelling: bogwyvern
+  faction: fortress
+- id: hydra-marsh
+  name: Гидрова топь
+  cost: { gold: 7500, wood: 20, ore: 20, crystal: 8, gems: 8 }
+  requires: [bogwyvern-cliff]
+  dwelling: hydra
+  faction: fortress
+# Девятый замок «Согласие» (81-ninth-castle.md): семь существ, семь жилищ.
+# Цены — по той же кривой; девятое жилище дороже всех (9000): у Согласия самый
+# дорогой седьмой уровень (Феникс, 1550 золота).
+- id: pixie-ring
+  name: Фейский круг
+  cost: { gold: 500, wood: 5 }
+  requires: [fort]
+  dwelling: pixie
+  faction: conflux
+- id: air-temple
+  name: Храм воздуха
+  cost: { gold: 1000, wood: 5, ore: 5, mercury: 3 }
+  requires: [pixie-ring]
+  dwelling: airelem
+  faction: conflux
+- id: water-temple
+  name: Храм воды
+  cost: { gold: 1500, ore: 15, mercury: 3 }
+  requires: [air-temple]
+  dwelling: waterelem
+  faction: conflux
+- id: earth-temple
+  name: Храм земли
+  cost: { gold: 2500, wood: 5, ore: 10, sulfur: 5 }
+  requires: [water-temple]
+  dwelling: earthlem
+  faction: conflux
+- id: fire-temple
+  name: Храм огня
+  cost: { gold: 3500, wood: 10, ore: 10, sulfur: 5 }
+  requires: [earth-temple]
+  dwelling: fireelem
+  faction: conflux
+- id: spirit-temple
+  name: Храм духа
+  cost: { gold: 5000, wood: 10, ore: 15, mercury: 5, gems: 5 }
+  requires: [fire-temple]
+  dwelling: psychelem
+  faction: conflux
+- id: phoenix-nest
+  name: Фениксово гнездо
+  cost: { gold: 9000, wood: 20, ore: 20, crystal: 8, gems: 8 }
+  requires: [spirit-temple]
+  dwelling: phoenix
+  faction: conflux
+# Улучшения жилищ людей (82-creature-upgrades.md): построенное улучшение добавляет в город
+# второе существо того же уровня. Старое жилище остаётся — нанимать можно и базовое, и улучшенное.
+# Цены — по нашей кривой: примерно 1,6 цены базового жилища.
+- id: militia-yard-up
+  name: Двор ветеранов
+  cost: { gold: 800, wood: 8, ore: 5 }
+  requires: [militia-yard]
+  dwelling: militia-vet
+  faction: castle
+  upgrade: { base: militia-yard, becomes: militia-vet }
+- id: slinger-range-up
+  name: Стрельбище мастеров
+  cost: { gold: 1600, wood: 8, ore: 8 }
+  requires: [slinger-range]
+  dwelling: slinger-ace
+  faction: castle
+  upgrade: { base: slinger-range, becomes: slinger-ace }
+- id: falcon-tower-up
+  name: Соколиная вышка
+  cost: { gold: 1600, ore: 8 }
+  requires: [falcon-tower]
+  dwelling: falcon-gold
+  faction: castle
+  upgrade: { base: falcon-tower, becomes: falcon-gold }
+- id: barracks-up
+  name: Казарма стражников
+  cost: { gold: 3200, ore: 8, wood: 8 }
+  requires: [barracks]
+  dwelling: armsman-guard
+  faction: castle
+  upgrade: { base: barracks, becomes: armsman-guard }
+- id: stables-up
+  name: Конюшня копейщиков
+  cost: { gold: 5000, wood: 10, ore: 10, gems: 5 }
+  requires: [stables]
+  dwelling: cavalier-lance
+  faction: castle
+  upgrade: { base: stables, becomes: cavalier-lance }
+- id: champion-hall-up
+  name: Палата паладинов
+  cost: { gold: 6400, wood: 15, ore: 15, gems: 8 }
+  requires: [champion-hall]
+  dwelling: champion-paladin
+  faction: castle
+  upgrade: { base: champion-hall, becomes: champion-paladin }
+- id: griffin-tower-up
+  name: Гнездо серебряной гривы
+  cost: { gold: 9500, wood: 20, ore: 20, crystal: 10, gems: 10 }
+  requires: [griffin-tower]
+  dwelling: griffin-silver
+  faction: castle
+  upgrade: { base: griffin-tower, becomes: griffin-silver }
+
+# Улучшения жилищ Чащи и Башни (82-creature-upgrades.md): второе существо на каждый уровень.
+# Цены — по той же кривой, что у улучшений людей: примерно 1,6 цены базового жилища.
+- id: kentaur-glade-up
+  name: Поляна старейшин
+  cost: { gold: 800, wood: 10, ore: 5 }
+  requires: [kentaur-glade]
+  dwelling: kentaur-elder
+  faction: glade
+  upgrade: { base: kentaur-glade, becomes: kentaur-elder }
+- id: huntress-lodge-up
+  name: Дом следопыток
+  cost: { gold: 1600, wood: 10, ore: 10 }
+  requires: [huntress-lodge]
+  dwelling: huntress-ranger
+  faction: glade
+  upgrade: { base: huntress-lodge, becomes: huntress-ranger }
+- id: eagle-aerie-up
+  name: Буревое гнездо
+  cost: { gold: 1600, wood: 10, ore: 5 }
+  requires: [eagle-aerie]
+  dwelling: eagle-storm
+  faction: glade
+  upgrade: { base: eagle-aerie, becomes: eagle-storm }
+- id: ent-grove-up
+  name: Роща древних
+  cost: { gold: 3200, wood: 10, ore: 8 }
+  requires: [ent-grove]
+  dwelling: ent-ancient
+  faction: glade
+  upgrade: { base: ent-grove, becomes: ent-ancient }
+- id: warden-hall-up
+  name: Зал каменных стражей
+  cost: { gold: 4800, wood: 15, ore: 15 }
+  requires: [warden-hall]
+  dwelling: warden-stone
+  faction: glade
+  upgrade: { base: warden-hall, becomes: warden-stone }
+- id: wyvern-cliff-up
+  name: Утёс царских вьюнов
+  cost: { gold: 6400, wood: 15, ore: 20, gems: 8 }
+  requires: [wyvern-cliff]
+  dwelling: wyvern-royal
+  faction: glade
+  upgrade: { base: wyvern-cliff, becomes: wyvern-royal }
+- id: aurochs-pen-up
+  name: Загон зубра-вожака
+  cost: { gold: 10000, wood: 30, ore: 30, crystal: 12, gems: 12 }
+  requires: [aurochs-pen]
+  dwelling: aurochs-king
+  faction: glade
+  upgrade: { base: aurochs-pen, becomes: aurochs-king }
+- id: gnome-hill-up
+  name: Холм рунных гномов
+  cost: { gold: 800, wood: 8, ore: 8 }
+  requires: [gnome-hill]
+  dwelling: gnome-rune
+  faction: tower
+  upgrade: { base: gnome-hill, becomes: gnome-rune }
+- id: gargoyle-roost-up
+  name: Обсидиановый насест
+  cost: { gold: 1600, ore: 16 }
+  requires: [gargoyle-roost]
+  dwelling: gargoyle-obsidian
+  faction: tower
+  upgrade: { base: gargoyle-roost, becomes: gargoyle-obsidian }
+- id: golem-workshop-up
+  name: Мастерская мифрила
+  cost: { gold: 2400, ore: 24 }
+  requires: [golem-workshop]
+  dwelling: golem-mithril
+  faction: tower
+  upgrade: { base: golem-workshop, becomes: golem-mithril }
+- id: mage-tower-up
+  name: Башня архимагов
+  cost: { gold: 4000, wood: 8, ore: 8, mercury: 8 }
+  requires: [mage-tower]
+  dwelling: mage-arch
+  faction: tower
+  upgrade: { base: mage-tower, becomes: mage-arch }
+- id: genie-lamp-up
+  name: Лампа паши
+  cost: { gold: 5600, wood: 15, ore: 15, sulfur: 8 }
+  requires: [genie-lamp]
+  dwelling: genie-pasha
+  faction: tower
+  upgrade: { base: genie-lamp, becomes: genie-pasha }
+- id: naga-temple-up
+  name: Храм императрицы
+  cost: { gold: 8000, wood: 15, ore: 24, gems: 8 }
+  requires: [naga-temple]
+  dwelling: naga-empress
+  faction: tower
+  upgrade: { base: naga-temple, becomes: naga-empress }
+- id: giant-hall-up
+  name: Чертог громовых великанов
+  cost: { gold: 11200, wood: 30, ore: 30, crystal: 12, gems: 12 }
+  requires: [giant-hall]
+  dwelling: giant-storm
+  faction: tower
+  upgrade: { base: giant-hall, becomes: giant-storm }
+
+# Улучшения жилищ Инферно, Подземелья и Некрополя (82-creature-upgrades.md):
+# второе существо на каждый уровень. Цены — примерно 1,6 цены базового жилища.
+- id: imp-hovel-up
+  name: Приют фамильяров
+  cost: { gold: 800, wood: 8, ore: 8 }
+  requires: [imp-hovel]
+  dwelling: imp-familiar
+  faction: inferno
+  upgrade: { base: imp-hovel, becomes: imp-familiar }
+- id: demonling-pit-up
+  name: Сруб магогов
+  cost: { gold: 1600, wood: 8, ore: 8 }
+  requires: [demonling-pit]
+  dwelling: demonling-magog
+  faction: inferno
+  upgrade: { base: demonling-pit, becomes: demonling-magog }
+- id: hound-kennel-up
+  name: Псарня церберов
+  cost: { gold: 2400, ore: 24 }
+  requires: [hound-kennel]
+  dwelling: hound-cerberus
+  faction: inferno
+  upgrade: { base: hound-kennel, becomes: hound-cerberus }
+- id: horned-tower-up
+  name: Башня демонов
+  cost: { gold: 4000, wood: 8, ore: 16 }
+  requires: [horned-tower]
+  dwelling: horned-demon
+  faction: inferno
+  upgrade: { base: horned-tower, becomes: horned-demon }
+- id: fiend-gate-up
+  name: Врата владык
+  cost: { gold: 5600, wood: 16, ore: 16, mercury: 8 }
+  requires: [fiend-gate]
+  dwelling: fiend-lord
+  faction: inferno
+  upgrade: { base: fiend-gate, becomes: fiend-lord }
+- id: efreet-forge-up
+  name: Кузня султанов
+  cost: { gold: 8000, wood: 16, ore: 24, sulfur: 13 }
+  requires: [efreet-forge]
+  dwelling: efreet-sultan
+  faction: inferno
+  upgrade: { base: efreet-forge, becomes: efreet-sultan }
+- id: archfiend-throne-up
+  name: Престол дьявола
+  cost: { gold: 11200, wood: 32, ore: 32, crystal: 12, gems: 12 }
+  requires: [archfiend-throne]
+  dwelling: archfiend-devil
+  faction: inferno
+  upgrade: { base: archfiend-throne, becomes: archfiend-devil }
+- id: troglodyte-cave-up
+  name: Нора адских пещерников
+  cost: { gold: 800, ore: 16 }
+  requires: [troglodyte-cave]
+  dwelling: troglodyte-infernal
+  faction: dungeon
+  upgrade: { base: troglodyte-cave, becomes: troglodyte-infernal }
+- id: harpy-nest-up
+  name: Насест карг
+  cost: { gold: 1600, wood: 8, ore: 8 }
+  requires: [harpy-nest]
+  dwelling: harpy-hag
+  faction: dungeon
+  upgrade: { base: harpy-nest, becomes: harpy-hag }
+- id: eye-tower-up
+  name: Башня злых глаз
+  cost: { gold: 2400, wood: 8, ore: 16 }
+  requires: [eye-tower]
+  dwelling: eye-evil
+  faction: dungeon
+  upgrade: { base: eye-tower, becomes: eye-evil }
+- id: medusa-temple-up
+  name: Храм цариц
+  cost: { gold: 4000, wood: 8, ore: 8, sulfur: 8 }
+  requires: [medusa-temple]
+  dwelling: medusa-queen
+  faction: dungeon
+  upgrade: { base: medusa-temple, becomes: medusa-queen }
+- id: minotaur-labyrinth-up
+  name: Лабиринт царей
+  cost: { gold: 5600, wood: 16, ore: 16 }
+  requires: [minotaur-labyrinth]
+  dwelling: minotaur-king
+  faction: dungeon
+  upgrade: { base: minotaur-labyrinth, becomes: minotaur-king }
+- id: manticore-den-up
+  name: Логово скорпикоров
+  cost: { gold: 8000, wood: 16, ore: 24, mercury: 8 }
+  requires: [manticore-den]
+  dwelling: manticore-scorpicore
+  faction: dungeon
+  upgrade: { base: manticore-den, becomes: manticore-scorpicore }
+- id: dragon-lair-up
+  name: Логово красных змеев
+  cost: { gold: 12000, wood: 32, ore: 32, crystal: 12, gems: 12 }
+  requires: [dragon-lair]
+  dwelling: blackdragon-red
+  faction: dungeon
+  upgrade: { base: dragon-lair, becomes: blackdragon-red }
+- id: skeleton-pit-up
+  name: Яма скелетов-воинов
+  cost: { gold: 800, wood: 8 }
+  requires: [skeleton-pit]
+  dwelling: skeleton-warrior
+  faction: necropolis
+  upgrade: { base: skeleton-pit, becomes: skeleton-warrior }
+- id: zombie-yard-up
+  name: Двор владык мертвяков
+  cost: { gold: 1600, wood: 8, ore: 8 }
+  requires: [zombie-yard]
+  dwelling: zombie-lord
+  faction: necropolis
+  upgrade: { base: zombie-yard, becomes: zombie-lord }
+- id: wight-crypt-up
+  name: Склеп духов
+  cost: { gold: 2400, ore: 24 }
+  requires: [wight-crypt]
+  dwelling: wraith
+  faction: necropolis
+  upgrade: { base: wight-crypt, becomes: wraith }
+- id: vampire-crypt-up
+  name: Усыпальница владык
+  cost: { gold: 4000, wood: 8, ore: 16 }
+  requires: [vampire-crypt]
+  dwelling: vampire-lord
+  faction: necropolis
+  upgrade: { base: vampire-crypt, becomes: vampire-lord }
+- id: lich-tower-up
+  name: Башня могучих личей
+  cost: { gold: 5600, wood: 16, ore: 16, mercury: 8 }
+  requires: [lich-tower]
+  dwelling: power-lich
+  faction: necropolis
+  upgrade: { base: lich-tower, becomes: power-lich }
+- id: deathknight-hall-up
+  name: Чертог смертельных рыцарей
+  cost: { gold: 8000, wood: 16, ore: 24, sulfur: 13 }
+  requires: [deathknight-hall]
+  dwelling: dread-knight
+  faction: necropolis
+  upgrade: { base: deathknight-hall, becomes: dread-knight }
+- id: bonedragon-lair-up
+  name: Логово драконов-призраков
+  cost: { gold: 11200, wood: 32, ore: 32, crystal: 12, gems: 12 }
+  requires: [bonedragon-lair]
+  dwelling: ghost-dragon
+  faction: necropolis
+  upgrade: { base: bonedragon-lair, becomes: ghost-dragon }
+
+# Улучшения жилищ Цитадели варваров, Крепости и Согласия (82-creature-upgrades.md):
+# последние три замка — второе существо на каждый уровень. Цены — примерно 1,6 цены базового жилища.
+- id: goblin-camp-up
+  name: Табор налётчиков
+  cost: { gold: 800, wood: 8 }
+  requires: [goblin-camp]
+  dwelling: goblin-raider
+  faction: stronghold
+  upgrade: { base: goblin-camp, becomes: goblin-raider }
+- id: wolfrider-pen-up
+  name: Загон вожаков
+  cost: { gold: 1600, wood: 8, ore: 8 }
+  requires: [wolfrider-pen]
+  dwelling: wolfrider-alpha
+  faction: stronghold
+  upgrade: { base: wolfrider-pen, becomes: wolfrider-alpha }
+- id: orc-hut-up
+  name: Хижина метателей
+  cost: { gold: 2400, ore: 24 }
+  requires: [orc-hut]
+  dwelling: orc-thrower
+  faction: stronghold
+  upgrade: { base: orc-hut, becomes: orc-thrower }
+- id: ogre-mound-up
+  name: Насыпь громил
+  cost: { gold: 4000, wood: 8, ore: 16 }
+  requires: [ogre-mound]
+  dwelling: ogre-brute
+  faction: stronghold
+  upgrade: { base: ogre-mound, becomes: ogre-brute }
+- id: roc-nest-up
+  name: Гнездовье грозовых рух
+  cost: { gold: 5600, wood: 16, ore: 16, mercury: 8 }
+  requires: [roc-nest]
+  dwelling: roc-thunder
+  faction: stronghold
+  upgrade: { base: roc-nest, becomes: roc-thunder }
+- id: cyclop-cave-up
+  name: Пещера циклопов-владык
+  cost: { gold: 8000, wood: 16, ore: 24, sulfur: 13 }
+  requires: [cyclop-cave]
+  dwelling: cyclop-lord
+  faction: stronghold
+  upgrade: { base: cyclop-cave, becomes: cyclop-lord }
+- id: behemoth-den-up
+  name: Логово древних бегемотов
+  cost: { gold: 12800, wood: 32, ore: 32, crystal: 12, gems: 12 }
+  requires: [behemoth-den]
+  dwelling: behemoth-ancient
+  faction: stronghold
+  upgrade: { base: behemoth-den, becomes: behemoth-ancient }
+- id: gnoll-hut-up
+  name: Хижина охотников
+  cost: { gold: 800, wood: 8 }
+  requires: [gnoll-hut]
+  dwelling: gnoll-hunter
+  faction: fortress
+  upgrade: { base: gnoll-hut, becomes: gnoll-hunter }
+- id: lizard-pool-up
+  name: Озерцо арбалетчиков
+  cost: { gold: 1600, wood: 8, ore: 8 }
+  requires: [lizard-pool]
+  dwelling: lizardman-crossbow
+  faction: fortress
+  upgrade: { base: lizard-pool, becomes: lizardman-crossbow }
+- id: serpentfly-swamp-up
+  name: Топь змеиных ос
+  cost: { gold: 2400, ore: 24 }
+  requires: [serpentfly-swamp]
+  dwelling: serpentfly-wasp
+  faction: fortress
+  upgrade: { base: serpentfly-swamp, becomes: serpentfly-wasp }
+- id: basilisk-pit-up
+  name: Яма древних василисков
+  cost: { gold: 4000, wood: 8, ore: 16, sulfur: 8 }
+  requires: [basilisk-pit]
+  dwelling: basilisk-ancient
+  faction: fortress
+  upgrade: { base: basilisk-pit, becomes: basilisk-ancient }
+- id: gorgon-temple-up
+  name: Храм владычиц
+  cost: { gold: 5600, wood: 16, ore: 16, gems: 8 }
+  requires: [gorgon-temple]
+  dwelling: gorgon-queen
+  faction: fortress
+  upgrade: { base: gorgon-temple, becomes: gorgon-queen }
+- id: bogwyvern-cliff-up
+  name: Утёс трясинных змеев
+  cost: { gold: 8000, wood: 16, ore: 24, mercury: 8 }
+  requires: [bogwyvern-cliff]
+  dwelling: bogwyvern-drake
+  faction: fortress
+  upgrade: { base: bogwyvern-cliff, becomes: bogwyvern-drake }
+- id: hydra-marsh-up
+  name: Топь древних гидр
+  cost: { gold: 12000, wood: 32, ore: 32, crystal: 12, gems: 12 }
+  requires: [hydra-marsh]
+  dwelling: hydra-ancient
+  faction: fortress
+  upgrade: { base: hydra-marsh, becomes: hydra-ancient }
+- id: pixie-ring-up
+  name: Круг сияющих фей
+  cost: { gold: 800, wood: 8 }
+  requires: [pixie-ring]
+  dwelling: pixie-radiant
+  faction: conflux
+  upgrade: { base: pixie-ring, becomes: pixie-radiant }
+- id: air-temple-up
+  name: Храм бурь
+  cost: { gold: 1600, wood: 8, ore: 8, mercury: 5 }
+  requires: [air-temple]
+  dwelling: airelem-storm
+  faction: conflux
+  upgrade: { base: air-temple, becomes: airelem-storm }
+- id: water-temple-up
+  name: Храм льда
+  cost: { gold: 2400, ore: 24, mercury: 5 }
+  requires: [water-temple]
+  dwelling: waterelem-frost
+  faction: conflux
+  upgrade: { base: water-temple, becomes: waterelem-frost }
+- id: earth-temple-up
+  name: Храм гранита
+  cost: { gold: 4000, wood: 8, ore: 16, sulfur: 8 }
+  requires: [earth-temple]
+  dwelling: earthlem-granite
+  faction: conflux
+  upgrade: { base: earth-temple, becomes: earthlem-granite }
+- id: fire-temple-up
+  name: Храм пламени
+  cost: { gold: 5600, wood: 16, ore: 16, sulfur: 8 }
+  requires: [fire-temple]
+  dwelling: fireelem-blaze
+  faction: conflux
+  upgrade: { base: fire-temple, becomes: fireelem-blaze }
+- id: spirit-temple-up
+  name: Храм воли
+  cost: { gold: 8000, wood: 16, ore: 24, mercury: 8, gems: 8 }
+  requires: [spirit-temple]
+  dwelling: psychelem-will
+  faction: conflux
+  upgrade: { base: spirit-temple, becomes: psychelem-will }
+- id: phoenix-nest-up
+  name: Гнездо вечных фениксов
+  cost: { gold: 14400, wood: 32, ore: 32, crystal: 12, gems: 12 }
+  requires: [phoenix-nest]
+  dwelling: phoenix-eternal
+  faction: conflux
+  upgrade: { base: phoenix-nest, becomes: phoenix-eternal }

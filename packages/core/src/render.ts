@@ -2,7 +2,8 @@
  * Текстовый вывод состояния и событий. Это запрос: он ничего не меняет.
  * Спецификация: docs/mechanics/05-diagnostics.md.
  */
-import { DAILY_MOVEMENT, heroIdOf } from "./game.ts";
+import { heroIdOf } from "./game.ts";
+import { movementFor } from "./heroIds.ts";
 import { maxMana } from "./magic.ts";
 import { formatSkills, SKILL_NAMES } from "./skills.ts";
 import { renderBattle } from "./battle/render.ts";
@@ -189,7 +190,7 @@ export function renderState(state: GameState, path: readonly Position[] = []): s
     `День ${state.day} (${formatDate(state.day)}). Ход игрока ${state.currentPlayer + 1}.`,
     ...state.heroes.map(
       (hero) =>
-        `Герой ${hero.id}: клетка ${formatCell(hero)}, запас хода ${hero.movement} из ${DAILY_MOVEMENT}.`,
+        `Герой ${hero.id}: клетка ${formatCell(hero)}, запас хода ${hero.movement} из ${movementFor(hero.skills)}.`,
     ),
     ...state.heroes.map((hero) => formatHero(state, hero)),
     "",

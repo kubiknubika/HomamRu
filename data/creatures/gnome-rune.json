@@ -1,0 +1,15 @@
+{
+  "id": "gnome-rune",
+  "name": "Рунный гном",
+  "attack": 5,
+  "defense": 5,
+  "damageMin": 1,
+  "damageMax": 3,
+  "health": 14,
+  "speed": 5,
+  "flying": false,
+  "shots": 0,
+  "price": 130,
+  "growth": 14,
+  "level": 1
+}

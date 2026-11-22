@@ -1,0 +1,16 @@
+{
+  "id": "rogue",
+  "name": "Разбойник",
+  "attack": 5,
+  "defense": 5,
+  "damageMin": 2,
+  "damageMax": 4,
+  "health": 14,
+  "speed": 5,
+  "flying": false,
+  "shots": 0,
+  "price": 110,
+  "growth": 15,
+  "level": 2,
+  "neutral": true
+}

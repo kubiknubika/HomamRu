@@ -1,0 +1,15 @@
+{
+  "id": "earthlem-granite",
+  "name": "Гранитный элементаль",
+  "attack": 12,
+  "defense": 14,
+  "damageMin": 6,
+  "damageMax": 10,
+  "health": 65,
+  "speed": 4,
+  "flying": false,
+  "shots": 0,
+  "price": 950,
+  "growth": 4,
+  "level": 4
+}

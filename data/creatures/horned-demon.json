@@ -1,0 +1,15 @@
+{
+  "id": "horned-demon",
+  "name": "Демон",
+  "attack": 12,
+  "defense": 13,
+  "damageMin": 6,
+  "damageMax": 10,
+  "health": 58,
+  "speed": 5,
+  "flying": false,
+  "shots": 0,
+  "price": 950,
+  "growth": 4,
+  "level": 4
+}

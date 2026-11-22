@@ -1,0 +1,16 @@
+{
+  "id": "halfling",
+  "name": "Невысоклик",
+  "attack": 3,
+  "defense": 2,
+  "damageMin": 1,
+  "damageMax": 3,
+  "health": 7,
+  "speed": 5,
+  "flying": false,
+  "shots": 8,
+  "price": 60,
+  "growth": 18,
+  "level": 1,
+  "neutral": true
+}

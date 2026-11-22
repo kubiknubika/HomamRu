@@ -25,7 +25,7 @@ import type { SpellDefinition } from "./spells.ts";
 import type { RngState } from "./rng.ts";
 
 /** Номер версии формата состояния. Увеличивается при любом изменении формата. */
-export const STATE_VERSION = 13;
+export const STATE_VERSION = 14;
 
 /** Направления шага в порядке из спецификации перемещения. */
 export const DIRECTIONS = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"] as const;
@@ -86,6 +86,8 @@ export type MapObjectDefinition =
       readonly buildings?: readonly string[] | undefined;
       /** Гарнизон в начале. */
       readonly garrison?: readonly ArmyStack[] | undefined;
+      /** Замок города: `castle` (по умолчанию) или `glade` (30-town.md, 74-second-castle.md). */
+      readonly faction?: string | undefined;
     };
 
 /** Здание города: то же, что в файле зданий (30-town.md). */
@@ -103,10 +105,20 @@ export interface BuildingDefinition {
   readonly tavern?: boolean | undefined;
   /** Жилище: идентификатор существа, которое здесь нанимают (31-recruitment.md). */
   readonly dwelling?: string | undefined;
+  /**
+   * Улучшение: это здание улучшает жилище `upgrade.base` в жилище `upgrade.becomes`
+   * (82-creature-upgrades.md). Улучшенное жилище даёт второго жильца того же уровня.
+   */
+  readonly upgrade?: { readonly base: string; readonly becomes: string } | undefined;
   /** Гильдия магов: её уровень (61-magic.md). */
   readonly mageGuild?: number | undefined;
   /** Рынок: здесь меняют ресурсы (72-market.md). */
   readonly market?: boolean | undefined;
+  /**
+   * Замок, к которому относится здание: `castle`, `glade` (30-town.md). Город строит
+   * только здания своего замка. Нет поля — здание общее для всех замков.
+   */
+  readonly faction?: string | undefined;
 }
 
 /** Отряд армии: вид существ и их число. */
@@ -152,6 +164,11 @@ export interface MapDefinition {
   }[];
   /** Объекты карты по порядку; порядок задаёт их идентификаторы. */
   readonly objects?: readonly MapObjectDefinition[] | undefined;
+  /**
+   * Предел времени партии в днях (41-victory.md). Пусто — предела нет.
+   * Как в Heroes 3: когда день перевалил за предел, побеждает тот, у кого больше.
+   */
+  readonly daysLimit?: number | undefined;
 }
 
 export interface MapState {
@@ -165,6 +182,8 @@ export interface MapState {
    * Нужны при чтении сохранения: герой без клетки ставится сюда (04-save.md).
    */
   readonly starts: readonly Position[];
+  /** Предел времени партии в днях; пусто — предела нет (41-victory.md). */
+  readonly daysLimit?: number | undefined;
 }
 
 type PlayerKind = "human" | "computer";
@@ -232,6 +251,8 @@ export interface TownState {
   readonly garrison: readonly ArmyStack[];
   /** Набор гильдии магов на все круги, выбран в начале партии; виден по мере постройки (61-magic.md). */
   readonly spells: readonly string[];
+  /** Замок города: `castle` или `glade`. Что в нём можно строить — 30-town.md. */
+  readonly faction: string;
 }
 
 export type ObjectState = PileState | MineState | GuardState | TownState;

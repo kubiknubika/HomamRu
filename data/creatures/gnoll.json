@@ -1,0 +1,15 @@
+{
+  "id": "gnoll",
+  "name": "Гнолл",
+  "attack": 4,
+  "defense": 4,
+  "damageMin": 1,
+  "damageMax": 3,
+  "health": 12,
+  "speed": 4,
+  "flying": false,
+  "shots": 0,
+  "price": 50,
+  "growth": 14,
+  "level": 1
+}

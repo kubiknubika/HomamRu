@@ -1,0 +1,15 @@
+{
+  "id": "hound-cerberus",
+  "name": "Цербер",
+  "attack": 10,
+  "defense": 8,
+  "damageMin": 4,
+  "damageMax": 7,
+  "health": 38,
+  "speed": 8,
+  "flying": false,
+  "shots": 0,
+  "price": 580,
+  "growth": 7,
+  "level": 3
+}

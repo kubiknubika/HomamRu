@@ -1,0 +1,15 @@
+{
+  "id": "demonling-magog",
+  "name": "Магог",
+  "attack": 7,
+  "defense": 7,
+  "damageMin": 3,
+  "damageMax": 5,
+  "health": 20,
+  "speed": 5,
+  "flying": false,
+  "shots": 14,
+  "price": 300,
+  "growth": 9,
+  "level": 2
+}

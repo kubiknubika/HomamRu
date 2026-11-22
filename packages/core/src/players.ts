@@ -2,6 +2,7 @@
  * Игроки: выбывание, семь дней без города, конец партии, захват города.
  * Спецификации: docs/mechanics/40-two-players.md, 41-victory.md.
  */
+import { armyValue } from "./army.ts";
 import { refreshTavern } from "./tavern.ts";
 import type { GameEvent, GameState, PlayerState, TownState } from "./types.ts";
 
@@ -139,4 +140,43 @@ export function nextPlayerAfter(state: GameState, player: number): number | null
 /** Первый играющий в очереди. */
 export function firstPlayer(state: GameState): number {
   return state.players.find((candidate) => !candidate.eliminated)?.id ?? 0;
+}
+
+/**
+ * Сила игрока для победы по сроку: цена всех его армий — героев и гарнизонов,
+ * плюс постройки в его городах (41-victory.md). Ничьей не бывает: при равенстве
+ * побеждает тот, чьих героев и городов больше, затем — кто ходит первым.
+ */
+function strengthOfPlayer(state: GameState, player: number): { army: number; things: number } {
+  const armies = state.heroes
+    .filter((hero) => hero.owner === player)
+    .map((hero) => armyValue(state, hero.army));
+  const towns = state.objects.filter(
+    (object): object is TownState => object.type === "town" && object.owner === player,
+  );
+  const garrisons = towns.map((town) => armyValue(state, town.garrison));
+  const buildings = towns.length;
+  const army = [...armies, ...garrisons].reduce((sum, value) => sum + value, 0);
+  return { army, things: armies.length + buildings };
+}
+
+/**
+ * Предел времени партии: день перевалил за предел карты — партия кончается,
+ * побеждает сильнейший по армии (41-victory.md). `null` — предела нет или рано.
+ */
+export function timeLimitResult(state: GameState, events: GameEvent[]): GameState | null {
+  const limit = state.map.daysLimit;
+  if (limit === undefined || state.outcome !== null || state.day <= limit) {
+    return null;
+  }
+  const alive = state.players.filter((player) => !player.eliminated);
+  if (alive.length <= 1) {
+    return null;
+  }
+  const ranked = alive
+    .map((player) => ({ id: player.id, ...strengthOfPlayer(state, player.id) }))
+    .toSorted((a, b) => b.army - a.army || b.things - a.things || a.id - b.id);
+  const winner = ranked[0]?.id ?? null;
+  events.push({ type: "gameOver", outcome: "victory", winner, byTime: true });
+  return { ...state, outcome: "victory", winner };
 }

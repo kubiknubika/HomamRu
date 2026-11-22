@@ -1,0 +1,16 @@
+{
+  "id": "dragon-fairie",
+  "name": "Лесной дракон",
+  "attack": 17,
+  "defense": 15,
+  "damageMin": 18,
+  "damageMax": 26,
+  "health": 115,
+  "speed": 9,
+  "flying": true,
+  "shots": 0,
+  "price": 1800,
+  "growth": 1,
+  "level": 8,
+  "neutral": true
+}

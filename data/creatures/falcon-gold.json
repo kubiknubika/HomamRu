@@ -1,0 +1,15 @@
+{
+  "id": "falcon-gold",
+  "name": "Золотой сокол",
+  "attack": 9,
+  "defense": 7,
+  "damageMin": 4,
+  "damageMax": 6,
+  "health": 24,
+  "speed": 10,
+  "flying": true,
+  "shots": 0,
+  "price": 460,
+  "growth": 7,
+  "level": 3
+}

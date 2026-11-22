@@ -1,0 +1,26 @@
+# Проверочная карта шестого замка — «Некрополя» (docs/mechanics/78-sixth-castle.md).
+# Игрок у города Некрополя: жилища Некрополя строятся, жилища других замков — нет.
+id: test-necropolis
+name: Проверочная карта с Некрополем
+terrain:
+  - "........"
+  - "........"
+  - "........"
+  - "...##..."
+  - "........"
+  - "........"
+  - "........"
+  - "........"
+players:
+  - hero: { x: 1, y: 1, army: [{ creature: skeleton, count: 12 }] }
+    resources: { gold: 20000, wood: 20, ore: 20 }
+objects:
+  - {
+      type: town,
+      x: 2,
+      y: 2,
+      owner: 0,
+      faction: necropolis,
+      buildings: [tavern, fort, skeleton-pit],
+    }
+  - { type: mine, x: 1, y: 5, kind: gold-mine }

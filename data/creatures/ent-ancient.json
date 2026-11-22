@@ -1,0 +1,15 @@
+{
+  "id": "ent-ancient",
+  "name": "Древний древень",
+  "attack": 13,
+  "defense": 18,
+  "damageMin": 8,
+  "damageMax": 13,
+  "health": 72,
+  "speed": 3,
+  "flying": false,
+  "shots": 0,
+  "price": 800,
+  "growth": 4,
+  "level": 4
+}

@@ -110,6 +110,8 @@ export const objectSchema = z.discriminatedUnion("type", [
     x: z.int(),
     y: z.int(),
     owner: playerNumberSchema,
+    // Замок города (30-town.md): нет поля в старом сохранении — замок людей.
+    faction: z.string().catch("castle"),
     // Списки сверяются со зданиями и существами партии при чтении (stateTown.ts).
     buildings: z.array(z.string()).catch([]),
     builtToday: z.boolean().catch(false),
@@ -182,6 +184,8 @@ export const looseStateSchema = z.object({
     // Начального значения нет: без местности партию не продолжить.
     terrain: z.array(z.string().min(1)).min(1),
     starts: z.array(z.unknown()).catch([]),
+    // Предел времени партии переживает сохранение (41-victory.md).
+    daysLimit: z.int().min(1).optional(),
   }),
   players: z
     .array(

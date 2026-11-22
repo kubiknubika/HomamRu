@@ -1,0 +1,14 @@
+id: test-draw
+name: Ничья — обе армии гибнут от Армагеддона
+obstacles: []
+attacker:
+  hero: { attack: 0, defense: 0, spellPower: 5, mana: 40, allSpells: true }
+  morale: 0
+  luck: 0
+  army:
+    - { creature: militia, count: 1 }
+defender:
+  morale: 0
+  luck: 0
+  army:
+    - { creature: militia, count: 1 }

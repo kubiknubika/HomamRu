@@ -1,0 +1,19 @@
+# Проверочная карта девятого замка — «Согласия» (docs/mechanics/81-ninth-castle.md).
+# Игрок у города Согласия: жилища Согласия строятся, жилища других замков — нет.
+id: test-conflux
+name: Проверочная карта с Согласием
+terrain:
+  - "........"
+  - "........"
+  - "........"
+  - "...##..."
+  - "........"
+  - "........"
+  - "........"
+  - "........"
+players:
+  - hero: { x: 1, y: 1, army: [{ creature: pixie, count: 12 }] }
+    resources: { gold: 20000, wood: 20, ore: 20, mercury: 5 }
+objects:
+  - { type: town, x: 2, y: 2, owner: 0, faction: conflux, buildings: [tavern, fort, pixie-ring] }
+  - { type: mine, x: 1, y: 5, kind: gold-mine }

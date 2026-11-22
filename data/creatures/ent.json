@@ -1,0 +1,15 @@
+{
+  "id": "ent",
+  "name": "Древень",
+  "attack": 10,
+  "defense": 14,
+  "damageMin": 6,
+  "damageMax": 10,
+  "health": 55,
+  "speed": 3,
+  "flying": false,
+  "shots": 0,
+  "price": 350,
+  "growth": 4,
+  "level": 4
+}

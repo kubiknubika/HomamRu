@@ -4,6 +4,8 @@
 # Каждая вещь юго-восточной половины — поворот северо-западной на 180°.
 id: four-corners
 name: Четыре края
+# Предел времени: 120 дней (документ 41-victory.md).
+daysLimit: 120
 terrain:
   - ".................##................."
   - ".................##................."
@@ -85,20 +87,20 @@ objects:
   - { type: pile, x: 10, y: 33, resource: gold, amount: 1000 }
   - { type: mine, x: 12, y: 8, kind: sawmill }
   - { type: mine, x: 23, y: 27, kind: sawmill }
-  - { type: guard, x: 11, y: 7, creature: militia, count: 12 }
-  - { type: guard, x: 24, y: 28, creature: militia, count: 12 }
+  - { type: guard, x: 11, y: 7, creature: boar, count: 5 }
+  - { type: guard, x: 24, y: 28, creature: boar, count: 5 }
   - { type: mine, x: 31, y: 4, kind: ore-pit }
   - { type: mine, x: 4, y: 31, kind: ore-pit }
-  - { type: guard, x: 30, y: 5, creature: armsman, count: 12 }
-  - { type: guard, x: 5, y: 30, creature: armsman, count: 12 }
+  - { type: guard, x: 30, y: 5, creature: sharpshooter, count: 9 }
+  - { type: guard, x: 5, y: 30, creature: sharpshooter, count: 9 }
   - { type: mine, x: 2, y: 1, kind: gold-mine }
   - { type: mine, x: 33, y: 34, kind: gold-mine }
-  - { type: guard, x: 6, y: 1, creature: armsman, count: 30 }
-  - { type: guard, x: 29, y: 34, creature: armsman, count: 30 }
-  - { type: guard, x: 17, y: 8, creature: slinger, count: 30 }
-  - { type: guard, x: 18, y: 27, creature: slinger, count: 30 }
-  - { type: guard, x: 8, y: 17, creature: militia, count: 50 }
-  - { type: guard, x: 27, y: 18, creature: militia, count: 50 }
+  - { type: guard, x: 6, y: 1, creature: mummy, count: 15 }
+  - { type: guard, x: 29, y: 34, creature: mummy, count: 15 }
+  - { type: guard, x: 17, y: 8, creature: sharpshooter, count: 8 }
+  - { type: guard, x: 18, y: 27, creature: sharpshooter, count: 8 }
+  - { type: guard, x: 8, y: 17, creature: nomad, count: 11 }
+  - { type: guard, x: 27, y: 18, creature: nomad, count: 11 }
   - { type: mine, x: 0, y: 7, kind: alchemist-lab }
   - { type: mine, x: 35, y: 28, kind: alchemist-lab }
   - { type: mine, x: 0, y: 9, kind: sulfur-dune }
@@ -109,9 +111,9 @@ objects:
   - { type: mine, x: 33, y: 26, kind: gem-pond }
   - { type: pile, x: 0, y: 8, resource: sulfur, amount: 5 }
   - { type: pile, x: 35, y: 27, resource: sulfur, amount: 5 }
-  - { type: guard, x: 1, y: 8, creature: militia, count: 8 }
-  - { type: guard, x: 34, y: 27, creature: militia, count: 8 }
+  - { type: guard, x: 1, y: 8, creature: halfling, count: 8 }
+  - { type: guard, x: 34, y: 27, creature: halfling, count: 8 }
   - { type: pile, x: 0, y: 12, resource: crystal, amount: 5 }
   - { type: pile, x: 35, y: 23, resource: crystal, amount: 5 }
-  - { type: guard, x: 1, y: 12, creature: militia, count: 8 }
-  - { type: guard, x: 34, y: 23, creature: militia, count: 8 }
+  - { type: guard, x: 1, y: 12, creature: halfling, count: 8 }
+  - { type: guard, x: 34, y: 23, creature: halfling, count: 8 }

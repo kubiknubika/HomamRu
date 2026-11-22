@@ -1,0 +1,16 @@
+{
+  "id": "dragon-rust",
+  "name": "Ржавый дракон",
+  "attack": 18,
+  "defense": 18,
+  "damageMin": 22,
+  "damageMax": 32,
+  "health": 150,
+  "speed": 8,
+  "flying": true,
+  "shots": 0,
+  "price": 2400,
+  "growth": 1,
+  "level": 10,
+  "neutral": true
+}

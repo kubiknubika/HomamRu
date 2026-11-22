@@ -1,0 +1,16 @@
+{
+  "id": "sharpshooter",
+  "name": "Меткий стрелок",
+  "attack": 9,
+  "defense": 8,
+  "damageMin": 4,
+  "damageMax": 7,
+  "health": 26,
+  "speed": 6,
+  "flying": false,
+  "shots": 16,
+  "price": 400,
+  "growth": 7,
+  "level": 4,
+  "neutral": true
+}

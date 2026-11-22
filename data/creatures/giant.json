@@ -1,0 +1,15 @@
+{
+  "id": "giant",
+  "name": "Великан",
+  "attack": 17,
+  "defense": 15,
+  "damageMin": 18,
+  "damageMax": 26,
+  "health": 120,
+  "speed": 7,
+  "flying": false,
+  "shots": 0,
+  "price": 1400,
+  "growth": 1,
+  "level": 7
+}

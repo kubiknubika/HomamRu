@@ -1,0 +1,15 @@
+{
+  "id": "gargoyle-obsidian",
+  "name": "Обсидиановая горгулья",
+  "attack": 8,
+  "defense": 8,
+  "damageMin": 3,
+  "damageMax": 5,
+  "health": 21,
+  "speed": 7,
+  "flying": true,
+  "shots": 0,
+  "price": 280,
+  "growth": 9,
+  "level": 2
+}

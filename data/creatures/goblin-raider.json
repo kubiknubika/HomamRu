@@ -1,0 +1,15 @@
+{
+  "id": "goblin-raider",
+  "name": "Гоблин-налётчик",
+  "attack": 5,
+  "defense": 4,
+  "damageMin": 2,
+  "damageMax": 4,
+  "health": 13,
+  "speed": 6,
+  "flying": false,
+  "shots": 0,
+  "price": 120,
+  "growth": 14,
+  "level": 1
+}

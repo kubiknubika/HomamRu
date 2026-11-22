@@ -1,5 +1,5 @@
 // Заклинания в файле и магия в сохранении: docs/mechanics/60-spells.md, 61-magic.md, 04-save.md.
-import { applyCommand, SKILL_IDS } from "@homamru/core";
+import { applyCommand, MAX_SKILLS, SKILL_IDS } from "@homamru/core";
 import { gameWith, OPEN_FIELD, SPELLS } from "@homamru/core/testkit";
 import { describe, expect, it } from "vitest";
 import { parseHeroesFile } from "./battle.ts";
@@ -195,7 +195,7 @@ describe("магия в сохранении", () => {
       { id: "mysticism", level: 1 },
     ]);
     expect(heroWith({ skills: "все" })?.skills).toEqual([]);
-    expect(readSkills(SKILL_IDS.map((id) => ({ id, level: 3 })))).toHaveLength(8);
+    expect(readSkills(SKILL_IDS.map((id) => ({ id, level: 3 })))).toHaveLength(MAX_SKILLS);
     expect(
       heroWith({ skillOffer: ["wisdom", "flying", "wisdom", 5], skillsOwed: -1 }),
     ).toMatchObject({ skillOffer: ["wisdom"], skillsOwed: 0 });

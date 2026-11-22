@@ -1,0 +1,15 @@
+{
+  "id": "cavalier-lance",
+  "name": "Копейщик-всадник",
+  "attack": 14,
+  "defense": 11,
+  "damageMin": 9,
+  "damageMax": 14,
+  "health": 58,
+  "speed": 10,
+  "flying": false,
+  "shots": 0,
+  "price": 1080,
+  "growth": 3,
+  "level": 5
+}

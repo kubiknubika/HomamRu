@@ -1,0 +1,26 @@
+# Проверочная карта седьмого замка — «Цитадели варваров» (docs/mechanics/79-seventh-castle.md).
+# Игрок у города Цитадели: жилища Цитадели строятся, жилища других замков — нет.
+id: test-stronghold
+name: Проверочная карта с Цитаделью варваров
+terrain:
+  - "........"
+  - "........"
+  - "........"
+  - "...##..."
+  - "........"
+  - "........"
+  - "........"
+  - "........"
+players:
+  - hero: { x: 1, y: 1, army: [{ creature: goblin, count: 12 }] }
+    resources: { gold: 20000, wood: 20, ore: 20 }
+objects:
+  - {
+      type: town,
+      x: 2,
+      y: 2,
+      owner: 0,
+      faction: stronghold,
+      buildings: [tavern, fort, goblin-camp],
+    }
+  - { type: mine, x: 1, y: 5, kind: gold-mine }

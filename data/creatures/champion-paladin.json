@@ -1,0 +1,15 @@
+{
+  "id": "champion-paladin",
+  "name": "Паладин",
+  "attack": 17,
+  "defense": 16,
+  "damageMin": 12,
+  "damageMax": 18,
+  "health": 85,
+  "speed": 8,
+  "flying": false,
+  "shots": 0,
+  "price": 1900,
+  "growth": 2,
+  "level": 6
+}

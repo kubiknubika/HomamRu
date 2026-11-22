@@ -1,0 +1,15 @@
+{
+  "id": "vampire-lord",
+  "name": "Владыка вампиров",
+  "attack": 12,
+  "defense": 12,
+  "damageMin": 5,
+  "damageMax": 8,
+  "health": 58,
+  "speed": 6,
+  "flying": false,
+  "shots": 0,
+  "price": 980,
+  "growth": 4,
+  "level": 4
+}

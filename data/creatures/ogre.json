@@ -1,0 +1,15 @@
+{
+  "id": "ogre",
+  "name": "Огр",
+  "attack": 10,
+  "defense": 10,
+  "damageMin": 6,
+  "damageMax": 9,
+  "health": 50,
+  "speed": 4,
+  "flying": false,
+  "shots": 0,
+  "price": 420,
+  "growth": 4,
+  "level": 4
+}

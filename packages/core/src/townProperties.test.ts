@@ -117,6 +117,25 @@ function headcount(state: GameState): Map<string, number> {
   return total;
 }
 
+/**
+ * Обмен существом, которого нет, всегда отклоняется — а с ростом числа существ
+ * (порции 66–71) случайный выбор почти никогда не попадает в наличное. Тогда вид
+ * команды `transfer` вообще не проверяется. Поэтому существо для обмена берём из
+ * тех отрядов, что уже есть (если есть).
+ */
+function withPresentCreature(state: GameState, command: Command): Command {
+  if (command.type !== "transfer") {
+    return command;
+  }
+  const town = state.objects.find((object) => object.type === "town");
+  const stacks = [
+    ...(command.from === "hero" ? (state.heroes[0]?.army ?? []) : []),
+    ...(command.from === "garrison" && town?.type === "town" ? town.garrison : []),
+  ];
+  const present = stacks[0]?.creature;
+  return present === undefined ? command : { ...command, creature: present };
+}
+
 /** Одна и та же партия: сид и команды заданы. */
 function play(): GameState {
   let state = start(7);
@@ -146,7 +165,7 @@ describe("случайные партии с городом", () => {
       for (let index = 0; index < COMMANDS; index += 1) {
         const rolled = randomCommand(rng);
         rng = rolled.rng;
-        const { command } = rolled;
+        const command = withPresentCreature(state, rolled.command);
         const result = applyCommand(state, command);
         if (!result.ok) {
           // Отклонённая команда ничего не меняет — состояние то же самое.

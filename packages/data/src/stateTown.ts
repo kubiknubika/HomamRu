@@ -41,16 +41,71 @@ export function readCreatures(
     const ours = defaults.creatures.find((candidate) => candidate.id === creature.id);
     const price = creature.price > 0 ? creature.price : ours?.price;
     const growth = creature.growth > 0 ? creature.growth : ours?.growth;
-    return price === undefined || growth === undefined ? [] : [{ ...creature, price, growth }];
+    return price === undefined || growth === undefined ? [] : [canonical(creature, price, growth)];
   });
   const known = new Set(saved.map((creature) => creature.id));
   return [...saved, ...defaults.creatures.filter((creature) => !known.has(creature.id))];
 }
 
 /**
+ * Существо в том же порядке полей, что и умолчания: иначе повторное чтение даёт
+ * другой порядок ключей, и запись перестаёт быть устойчивой (`saveFuzz.test.ts`).
+ */
+function canonical(
+  creature: z.infer<typeof savedCreatureSchema>,
+  price: number,
+  growth: number,
+): CreatureDefinition {
+  const {
+    id,
+    name,
+    attack,
+    defense,
+    damageMin,
+    damageMax,
+    health,
+    speed,
+    flying,
+    shots,
+    level,
+    neutral,
+  } = creature;
+  const base: CreatureDefinition = {
+    id,
+    name,
+    attack,
+    defense,
+    damageMin,
+    damageMax,
+    health,
+    speed,
+    flying,
+    shots,
+    price,
+    growth,
+  };
+  const withLevel = level === undefined ? base : { ...base, level };
+  return neutral === undefined ? withLevel : { ...withLevel, neutral };
+}
+
+/**
  * Здания партии: читаемые из записи, а за ними здания игры, которых в записи нет.
  * Из требований убираются здания, которых в списке нет.
  */
+const COST_KEYS = ["gold", "wood", "ore", "mercury", "sulfur", "crystal", "gems"] as const;
+
+/** Цена здания: ключи ресурсов в постоянном порядке, пустые убраны. */
+function orderedCost(cost: BuildingDefinition["cost"]): BuildingDefinition["cost"] {
+  const ordered: { -readonly [K in (typeof COST_KEYS)[number]]?: number } = {};
+  for (const key of COST_KEYS) {
+    const amount = cost[key];
+    if (amount !== undefined) {
+      ordered[key] = amount;
+    }
+  }
+  return ordered;
+}
+
 export function readBuildings(
   items: readonly unknown[],
   defaults: SaveDefaults,
@@ -59,10 +114,25 @@ export function readBuildings(
   const known = new Set(saved.map((building) => building.id));
   const all = [...saved, ...defaults.buildings.filter((building) => !known.has(building.id))];
   const ids = new Set(all.map((building) => building.id));
-  return all.map((building) => ({
-    ...building,
-    requires: building.requires.filter((id) => ids.has(id)),
-  }));
+  // Улучшение без своей пары (старое и новое жилище) теряет смысл: его выбрасываем.
+  return all
+    .filter((building) => building.upgrade === undefined || ids.has(building.upgrade.base))
+    .map((building) => ({
+      // Порядок полей задан здесь, а не в записи: иначе порча, переставившая ключи,
+      // давала бы при повторном чтении другой JSON (04-save.md, «чтение устойчиво»).
+      id: building.id,
+      name: building.name,
+      cost: orderedCost(building.cost),
+      requires: building.requires.filter((id) => ids.has(id)),
+      ...(building.income === undefined ? {} : { income: building.income }),
+      ...(building.growthPercent === undefined ? {} : { growthPercent: building.growthPercent }),
+      ...(building.tavern === undefined ? {} : { tavern: building.tavern }),
+      ...(building.dwelling === undefined ? {} : { dwelling: building.dwelling }),
+      ...(building.upgrade === undefined ? {} : { upgrade: building.upgrade }),
+      ...(building.mageGuild === undefined ? {} : { mageGuild: building.mageGuild }),
+      ...(building.market === undefined ? {} : { market: building.market }),
+      ...(building.faction === undefined ? {} : { faction: building.faction }),
+    }));
 }
 
 /** Армия: отряды знакомых существ с числом от 1; одинаковые сливаются. */

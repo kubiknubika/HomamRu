@@ -1,0 +1,15 @@
+{
+  "id": "hydra",
+  "name": "Гидра",
+  "attack": 16,
+  "defense": 18,
+  "damageMin": 19,
+  "damageMax": 29,
+  "health": 140,
+  "speed": 5,
+  "flying": false,
+  "shots": 0,
+  "price": 1500,
+  "growth": 1,
+  "level": 7
+}

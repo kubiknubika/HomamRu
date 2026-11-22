@@ -1,0 +1,19 @@
+# Проверочная карта четвёртого замка — «Инферно» (docs/mechanics/76-fourth-castle.md).
+# Игрок у города Инферно: жилища Инферно строятся, жилища других замков — нет.
+id: test-inferno
+name: Проверочная карта с Инферно
+terrain:
+  - "........"
+  - "........"
+  - "........"
+  - "...##..."
+  - "........"
+  - "........"
+  - "........"
+  - "........"
+players:
+  - hero: { x: 1, y: 1, army: [{ creature: imp, count: 12 }] }
+    resources: { gold: 20000, wood: 20, ore: 20 }
+objects:
+  - { type: town, x: 2, y: 2, owner: 0, faction: inferno, buildings: [tavern, fort, imp-hovel] }
+  - { type: mine, x: 1, y: 5, kind: gold-mine }
