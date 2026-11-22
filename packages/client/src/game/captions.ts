@@ -103,6 +103,13 @@ export const CREATURE_MANY: Readonly<Record<string, string>> = {
   fiend: "исчадий",
   efreet: "ифритов",
   archfiend: "архибесов",
+  troglodyte: "пещерников",
+  harpy: "гарпий",
+  eye: "глазов",
+  medusa: "медуз",
+  minotaur: "минотавров",
+  manticore: "мантикор",
+  blackdragon: "чёрных змеев",
 };
 
 /**
@@ -153,6 +160,13 @@ export const CREATURE_PLURAL: Readonly<Record<string, string>> = {
   fiend: "исчадия",
   efreet: "ифриты",
   archfiend: "архибесы",
+  troglodyte: "пещерники",
+  harpy: "гарпии",
+  eye: "глазы",
+  medusa: "медузы",
+  minotaur: "минотавры",
+  manticore: "мантикоры",
+  blackdragon: "чёрные змеи",
 };
 
 /**

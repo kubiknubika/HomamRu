@@ -1,0 +1,15 @@
+{
+  "id": "blackdragon",
+  "name": "Чёрный змей",
+  "attack": 17,
+  "defense": 16,
+  "damageMin": 21,
+  "damageMax": 30,
+  "health": 140,
+  "speed": 9,
+  "flying": true,
+  "shots": 0,
+  "price": 1500,
+  "growth": 1,
+  "level": 7
+}

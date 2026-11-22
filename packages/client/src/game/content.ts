@@ -11,6 +11,13 @@ import type { ContentError, SaveDefaults } from "@homamru/data";
 import buildingsText from "../../../../data/buildings.yaml?raw";
 import armsmanText from "../../../../data/creatures/armsman.json?raw";
 import aurochsText from "../../../../data/creatures/aurochs.json?raw";
+import blackdragonText from "../../../../data/creatures/blackdragon.json?raw";
+import eyeText from "../../../../data/creatures/eye.json?raw";
+import harpyText from "../../../../data/creatures/harpy.json?raw";
+import manticoreText from "../../../../data/creatures/manticore.json?raw";
+import medusaText from "../../../../data/creatures/medusa.json?raw";
+import minotaurText from "../../../../data/creatures/minotaur.json?raw";
+import troglodyteText from "../../../../data/creatures/troglodyte.json?raw";
 import archfiendText from "../../../../data/creatures/archfiend.json?raw";
 import demonlingText from "../../../../data/creatures/demonling.json?raw";
 import efreetText from "../../../../data/creatures/efreet.json?raw";
@@ -66,6 +73,7 @@ const CREATURE_FILES = [
   { file: "data/creatures/archfiend.json", text: archfiendText },
   { file: "data/creatures/armsman.json", text: armsmanText },
   { file: "data/creatures/aurochs.json", text: aurochsText },
+  { file: "data/creatures/blackdragon.json", text: blackdragonText },
   { file: "data/creatures/boar.json", text: boarText },
   { file: "data/creatures/cavalier.json", text: cavalierText },
   { file: "data/creatures/champion.json", text: championText },
@@ -78,6 +86,7 @@ const CREATURE_FILES = [
   { file: "data/creatures/efreet.json", text: efreetText },
   { file: "data/creatures/enchanter.json", text: enchanterText },
   { file: "data/creatures/ent.json", text: entText },
+  { file: "data/creatures/eye.json", text: eyeText },
   { file: "data/creatures/falcon.json", text: falconText },
   { file: "data/creatures/fiend.json", text: fiendText },
   { file: "data/creatures/gargoyle.json", text: gargoyleText },
@@ -89,13 +98,17 @@ const CREATURE_FILES = [
   { file: "data/creatures/golem-gold.json", text: golemGoldText },
   { file: "data/creatures/griffin.json", text: griffinText },
   { file: "data/creatures/halfling.json", text: halflingText },
+  { file: "data/creatures/harpy.json", text: harpyText },
   { file: "data/creatures/horned.json", text: hornedText },
   { file: "data/creatures/hound.json", text: houndText },
   { file: "data/creatures/huntress.json", text: huntressText },
   { file: "data/creatures/imp.json", text: impText },
   { file: "data/creatures/kentaur.json", text: kentaurText },
   { file: "data/creatures/mage.json", text: mageText },
+  { file: "data/creatures/manticore.json", text: manticoreText },
+  { file: "data/creatures/medusa.json", text: medusaText },
   { file: "data/creatures/militia.json", text: militiaText },
+  { file: "data/creatures/minotaur.json", text: minotaurText },
   { file: "data/creatures/mummy.json", text: mummyText },
   { file: "data/creatures/naga.json", text: nagaText },
   { file: "data/creatures/nomad.json", text: nomadText },
@@ -103,6 +116,7 @@ const CREATURE_FILES = [
   { file: "data/creatures/rogue.json", text: rogueText },
   { file: "data/creatures/sharpshooter.json", text: sharpshooterText },
   { file: "data/creatures/slinger.json", text: slingerText },
+  { file: "data/creatures/troglodyte.json", text: troglodyteText },
   { file: "data/creatures/troll.json", text: trollText },
   { file: "data/creatures/warden.json", text: wardenText },
   { file: "data/creatures/wyvern.json", text: wyvernText },

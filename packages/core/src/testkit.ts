@@ -6,6 +6,7 @@ import { GUILD_TOP } from "./guildTop.ts";
 import { GLADE_BUILDINGS } from "./gladeBuildings.ts";
 import { TOWER_BUILDINGS } from "./towerBuildings.ts";
 import { INFERNO_BUILDINGS } from "./infernoBuildings.ts";
+import { DUNGEON_BUILDINGS } from "./dungeonBuildings.ts";
 import type { GameContent, HeroKind, OpponentRules, TavernRules } from "./tavernTypes.ts";
 import { CREATURES } from "./battle/testkit.ts";
 import { createGame, DAILY_MOVEMENT, heroIdOf } from "./game.ts";
@@ -178,6 +179,7 @@ export const BUILDINGS: readonly BuildingDefinition[] = [
   // Третий замок — в конце: порядок значим для тестов, которые берут первые здания списка.
   ...TOWER_BUILDINGS,
   ...INFERNO_BUILDINGS,
+  ...DUNGEON_BUILDINGS,
 ];
 
 /**

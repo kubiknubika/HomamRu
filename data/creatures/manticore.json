@@ -1,0 +1,15 @@
+{
+  "id": "manticore",
+  "name": "Мантикора",
+  "attack": 14,
+  "defense": 12,
+  "damageMin": 10,
+  "damageMax": 16,
+  "health": 80,
+  "speed": 8,
+  "flying": true,
+  "shots": 0,
+  "price": 900,
+  "growth": 2,
+  "level": 6
+}
