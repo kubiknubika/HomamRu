@@ -1,0 +1,15 @@
+{
+  "id": "phoenix",
+  "name": "Феникс",
+  "attack": 19,
+  "defense": 16,
+  "damageMin": 22,
+  "damageMax": 32,
+  "health": 125,
+  "speed": 11,
+  "flying": true,
+  "shots": 0,
+  "price": 1550,
+  "growth": 1,
+  "level": 7
+}

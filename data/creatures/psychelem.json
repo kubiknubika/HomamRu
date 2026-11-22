@@ -1,0 +1,15 @@
+{
+  "id": "psychelem",
+  "name": "Элементаль духа",
+  "attack": 13,
+  "defense": 13,
+  "damageMin": 9,
+  "damageMax": 14,
+  "health": 70,
+  "speed": 8,
+  "flying": false,
+  "shots": 0,
+  "price": 950,
+  "growth": 2,
+  "level": 6
+}

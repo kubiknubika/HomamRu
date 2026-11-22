@@ -1,0 +1,15 @@
+{
+  "id": "fireelem",
+  "name": "Элементаль огня",
+  "attack": 12,
+  "defense": 10,
+  "damageMin": 7,
+  "damageMax": 11,
+  "health": 46,
+  "speed": 7,
+  "flying": false,
+  "shots": 6,
+  "price": 550,
+  "growth": 3,
+  "level": 5
+}

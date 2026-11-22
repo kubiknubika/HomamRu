@@ -1,0 +1,15 @@
+{
+  "id": "earthlem",
+  "name": "Элементаль земли",
+  "attack": 10,
+  "defense": 11,
+  "damageMin": 5,
+  "damageMax": 8,
+  "health": 50,
+  "speed": 4,
+  "flying": false,
+  "shots": 0,
+  "price": 420,
+  "growth": 4,
+  "level": 4
+}

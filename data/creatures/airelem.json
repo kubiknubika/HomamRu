@@ -1,0 +1,15 @@
+{
+  "id": "airelem",
+  "name": "Элементаль воздуха",
+  "attack": 6,
+  "defense": 6,
+  "damageMin": 2,
+  "damageMax": 4,
+  "health": 18,
+  "speed": 8,
+  "flying": true,
+  "shots": 0,
+  "price": 130,
+  "growth": 9,
+  "level": 2
+}
