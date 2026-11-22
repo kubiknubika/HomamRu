@@ -8,6 +8,7 @@ import { TOWER_BUILDINGS } from "./towerBuildings.ts";
 import { INFERNO_BUILDINGS } from "./infernoBuildings.ts";
 import { DUNGEON_BUILDINGS } from "./dungeonBuildings.ts";
 import { NECROPOLIS_BUILDINGS } from "./necropolisBuildings.ts";
+import { STRONGHOLD_BUILDINGS } from "./strongholdBuildings.ts";
 import type { GameContent, HeroKind, OpponentRules, TavernRules } from "./tavernTypes.ts";
 import { CREATURES } from "./battle/testkit.ts";
 import { createGame, DAILY_MOVEMENT, heroIdOf } from "./game.ts";
@@ -182,6 +183,7 @@ export const BUILDINGS: readonly BuildingDefinition[] = [
   ...INFERNO_BUILDINGS,
   ...DUNGEON_BUILDINGS,
   ...NECROPOLIS_BUILDINGS,
+  ...STRONGHOLD_BUILDINGS,
 ];
 
 /**

@@ -13,6 +13,13 @@ import armsmanText from "../../../../data/creatures/armsman.json?raw";
 import aurochsText from "../../../../data/creatures/aurochs.json?raw";
 import blackdragonText from "../../../../data/creatures/blackdragon.json?raw";
 import bonedragonText from "../../../../data/creatures/bonedragon.json?raw";
+import goblinText from "../../../../data/creatures/goblin.json?raw";
+import wolfriderText from "../../../../data/creatures/wolfrider.json?raw";
+import orcText from "../../../../data/creatures/orc.json?raw";
+import ogreText from "../../../../data/creatures/ogre.json?raw";
+import rocText from "../../../../data/creatures/roc.json?raw";
+import cyclopText from "../../../../data/creatures/cyclop.json?raw";
+import behemothText from "../../../../data/creatures/behemoth.json?raw";
 import deathknightText from "../../../../data/creatures/deathknight.json?raw";
 import lichText from "../../../../data/creatures/lich.json?raw";
 import skeletonText from "../../../../data/creatures/skeleton.json?raw";
@@ -81,6 +88,13 @@ const CREATURE_FILES = [
   { file: "data/creatures/armsman.json", text: armsmanText },
   { file: "data/creatures/aurochs.json", text: aurochsText },
   { file: "data/creatures/bonedragon.json", text: bonedragonText },
+  { file: "data/creatures/goblin.json", text: goblinText },
+  { file: "data/creatures/wolfrider.json", text: wolfriderText },
+  { file: "data/creatures/orc.json", text: orcText },
+  { file: "data/creatures/ogre.json", text: ogreText },
+  { file: "data/creatures/roc.json", text: rocText },
+  { file: "data/creatures/cyclop.json", text: cyclopText },
+  { file: "data/creatures/behemoth.json", text: behemothText },
   { file: "data/creatures/deathknight.json", text: deathknightText },
   { file: "data/creatures/lich.json", text: lichText },
   { file: "data/creatures/skeleton.json", text: skeletonText },

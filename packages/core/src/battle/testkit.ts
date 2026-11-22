@@ -10,6 +10,7 @@ import { TOWER_CREATURES } from "./towerKit.ts";
 import { INFERNO_CREATURES } from "./infernoKit.ts";
 import { DUNGEON_CREATURES } from "./dungeonKit.ts";
 import { NECROPOLIS_CREATURES } from "./necropolisKit.ts";
+import { STRONGHOLD_CREATURES } from "./strongholdKit.ts";
 import { commandingSide, findStack } from "./queries.ts";
 import type {
   ArmyDefinition,
@@ -97,6 +98,7 @@ export const CREATURES = [
   ...INFERNO_CREATURES,
   ...DUNGEON_CREATURES,
   ...NECROPOLIS_CREATURES,
+  ...STRONGHOLD_CREATURES,
 ];
 
 /** Армия без героя, с нулевыми боевым духом и удачей. Запись отряда: `"militia:20"`. */

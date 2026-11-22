@@ -1,0 +1,15 @@
+{
+  "id": "orc",
+  "name": "Орк",
+  "attack": 8,
+  "defense": 6,
+  "damageMin": 3,
+  "damageMax": 5,
+  "health": 28,
+  "speed": 5,
+  "flying": false,
+  "shots": 12,
+  "price": 240,
+  "growth": 7,
+  "level": 3
+}
