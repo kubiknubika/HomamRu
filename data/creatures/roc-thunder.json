@@ -1,0 +1,15 @@
+{
+  "id": "roc-thunder",
+  "name": "Грозовая рух",
+  "attack": 13,
+  "defense": 11,
+  "damageMin": 9,
+  "damageMax": 14,
+  "health": 68,
+  "speed": 9,
+  "flying": true,
+  "shots": 0,
+  "price": 1250,
+  "growth": 3,
+  "level": 5
+}

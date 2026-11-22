@@ -1,0 +1,15 @@
+{
+  "id": "basilisk-ancient",
+  "name": "Древний василиск",
+  "attack": 12,
+  "defense": 15,
+  "damageMin": 5,
+  "damageMax": 9,
+  "health": 62,
+  "speed": 4,
+  "flying": false,
+  "shots": 0,
+  "price": 950,
+  "growth": 4,
+  "level": 4
+}

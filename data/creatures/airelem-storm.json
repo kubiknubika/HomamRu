@@ -1,0 +1,15 @@
+{
+  "id": "airelem-storm",
+  "name": "Буревой элементаль",
+  "attack": 8,
+  "defense": 8,
+  "damageMin": 3,
+  "damageMax": 5,
+  "health": 23,
+  "speed": 9,
+  "flying": true,
+  "shots": 0,
+  "price": 300,
+  "growth": 9,
+  "level": 2
+}

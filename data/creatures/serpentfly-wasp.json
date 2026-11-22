@@ -1,0 +1,15 @@
+{
+  "id": "serpentfly-wasp",
+  "name": "Змеиная оса",
+  "attack": 10,
+  "defense": 8,
+  "damageMin": 4,
+  "damageMax": 6,
+  "health": 31,
+  "speed": 10,
+  "flying": true,
+  "shots": 0,
+  "price": 550,
+  "growth": 7,
+  "level": 3
+}

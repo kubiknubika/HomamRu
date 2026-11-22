@@ -1,0 +1,15 @@
+{
+  "id": "gorgon-queen",
+  "name": "Горгона-владычица",
+  "attack": 13,
+  "defense": 16,
+  "damageMin": 8,
+  "damageMax": 13,
+  "health": 80,
+  "speed": 4,
+  "flying": false,
+  "shots": 0,
+  "price": 1250,
+  "growth": 3,
+  "level": 5
+}

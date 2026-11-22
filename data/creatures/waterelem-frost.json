@@ -1,0 +1,15 @@
+{
+  "id": "waterelem-frost",
+  "name": "Ледяной элементаль",
+  "attack": 9,
+  "defense": 9,
+  "damageMin": 4,
+  "damageMax": 6,
+  "health": 36,
+  "speed": 6,
+  "flying": false,
+  "shots": 0,
+  "price": 550,
+  "growth": 7,
+  "level": 3
+}

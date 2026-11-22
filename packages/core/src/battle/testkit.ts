@@ -18,6 +18,9 @@ import { GLADE_TOWER_UPGRADE_CREATURES } from "./gladeTowerUpgradeKit.ts";
 import { INFERNO_UPGRADE_CREATURES } from "./infernoUpgradeKit.ts";
 import { DUNGEON_UPGRADE_CREATURES } from "./dungeonUpgradeKit.ts";
 import { NECROPOLIS_UPGRADE_CREATURES } from "./necropolisUpgradeKit.ts";
+import { STRONGHOLD_UPGRADE_CREATURES } from "./strongholdUpgradeKit.ts";
+import { FORTRESS_UPGRADE_CREATURES } from "./fortressUpgradeKit.ts";
+import { CONFLUX_UPGRADE_CREATURES } from "./confluxUpgradeKit.ts";
 import { commandingSide, findStack } from "./queries.ts";
 import type {
   ArmyDefinition,
@@ -113,6 +116,9 @@ export const CREATURES = [
   ...INFERNO_UPGRADE_CREATURES,
   ...DUNGEON_UPGRADE_CREATURES,
   ...NECROPOLIS_UPGRADE_CREATURES,
+  ...STRONGHOLD_UPGRADE_CREATURES,
+  ...FORTRESS_UPGRADE_CREATURES,
+  ...CONFLUX_UPGRADE_CREATURES,
 ];
 
 /** Армия без героя, с нулевыми боевым духом и удачей. Запись отряда: `"militia:20"`. */

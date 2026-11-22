@@ -758,3 +758,153 @@
   dwelling: ghost-dragon
   faction: necropolis
   upgrade: { base: bonedragon-lair, becomes: ghost-dragon }
+
+# Улучшения жилищ Цитадели варваров, Крепости и Согласия (82-creature-upgrades.md):
+# последние три замка — второе существо на каждый уровень. Цены — примерно 1,6 цены базового жилища.
+- id: goblin-camp-up
+  name: Табор налётчиков
+  cost: { gold: 800, wood: 8 }
+  requires: [goblin-camp]
+  dwelling: goblin-raider
+  faction: stronghold
+  upgrade: { base: goblin-camp, becomes: goblin-raider }
+- id: wolfrider-pen-up
+  name: Загон вожаков
+  cost: { gold: 1600, wood: 8, ore: 8 }
+  requires: [wolfrider-pen]
+  dwelling: wolfrider-alpha
+  faction: stronghold
+  upgrade: { base: wolfrider-pen, becomes: wolfrider-alpha }
+- id: orc-hut-up
+  name: Хижина метателей
+  cost: { gold: 2400, ore: 24 }
+  requires: [orc-hut]
+  dwelling: orc-thrower
+  faction: stronghold
+  upgrade: { base: orc-hut, becomes: orc-thrower }
+- id: ogre-mound-up
+  name: Насыпь громил
+  cost: { gold: 4000, wood: 8, ore: 16 }
+  requires: [ogre-mound]
+  dwelling: ogre-brute
+  faction: stronghold
+  upgrade: { base: ogre-mound, becomes: ogre-brute }
+- id: roc-nest-up
+  name: Гнездовье грозовых рух
+  cost: { gold: 5600, wood: 16, ore: 16, mercury: 8 }
+  requires: [roc-nest]
+  dwelling: roc-thunder
+  faction: stronghold
+  upgrade: { base: roc-nest, becomes: roc-thunder }
+- id: cyclop-cave-up
+  name: Пещера циклопов-владык
+  cost: { gold: 8000, wood: 16, ore: 24, sulfur: 13 }
+  requires: [cyclop-cave]
+  dwelling: cyclop-lord
+  faction: stronghold
+  upgrade: { base: cyclop-cave, becomes: cyclop-lord }
+- id: behemoth-den-up
+  name: Логово древних бегемотов
+  cost: { gold: 12800, wood: 32, ore: 32, crystal: 12, gems: 12 }
+  requires: [behemoth-den]
+  dwelling: behemoth-ancient
+  faction: stronghold
+  upgrade: { base: behemoth-den, becomes: behemoth-ancient }
+- id: gnoll-hut-up
+  name: Хижина охотников
+  cost: { gold: 800, wood: 8 }
+  requires: [gnoll-hut]
+  dwelling: gnoll-hunter
+  faction: fortress
+  upgrade: { base: gnoll-hut, becomes: gnoll-hunter }
+- id: lizard-pool-up
+  name: Озерцо арбалетчиков
+  cost: { gold: 1600, wood: 8, ore: 8 }
+  requires: [lizard-pool]
+  dwelling: lizardman-crossbow
+  faction: fortress
+  upgrade: { base: lizard-pool, becomes: lizardman-crossbow }
+- id: serpentfly-swamp-up
+  name: Топь змеиных ос
+  cost: { gold: 2400, ore: 24 }
+  requires: [serpentfly-swamp]
+  dwelling: serpentfly-wasp
+  faction: fortress
+  upgrade: { base: serpentfly-swamp, becomes: serpentfly-wasp }
+- id: basilisk-pit-up
+  name: Яма древних василисков
+  cost: { gold: 4000, wood: 8, ore: 16, sulfur: 8 }
+  requires: [basilisk-pit]
+  dwelling: basilisk-ancient
+  faction: fortress
+  upgrade: { base: basilisk-pit, becomes: basilisk-ancient }
+- id: gorgon-temple-up
+  name: Храм владычиц
+  cost: { gold: 5600, wood: 16, ore: 16, gems: 8 }
+  requires: [gorgon-temple]
+  dwelling: gorgon-queen
+  faction: fortress
+  upgrade: { base: gorgon-temple, becomes: gorgon-queen }
+- id: bogwyvern-cliff-up
+  name: Утёс трясинных змеев
+  cost: { gold: 8000, wood: 16, ore: 24, mercury: 8 }
+  requires: [bogwyvern-cliff]
+  dwelling: bogwyvern-drake
+  faction: fortress
+  upgrade: { base: bogwyvern-cliff, becomes: bogwyvern-drake }
+- id: hydra-marsh-up
+  name: Топь древних гидр
+  cost: { gold: 12000, wood: 32, ore: 32, crystal: 12, gems: 12 }
+  requires: [hydra-marsh]
+  dwelling: hydra-ancient
+  faction: fortress
+  upgrade: { base: hydra-marsh, becomes: hydra-ancient }
+- id: pixie-ring-up
+  name: Круг сияющих фей
+  cost: { gold: 800, wood: 8 }
+  requires: [pixie-ring]
+  dwelling: pixie-radiant
+  faction: conflux
+  upgrade: { base: pixie-ring, becomes: pixie-radiant }
+- id: air-temple-up
+  name: Храм бурь
+  cost: { gold: 1600, wood: 8, ore: 8, mercury: 5 }
+  requires: [air-temple]
+  dwelling: airelem-storm
+  faction: conflux
+  upgrade: { base: air-temple, becomes: airelem-storm }
+- id: water-temple-up
+  name: Храм льда
+  cost: { gold: 2400, ore: 24, mercury: 5 }
+  requires: [water-temple]
+  dwelling: waterelem-frost
+  faction: conflux
+  upgrade: { base: water-temple, becomes: waterelem-frost }
+- id: earth-temple-up
+  name: Храм гранита
+  cost: { gold: 4000, wood: 8, ore: 16, sulfur: 8 }
+  requires: [earth-temple]
+  dwelling: earthlem-granite
+  faction: conflux
+  upgrade: { base: earth-temple, becomes: earthlem-granite }
+- id: fire-temple-up
+  name: Храм пламени
+  cost: { gold: 5600, wood: 16, ore: 16, sulfur: 8 }
+  requires: [fire-temple]
+  dwelling: fireelem-blaze
+  faction: conflux
+  upgrade: { base: fire-temple, becomes: fireelem-blaze }
+- id: spirit-temple-up
+  name: Храм воли
+  cost: { gold: 8000, wood: 16, ore: 24, mercury: 8, gems: 8 }
+  requires: [spirit-temple]
+  dwelling: psychelem-will
+  faction: conflux
+  upgrade: { base: spirit-temple, becomes: psychelem-will }
+- id: phoenix-nest-up
+  name: Гнездо вечных фениксов
+  cost: { gold: 14400, wood: 32, ore: 32, crystal: 12, gems: 12 }
+  requires: [phoenix-nest]
+  dwelling: phoenix-eternal
+  faction: conflux
+  upgrade: { base: phoenix-nest, becomes: phoenix-eternal }

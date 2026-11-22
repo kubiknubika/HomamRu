@@ -1,0 +1,15 @@
+{
+  "id": "cyclop-lord",
+  "name": "Циклоп-владыка",
+  "attack": 17,
+  "defense": 14,
+  "damageMin": 14,
+  "damageMax": 20,
+  "health": 98,
+  "speed": 6,
+  "flying": false,
+  "shots": 7,
+  "price": 2000,
+  "growth": 2,
+  "level": 6
+}

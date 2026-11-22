@@ -1,0 +1,15 @@
+{
+  "id": "pixie-radiant",
+  "name": "Сияющая фея",
+  "attack": 5,
+  "defense": 4,
+  "damageMin": 2,
+  "damageMax": 4,
+  "health": 14,
+  "speed": 9,
+  "flying": true,
+  "shots": 0,
+  "price": 120,
+  "growth": 14,
+  "level": 1
+}

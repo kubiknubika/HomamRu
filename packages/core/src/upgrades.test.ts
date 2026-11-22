@@ -131,9 +131,18 @@ describe("улучшения жилищ", () => {
   });
 });
 
-describe("улучшения Чащи и Башни", () => {
+describe("улучшения остальных замков", () => {
   it("у каждого замка семь улучшений, и каждое строится после своего жилища", () => {
     const homes: Record<string, string[]> = {
+      castle: [
+        "militia-yard",
+        "slinger-range",
+        "falcon-tower",
+        "barracks",
+        "stables",
+        "champion-hall",
+        "griffin-tower",
+      ],
       glade: [
         "kentaur-glade",
         "huntress-lodge",
@@ -151,6 +160,60 @@ describe("улучшения Чащи и Башни", () => {
         "genie-lamp",
         "naga-temple",
         "giant-hall",
+      ],
+      inferno: [
+        "imp-hovel",
+        "demonling-pit",
+        "hound-kennel",
+        "horned-tower",
+        "fiend-gate",
+        "efreet-forge",
+        "archfiend-throne",
+      ],
+      dungeon: [
+        "troglodyte-cave",
+        "harpy-nest",
+        "eye-tower",
+        "medusa-temple",
+        "minotaur-labyrinth",
+        "manticore-den",
+        "dragon-lair",
+      ],
+      necropolis: [
+        "skeleton-pit",
+        "zombie-yard",
+        "wight-crypt",
+        "vampire-crypt",
+        "lich-tower",
+        "deathknight-hall",
+        "bonedragon-lair",
+      ],
+      stronghold: [
+        "goblin-camp",
+        "wolfrider-pen",
+        "orc-hut",
+        "ogre-mound",
+        "roc-nest",
+        "cyclop-cave",
+        "behemoth-den",
+      ],
+      fortress: [
+        "gnoll-hut",
+        "lizard-pool",
+        "serpentfly-swamp",
+        "basilisk-pit",
+        "gorgon-temple",
+        "bogwyvern-cliff",
+        "hydra-marsh",
+      ],
+      conflux: [
+        "pixie-ring",
+        "air-temple",
+        "water-temple",
+        "earth-temple",
+        "fire-temple",
+        "spirit-temple",
+        "phoenix-nest",
       ],
     };
     for (const [faction, bases] of Object.entries(homes)) {

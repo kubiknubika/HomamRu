@@ -1,0 +1,15 @@
+{
+  "id": "hydra-ancient",
+  "name": "Древняя гидра",
+  "attack": 19,
+  "defense": 22,
+  "damageMin": 24,
+  "damageMax": 36,
+  "health": 180,
+  "speed": 5,
+  "flying": false,
+  "shots": 0,
+  "price": 3300,
+  "growth": 1,
+  "level": 7
+}

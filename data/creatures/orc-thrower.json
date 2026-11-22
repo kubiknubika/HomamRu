@@ -1,0 +1,15 @@
+{
+  "id": "orc-thrower",
+  "name": "Орк-метатель",
+  "attack": 10,
+  "defense": 8,
+  "damageMin": 4,
+  "damageMax": 6,
+  "health": 36,
+  "speed": 5,
+  "flying": false,
+  "shots": 14,
+  "price": 550,
+  "growth": 7,
+  "level": 3
+}
